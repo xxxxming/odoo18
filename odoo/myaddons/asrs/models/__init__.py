@@ -7,3 +7,4 @@ from . import control_system
 from . import control_system_operate
 from . import frame_barcode
 from . import wharehouse_communication
+from . import plc_connect
