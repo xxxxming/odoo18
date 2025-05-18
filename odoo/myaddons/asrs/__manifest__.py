@@ -19,10 +19,5 @@
     'application': True,
     'license': 'LGPL-3',
     "post_init_hook": "my_post_init_hook",
-    # 注册钩子函数
-    # 'pre_init_hook': None,
-    #'post_init_hook': 'models.control_system_operate.post_init_hook',
-    #'post_init_hook': 'post_init_hook',
-    # "post_init_hook": "post_init_hook",
     'uninstall_hook': None,
 }
