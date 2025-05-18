@@ -573,3 +573,4 @@ class ControlSystemOperate(models.Model):
         # logging.info(f'value2: {value2}')
         print('Test')
 
+
