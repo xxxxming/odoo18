@@ -30,7 +30,7 @@
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
 
-                    <button name="run_at_startup" type="object" string="启动线程" display="always"/>
+<!--                    <button name="run_at_startup" type="object" string="启动线程" display="always"/>-->
                     <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>
                     <button name="initialize_data" type="object" string="初始化" display="always"/>
 
