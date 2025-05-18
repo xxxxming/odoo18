@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+<!--
+    <record model="ir.ui.view" id="change_point.list">
+      <field name="name">change_point list</field>
+      <field name="model">change_point.change_point</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </list>
+      </field>
+    </record>
+-->
+
+    <!-- actions opening views on models -->
+<!--
+    <record model="ir.actions.act_window" id="change_point.action_window">
+      <field name="name">change_point window</field>
+      <field name="res_model">change_point.change_point</field>
+      <field name="view_mode">list,form</field>
+    </record>
+-->
+
+    <!-- server action to the one above -->
+<!--
+    <record model="ir.actions.server" id="change_point.action_server">
+      <field name="name">change_point server</field>
+      <field name="model_id" ref="model_change_point_change_point"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "list,form",
+          "res_model": model._name,
+        }
+      </field>
+    </record>
+-->
+
+    <!-- Top menu item -->
+<!--
+    <menuitem name="change_point" id="change_point.menu_root"/>
+-->
+    <!-- menu categories -->
+<!--
+    <menuitem name="Menu 1" id="change_point.menu_1" parent="change_point.menu_root"/>
+    <menuitem name="Menu 2" id="change_point.menu_2" parent="change_point.menu_root"/>
+-->
+    <!-- actions -->
+<!--
+    <menuitem name="List" id="change_point.menu_1_list" parent="change_point.menu_1"
+              action="change_point.action_window"/>
+    <menuitem name="Server to list" id="change_point" parent="change_point.menu_2"
+              action="change_point.action_server"/>
+-->
+  </data>
+</odoo>

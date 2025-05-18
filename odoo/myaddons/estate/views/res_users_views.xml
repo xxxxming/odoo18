@@ -1,0 +1,15 @@
+
+<odoo>
+    <record id="res_users_view_form_estate" model="ir.ui.view">
+        <field name="name">res.users.view.form.estate</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <page name="account_security" position="after">
+                 <page string="我的房产">
+                     <field name="property_ids" widget="one2many_list"/>
+                 </page>
+            </page>
+        </field>
+    </record>
+</odoo>

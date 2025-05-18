@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+asrs.access_plc_interface,access_plc_interface,asrs.model_plc_interface,base.group_user,1,1,1,1

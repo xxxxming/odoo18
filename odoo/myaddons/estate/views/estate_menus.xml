@@ -1,0 +1,12 @@
+<odoo>
+    <menuitem id="test_menu_root" name="房地产广告">
+    <menuitem id="estate_first_level_menu_property" name="房产信息">
+        <menuitem id="estate_model_menu_action_property" action="estate_property_act_window"/>
+    </menuitem>
+
+    <menuitem id="estate_first_level_menu_setting" name="设置">
+        <menuitem id="estate_model_menu_action_property_type" action="estate_property_type_act_window"/>
+        <menuitem id="estate_model_menu_action_property_tag" action="estate_property_tag_act_window"/>
+    </menuitem>
+</menuitem>
+</odoo>
