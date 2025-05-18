@@ -1,0 +1,18 @@
+<odoo>
+    <menuitem id="warehouse_menu_root" name="智能仓库">
+        <menuitem id="warehouse_menu_property" name="自动仓库">
+            <menuitem id="warehouse_menu_action_property" action="warehouse_property_act_window"/>
+        </menuitem>
+        <menuitem id="warehouse_menu_information" name="库位信息">
+            <menuitem id="warehouse_menu_action_information" action="warehouse_information_act_window"/>
+        </menuitem>
+        <menuitem id="warehouse_menu_control_system" name="控制系统">
+            <menuitem id="warehouse_menu_action_control_system" action="warehouse_control_system_act_window"/>
+            <menuitem id="warehouse_menu_action_control_system_operate" action="control_system_operate_act_window"/>
+        </menuitem>
+        <menuitem id="warehouse_menu_frame_barcode" name="设置">
+            <menuitem id="warehouse_menu_action_frame_barcode" action="frame_barcode_act_window"/>
+            <menuitem id="warehouse_menu_action_settings" action="warehouse_settings_act_window"/>
+        </menuitem>
+    </menuitem>
+</odoo>
