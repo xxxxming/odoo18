@@ -2,6 +2,7 @@
 import logging
 from odoo import models, fields, api
 import threading
+import struct
 from apscheduler.schedulers.background import BackgroundScheduler
 from .plc_connect import PlcClient
 _logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class ControlSystemOperate(models.Model):
     workshop = fields.Char(string="车间代号")
     line = fields.Char(string="线体代号")
     machine = fields.Char(string="机台代号")
-    emergency_stop = fields.Boolean(string="紧急停止")
+    emergency_stop = fields.Boolean(string="紧急停止", default=False)
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
     stop = fields.Boolean(string="停止")
@@ -193,6 +194,17 @@ class ControlSystemOperate(models.Model):
             for result in results:
                 self.batch_read_plc(result)
 
+
+
+
+
+
+
+
+
+
+
+
     def start_plc_scheduler(self):
         """启动定时任务"""
         scheduler = BackgroundScheduler()
@@ -233,6 +245,7 @@ class ControlSystemOperate(models.Model):
 
     def emergency_button(self):
         for record in self:
+            _logger.info(record.emergency_stop)
             record.emergency_stop = not record.emergency_stop
 
     def manual_button(self):

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <record id="control_system_operate_view_list" model="ir.ui.view">
@@ -23,14 +24,26 @@
         <field name="arch" type="xml">
             <form string="立库操作">
                 <header>
-                    <button name="emergency_button" type="object" string="急停按钮" class="btn-danger"/>
+<!--                    <button name="emergency_button" type="object" string="急停按钮"-->
+<!--                            widget="CustomButton" options="{'value_field': 'emergency_stop'}"/>-->
+<!--                    -->
+<!--                    <button name="emergency_button" type="object" string="急停按钮"-->
+<!--                            widget="CustomButton" class="btn_color_toggle"/>-->
+                     <field name="emergency_stop" invisible="1"/>
+                     <button name="emergency_button"
+                                                type="object"
+                                                string="急停按钮"
+                                                class="btn_color_toggle"
+                                                />
+
+
                     <button name="manual_button" type="object" string="手动模式"/>
                     <button name="auto_button" type="object" string="自动模式"/>
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
 
-<!--                    <button name="run_at_startup" type="object" string="启动线程" display="always"/>-->
+                    <!--                    <button name="run_at_startup" type="object" string="启动线程" display="always"/>-->
                     <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>
                     <button name="initialize_data" type="object" string="初始化" display="always"/>
 
@@ -45,8 +58,8 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-                                <field name="emergency_stop" readonly="True"/>
-                                <field name="manual_control"/>
+                                <field name="emergency_stop"/>
+                                <field name="manual_control" readonly="True"/>
                                 <field name="auto_control"/>
                             </group>
                         </group>

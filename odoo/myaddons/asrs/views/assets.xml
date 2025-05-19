@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <template id="assets_backend" inherit_id="web.assets_backend" name="Custom Button Assets">
+    <xpath expr="." position="inside">
+      <!-- 引入你的 JS -->
+      <script type="module" src="/asrs/static/src/js/button_color.js"/>
+    </xpath>
+  </template>
+</odoo>
