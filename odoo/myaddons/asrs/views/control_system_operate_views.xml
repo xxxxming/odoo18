@@ -36,7 +36,6 @@
                                                 class="btn_color_toggle"
                                                 />
 
-
                     <button name="manual_button" type="object" string="手动模式"/>
                     <button name="auto_button" type="object" string="自动模式"/>
                     <button name="stop_button" type="object" string="停止按钮"/>
@@ -65,8 +64,35 @@
                         </group>
                         <group>
                             <group>
-                                <field name="source_target"/>
-                                <field name="new_target"/>
+                                <field name="pack_number"/>
+                                <field name="source_target" readonly="True"/>
+                                <field name="new_target" readonly="True"/>
+                            </group>
+                            <group>
+                                <newline/>
+                                <group>
+                                    <field name="allow_outbound" />
+                                </group>
+                                <group>
+                                    <button name="store_button" type="object" string="入库"
+                                            class="btn-info"/>
+                                </group>
+                                <newline/>
+                                <group>
+                                    <field name="allow_outbound"/>
+                                </group>
+                                <group>
+                                    <button name="outbound_button" type="object" string="出库"
+                                            class="btn-info"/>
+                                </group>
+                                <newline/>
+                                <group>
+                                    <field name="allow_return"/>
+                                </group>
+                                <group>
+                                    <button name="return_store_button" type="object" string="返库"
+                                            class="btn-info"/>
+                                </group>
                             </group>
                         </group>
                     </group>
@@ -75,15 +101,15 @@
                             <form>
                                 <group>
                                     <header>
-                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>
-                                        <button name="write_stacker_information" type="object" string="写堆高" class="btn-info"/>
-                                        <button name="write_entrance1_information" type="object" string="写出入1" class="btn-info"/>
-                                        <button name="write_entrance2_information" type="object" string="写出入2" class="btn-info"/>
-                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>
-                                        <button name="read_stacker_information" type="object" string="读堆高" class="btn-info"/>
-                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>
-                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>
-
+<!--                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>-->
+<!--                                        <button name="write_stacker_information" type="object" string="写堆高" class="btn-info"/>-->
+<!--                                        <button name="write_entrance1_information" type="object" string="写出入1" class="btn-info"/>-->
+<!--                                        <button name="write_entrance2_information" type="object" string="写出入2" class="btn-info"/>-->
+<!--                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>-->
+<!--                                        <button name="read_stacker_information" type="object" string="读堆高" class="btn-info"/>-->
+<!--                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>-->
+<!--                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>-->
+                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>
                                         <button name="update_plc" type="object" string="写入测试"/>
                                         <button name="fetch_plc" type="object" string="读取测试"/>
                                     </header>
@@ -115,7 +141,6 @@
                                             <group>
                                             <field name="stacker_pack_number"/>
 <!--                                                 <field name="show_storage_pack_number"/>-->
-
                                             <field name="stacker_base_number"/>
                                             <field name="stacker_location_number"/>
                                             <field name="stacker_pack_barcode"/>
