@@ -139,3 +139,75 @@ class New_Public_PlcInterfaces():
                 row_results = self.batch_read_plc(result)
                 return row_results
         _logger.info("读取完成")
+
+
+
+    def do_something(self):
+        _logger.info({
+            'name': '访问触发',
+            'type': 'server',
+            'level': 'info',
+            'message': f"用户 {user_id} 访问了页面 {page}",
+            'path': __name__,
+            'line': 'do_something',
+            'func': 'do_something'
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
