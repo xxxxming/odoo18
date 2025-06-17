@@ -18,6 +18,6 @@ class PlcScheduler:
     def start(self):
         if not self.started:
             _logger.info("🚀 启动 PLC 调度器")
-            self.scheduler.add_job(self.one_second_task, 'interval', seconds=10, max_instances=1)
+            self.scheduler.add_job(self.one_second_task, 'interval', seconds=100, max_instances=1)
             self.scheduler.start()
             self.started = True
