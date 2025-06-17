@@ -29,13 +29,9 @@
 <!--                    -->
 <!--                    <button name="emergency_button" type="object" string="急停按钮"-->
 <!--                            widget="CustomButton" class="btn_color_toggle"/>-->
-                     <field name="emergency_stop" invisible="1"/>
-                     <button name="emergency_button"
-                                                type="object"
-                                                string="急停按钮"
-                                                class="btn_color_toggle"
-                                                />
-
+<!--                     <field name="emergency_stop" invisible="1"/>-->
+<!--                     <field name="emergency_stop"/>&ndash;&gt;-->
+                    <button name="emergency_button" type="object" string="急停按钮"/>
                     <button name="manual_button" type="object" string="手动模式"/>
                     <button name="auto_button" type="object" string="自动模式"/>
                     <button name="stop_button" type="object" string="停止按钮"/>
@@ -57,7 +53,7 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-                                <field name="emergency_stop"/>
+                                <field name="emergency_stop" readonly="emergency_stop"/>
                                 <field name="manual_control" readonly="True"/>
                                 <field name="auto_control"/>
                             </group>
@@ -101,15 +97,15 @@
                             <form>
                                 <group>
                                     <header>
-<!--                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>-->
+                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>
 <!--                                        <button name="write_stacker_information" type="object" string="写堆高" class="btn-info"/>-->
 <!--                                        <button name="write_entrance1_information" type="object" string="写出入1" class="btn-info"/>-->
 <!--                                        <button name="write_entrance2_information" type="object" string="写出入2" class="btn-info"/>-->
-<!--                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>-->
+                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>
 <!--                                        <button name="read_stacker_information" type="object" string="读堆高" class="btn-info"/>-->
 <!--                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>-->
 <!--                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>-->
-                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>
+<!--                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>-->
                                         <button name="update_plc" type="object" string="写入测试"/>
                                         <button name="fetch_plc" type="object" string="读取测试"/>
                                     </header>
@@ -117,12 +113,13 @@
                                     <newline/>
                                     <group string="库位信息">
                                         <group>
-                                            <field name="storage_goods_status" />
+                                            <field name="storage_goods_status"/>
                                             <field name="storage_goods_cancel"/>
+                                            <field name="one_second"/>
                                         </group>
                                         <!--                                        <newline/>-->
                                         <group>
-                                            <group>
+                                            <group cols="4">
                                                 <field name="storage_pack_number"/>
                                                 <field name="storage_base_number"/>
                                                 <field name="storage_location_number"/>
@@ -139,11 +136,11 @@
 
                                         <group>
                                             <group>
-                                            <field name="stacker_pack_number"/>
-<!--                                                 <field name="show_storage_pack_number"/>-->
-                                            <field name="stacker_base_number"/>
-                                            <field name="stacker_location_number"/>
-                                            <field name="stacker_pack_barcode"/>
+                                                <field name="stacker_pack_number"/>
+    <!--                                        <field name="show_storage_pack_number"/>-->
+                                                <field name="stacker_base_number"/>
+                                                <field name="stacker_location_number"/>
+                                                <field name="stacker_pack_barcode"/>
                                             </group>>
                                         </group>
                                     </group>

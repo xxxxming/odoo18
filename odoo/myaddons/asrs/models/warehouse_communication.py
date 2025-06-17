@@ -3,16 +3,15 @@ import struct
 from odoo import models, fields, api
 import logging
 import threading
-from snap7.util import *
+from .control_system_operate import ControlSystemOperate
 from .plc_connect import PlcClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 _logger = logging.getLogger(__name__)
-
+scheduler_started = False
 plc_lock = threading.Lock()
 
 class CommunicationProperty(models.Model):
-
 
     _name = 'communication.property'
     _description = 'communication property'
@@ -22,8 +21,17 @@ class CommunicationProperty(models.Model):
     slot = fields.Integer(string='插槽')
 
 
+class SystemControl(models.Model):
 
-
+    _name = 'system.control'
+    _description = 'system control'
+    emergency_stop = fields.Boolean(string="紧急停止", default=True)
+    manual_control = fields.Boolean(string="手动控制")
+    auto_control = fields.Boolean(string="自动控制")
+    stop = fields.Boolean(string="停止")
+    pause = fields.Boolean(string="暂停")
+    reset = fields.Boolean(string="复位")
+    one_second = fields.Integer(string='一秒周期',store=True)
 
 
 class Public_PlcInterface(models.Model):
@@ -47,16 +55,19 @@ class Public_PlcInterface(models.Model):
         default=True
     )
     # 急停状态
-    emergency_stop_state = fields.Boolean(string='急停状态',default=False)
+    emergency_stop_state = fields.Boolean(string='急停状态',default=False,)
 
 
 
 
 class New_Public_PlcInterfaces():
 
+    _name = 'new.plc.interface'
+    _description = 'new plc communication'
 
     def __init__(self):
-        pass
+
+     self.one_second = 0
 
 
     def batch_read_plc(self, data):
@@ -96,6 +107,7 @@ class New_Public_PlcInterfaces():
         # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
         # return value
 
+    @api .model
     def initialize_data_start(self):
         """
         hook调用
@@ -108,13 +120,20 @@ class New_Public_PlcInterfaces():
     def start_plc_scheduler(self):
         """启动定时任务"""
         scheduler = BackgroundScheduler()
+        # scheduler.add_job(
+        #     self.read_write_plc_data,
+        #     'interval',
+        #     seconds=0.5,
+        #     max_instances=2
+        # )
+        # 1秒的定时任务
+        _logger.info("1秒的定时任务")
         scheduler.add_job(
-            self.read_write_plc_data,
+            self.one_second_task,  # 可以指向另一个方法
             'interval',
-            seconds=0.2,
+            seconds=10,
             max_instances=2
         )
-
         # 添加事件监听器
         def job_listener(event):
             if event.code == EVENT_JOB_EXECUTED:
@@ -140,18 +159,34 @@ class New_Public_PlcInterfaces():
                 return row_results
         _logger.info("读取完成")
 
+    def one_second_task(self):
+        """1S执行"""
+        if not isinstance(self.one_second, int):
+            self.one_second = 0
+            # 更新状态
+        self.one_second = (self.one_second + 1) % 60
+        SystemControl.one_second = self.one_second
+        ControlSystemOperate.one_second  = self.one_second
+        print(SystemControl.one_second)
+        return self.one_second
+        # 获取所有 ControlSystemOperate 记录
+        # control_records = self.env['control.system.operate'].search([])
+        # for record in control_records:
+        #     record.one_second = self.one_second
+        # print(record.one_second)
 
 
-    def do_something(self):
-        _logger.info({
-            'name': '访问触发',
-            'type': 'server',
-            'level': 'info',
-            'message': f"用户 {user_id} 访问了页面 {page}",
-            'path': __name__,
-            'line': 'do_something',
-            'func': 'do_something'
-        })
+
+    # def do_something(self):
+    #     _logger.info({
+    #         'name': '访问触发',
+    #         'type': 'server',
+    #         'level': 'info',
+    #         'message': f"用户 {user_id} 访问了页面 {page}",
+    #         'path': __name__,
+    #         'line': 'do_something',
+    #         'func': 'do_something'
+    #     })
 
 
 

@@ -2,10 +2,11 @@ import snap7
 import logging
 import time
 import snap7
+import struct
 from snap7.util import *
 from snap7.util import get_int, set_int, get_bool, set_bool, get_string, set_string
 from snap7.util import (
-    set_int, get_int,
+    set_int, get_int, get_dint,
     set_bool, get_bool,
     set_string, get_string
 )
@@ -70,10 +71,12 @@ class PlcClient:
         - string_max_len: 若为string，最大长度（如 STRING[20] => 20）
         """
         db_number = row_data.get('db_number')
-        if db_number is None:
-            raise ValueError("db_number 不能为空")
+        # if db_number is None:
+        #     raise ValueError("db_number 不能为空")
         value = row_data.get('value')
         offset = row_data.get('start_address')
+        if offset is None:
+            offset = row_data.get('offset')
         value_type = row_data.get('value_type')
         bit_index = row_data.get('bit_index')
         string_max_len = row_data.get('string_max_len')
@@ -134,6 +137,14 @@ class PlcClient:
             data = self.client.db_read(db_number, offset, 2)
             return get_int(data, 0)
 
+        elif value_type == 'dint':
+            data = self.client.db_read(db_number, offset, 4)
+            swapped = struct.unpack('>I', data)[0]
+            print('Test')
+            print(swapped)
+            # return get_int(swapped, 0)
+            return swapped
+
         elif value_type == 'bool':
             if bit_index is None or not (0 <= bit_index <= 7):
                 raise ValueError("bit_index 必须在 0~7 范围内")
@@ -144,7 +155,8 @@ class PlcClient:
             if string_max_len is None:
                 raise ValueError("读取字符串时必须提供 string_max_len")
             data = self.client.db_read(db_number, offset, string_max_len + 2)
-            return get_string(data, 0, string_max_len)
+            tes = get_string(data, 0)
+            return get_string(data, 0)
         else:
             raise ValueError(f"不支持的数据类型: {value_type}")
 
@@ -169,6 +181,11 @@ class PlcClient:
         if value_type == 'int':
             data = self.client.db_read(db_number, offset, 2)
             return get_int(data, 0)
+
+        elif value_type == 'dint':
+            data = self.client.db_read(db_number, offset, 4)
+            swapped = struct.unpack('>I',data)[0]
+            return get_dint(swapped, 0)
 
         elif value_type == 'bool':
             if bit_index is None or not (0 <= bit_index <= 7):

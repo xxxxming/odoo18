@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+<!--    <record id="ir_cron_warehouse_initialize" model="ir.cron">-->
+<!--        <field name="name">Initialize Warehouse Data</field>-->
+<!--        <field name="model_id" ref="model_warehouse_communication"/>-->
+<!--        <field name="state">code</field>-->
+<!--        <field name="code">>model.initialize_data_start()</field>-->
+<!--        <field name="interval_number">1</field> &lt;!&ndash; 每隔多久执行 &ndash;&gt;-->
+<!--        <field name="interval_type">minutes</field> &lt;!&ndash; 可选: minutes/hours/days/weeks/months &ndash;&gt;-->
+<!--        <field name="numbercall">-1</field> &lt;!&ndash; -1 表示无限次 &ndash;&gt;-->
+<!--        <field name="active" eval="True"/> &lt;!&ndash; 是否启用 &ndash;&gt;-->
+<!--    </record>-->
+    <record id="ir_cron_plc_initialize" model="ir.cron">
+        <field name="name">Initialize PLC Data</field>
+        <field name="model_id" ref="model.new.plc.interface"/>
+        <field name="state">code</field>
+        <field name="code">model.initialize_data_start()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

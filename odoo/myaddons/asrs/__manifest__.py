@@ -13,7 +13,8 @@
         'views/control_system_views.xml',
         'views/frame_barcode_views.xml',
         'views/warehouse_settings_views.xml',
-         'views/warehouse_menus.xml',
+        'views/warehouse_menus.xml',
+        # 'data/scheduled_actions.xml',
         # 'views/assets.xml',
     ],
     'assets': {
@@ -24,6 +25,6 @@
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
-    "post_init_hook": "my_post_init_hook",
-    'uninstall_hook': None,
+    # "post_init_hook": "hooks.my_post_init_hook",
+    # 'uninstall_hook': None,
 }
