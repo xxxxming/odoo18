@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, fields, api
 
 class WarehouseLocationInformation(models.Model):
+
      _name = 'warehouse.location.information'
      _description = 'warehouse location information'
+
+
      goods_status = fields.Boolean(string='库位有货')
      goods_cancel = fields.Boolean(string='取消库位')
      fixed_pack_number = fields.Boolean(string='绑定框号')

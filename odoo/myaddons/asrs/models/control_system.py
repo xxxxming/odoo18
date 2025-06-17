@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-
 from odoo import models, fields, api
 
 class ControlSystem(models.Model):
+
+
      _name = 'control.system'
      _description = 'inventory control system'
+
+
      # life = fields.Boolean(string="心跳符号")
      # ready = fields.Boolean(string="准备就绪")
      factory = fields.Char(string="工厂代号")

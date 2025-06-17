@@ -4,11 +4,9 @@ from odoo import models, fields, api
 import threading
 import struct
 from apscheduler.schedulers.background import BackgroundScheduler
-
 from odoo.api import readonly
 from odoo.fields import Many2one
 from .plc_connect import PlcClient
-
 # from .warehouse_communication import New_Public_PlcInterfaces
 
 _logger = logging.getLogger(__name__)
@@ -19,8 +17,11 @@ plc_lock = threading.Lock()
 
 
 class AutomaticStorageLocation(models.Model):
+
     _name = 'automatic.storage.location'
     _description = 'automatic storage location'
+
+
     goods_status = fields.Boolean(string='库位有货')
     goods_cancel = fields.Boolean(string='取消库位')
     fixed_pack_number = fields.Boolean(string='绑定框号')
@@ -46,13 +47,15 @@ def read_information():
 
 
 class ControlSystemOperate(models.Model):
+
     # _inherit = 'system.control'
     _name = 'control.system.operate'
     _description = 'control system operate'
+
+
     workshop = fields.Char(string="车间代号")
     line = fields.Char(string="线体代号")
     machine = fields.Char(string="机台代号")
-
     # emergency_stop = fields.Boolean(string="紧急停止", default=False)
     control_id = fields.Many2one('system.control',string='系统控制')
     # emergency_stop_a = fields.Many2one('system.control.emergency_stop', string='紧急停止')

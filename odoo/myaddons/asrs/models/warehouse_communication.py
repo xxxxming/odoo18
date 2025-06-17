@@ -15,6 +15,8 @@ class CommunicationProperty(models.Model):
 
     _name = 'communication.property'
     _description = 'communication property'
+
+
     name = fields.Char(string='名称')
     ip = fields.Char(string='IP地址')
     rack = fields.Integer(string='机架')
@@ -25,6 +27,8 @@ class SystemControl(models.Model):
 
     _name = 'system.control'
     _description = 'system control'
+
+
     emergency_stop = fields.Boolean(string="紧急停止", default=True)
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
@@ -36,9 +40,9 @@ class SystemControl(models.Model):
 
 class Public_PlcInterface(models.Model):
 
-
     _name = 'plc.interface'
     _description = 'PLC Communication Interface'
+
 
     name = fields.Char(string='名称')
     ip = fields.Char(string='IP地址')
@@ -64,6 +68,7 @@ class New_Public_PlcInterfaces():
 
     _name = 'new.plc.interface'
     _description = 'new plc communication'
+
 
     def __init__(self):
 

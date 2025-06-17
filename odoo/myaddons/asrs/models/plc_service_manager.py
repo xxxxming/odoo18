@@ -1,6 +1,7 @@
 from odoo import api, models
 
 class PlcServiceManager(models.Model):
+
     _name = 'plc.service.manager'
     _description = 'plc_service_manager'
 
