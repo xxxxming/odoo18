@@ -140,8 +140,8 @@ class PlcClient:
         elif value_type == 'dint':
             data = self.client.db_read(db_number, offset, 4)
             swapped = struct.unpack('>I', data)[0]
-            print('Test')
-            print(swapped)
+            # print('Test')
+            # print(swapped)
             # return get_int(swapped, 0)
             return swapped
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-from odoo import models, fields, api
+import odoo
+from odoo import models, fields, api, SUPERUSER_ID
 import threading
 import struct
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -57,12 +58,9 @@ class ControlSystemOperate(models.Model):
     line = fields.Char(string="线体代号")
     machine = fields.Char(string="机台代号")
     # emergency_stop = fields.Boolean(string="紧急停止", default=False)
-    control_id = fields.Many2one('system.control',string='系统控制')
-    # emergency_stop_a = fields.Many2one('system.control.emergency_stop', string='紧急停止')
-    # emergency_stop_a = fields.Boolean(related='system.control.emergency_stop', string='紧急停止')
-    # one_second = fields.Integer(related='control_id.one_second',string='一秒周期')
-    one_second = fields.Integer( string='一秒周期')
-    # control_id = fields.Many2one('system.control', string='系统控制')
+    control_id = Many2one('system.control',string='系统控制')
+    pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
+    one_second = fields.Integer(string='一秒周期')
     emergency_stop = fields.Boolean(related='control_id.emergency_stop',string='紧急停止')
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
@@ -91,12 +89,12 @@ class ControlSystemOperate(models.Model):
     storage_goods_status = fields.Boolean(string='库位有货')
     storage_goods_status_code = Many2one('plc.storage.interface', string='库位信息')
     storage_goods_cancel = fields.Boolean(string='取消库位')
-    storage_fixed_pack_number = fields.Boolean(string='绑定框号')
-    storage_fixed_pack_barcode = fields.Boolean(string='绑定条码')
-    storage_pack_number = fields.Integer(string='框号')
-    storage_base_number = fields.Integer(string='库位编号')
-    storage_location_number = fields.Integer(string='库位号')
-    storage_pack_barcode = fields.Char(string='框条码')
+    storage_fixed_pack_number = fields.Boolean(string='绑定框号',store=True)
+    storage_fixed_pack_barcode = fields.Boolean(string='绑定条码',store=True)
+    storage_pack_number = fields.Integer(string='框号',store=True)
+    storage_base_number = fields.Integer(string='库位编号',store=True)
+    storage_location_number = fields.Integer(string='库位号',store=True)
+    storage_pack_barcode = fields.Char(string='框条码',store=True)
 
     stacker_goods_status = fields.Boolean(string='库位有货')
     stacker_goods_cancel = fields.Boolean(string='取消库位')
@@ -144,8 +142,7 @@ class ControlSystemOperate(models.Model):
         #     print(self.one_second)
         # self.one_second += 1
         # self.one_second = self.control_id.one_second
-        print(self.one_second)
-        print(self.control_id.one_second)
+        print(self.pc_start)
         print("test_onchange")
     def initialize_data(self):
         """
@@ -158,6 +155,8 @@ class ControlSystemOperate(models.Model):
         pass
 
     def start_plc_scheduler(self):
+        print(self.pc_start)
+        _logger.info("开始启动定时任务测试")
         pass
 
     def read_write_plc_data(self):
@@ -194,7 +193,7 @@ class ControlSystemOperate(models.Model):
         :return: value 读取结果
         """
         value = PlcClient().set_db_number_read(row_data)
-        _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
+        # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
         return value
 
     def update_plc(self):
@@ -256,43 +255,135 @@ class ControlSystemOperate(models.Model):
         PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
-
-
-    def fetch_plc(self):
+    def storage_information_read(self):
         """读取测试-批量"""
-
-        # 读取库位信息例子
         results = [
-            #库位有货
+            #库位有货，框号，库位号，框条码
             {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index':0},
-            # # 框号
             {'db_number': 262, 'offset': 4, 'value_type': 'int'},
-            # 库位号
             {'db_number': 262, 'offset': 10, 'value_type': 'dint'},
-            # 框条码
-            {'db_number': 262, 'offset': 14, 'value_type': 'string', "string_max_len": 9},
+            {'db_number': 262, 'offset': 14, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
-            _logger.info(type(value))
+            # _logger.info(type(value))
             if num == 1:
                 self.storage_goods_status = value
             elif num == 2:
-                self.storage_pack_number = value
+                # self.storage_pack_number = value
+                # self.update({"storage_pack_number": value})
+                self.write({'storage_pack_number': value})
+                print(value)
+                # record = self.env['control.system.operate'].search([], limit=1)
+                # if record:
+                #     # 读取 storage_pack_number 字段
+                #     print("Current Storage Pack Number:", record.storage_pack_number)
+
             elif num == 3:
                 self.storage_location_number = value
+                self.write({'storage_location_number': value})
+                print(value)
             elif num == 4:
                 #value = 'pack00001'
                 self.storage_pack_barcode = value
-                # _logger.info(f'框条码：{self.storage_pack_barcode}')
-                # _logger.info(f'框条码：{self.stacker_pack_barcode}')
-                # self.stacker_pack_barcode = '12'
-                # 在赋值后调用此方法确保前端更新
-                self.modified(['stacker_pack_barcode'])
-                self.env.flush_all()
+            self.modified([
+                'storage_pack_number',
+                'storage_location_number',
+                'storage_pack_barcode'
+            ])
+            self.env.flush_all()
 
+            # _logger.info(f"当前库位号: {self.stacker_location_number}")
+
+
+
+    def stacker_information_read(self):
+        """读取测试-批量"""
+        results = [
+            #库位有货，框号，库位号，框条码
+            {'db_number': 262, 'offset': 36, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 40, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 46, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 50, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        for result in results:
+            num += 1
+            value = self.batch_read_plc(result)
+            # _logger.info(type(value))
+            if num == 1:
+                self.stacker_goods_status = value
+                #self.env['control.system.operate'].create({"stacker_goods_status": value})
+            elif num == 2:
+                self.stacker_pack_number = value
+            elif num == 3:
+                # self.stacker_location_number = value
+                self.write({'stacker_location_number': value})
+            elif num == 4:
+                #value = 'pack00001'
+                self.stacker_pack_barcode = value
+            self.modified([
+                'stacker_pack_number',
+            ])
+            self.env.flush_all()
+
+    def entrance1_information_read(self):
+        """读取测试-批量"""
+        results = [
+            #库位有货，框号，库位号，框条码
+            {'db_number': 262, 'offset': 72, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 76, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 82, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 86, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        for result in results:
+            num += 1
+            value = self.batch_read_plc(result)
+            # _logger.info(type(value))
+            if num == 1:
+                self.entrance1_goods_status = value
+            elif num == 2:
+                self.entrance1_pack_number = value
+            elif num == 3:
+                self.entrance1_location_number = value
+            elif num == 4:
+                #value = 'pack00001'
+                self.entrance1_pack_barcode = value
+            self.modified([
+                'entrance1_pack_number',
+            ])
+            self.env.flush_all()
+
+    def entrance2_information_read(self):
+        """读取测试-批量"""
+        results = [
+            #库位有货，框号，库位号，框条码
+            {'db_number': 262, 'offset': 72, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 76, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 82, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 86, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        for result in results:
+            num += 1
+            value = self.batch_read_plc(result)
+            # _logger.info(type(value))
+            if num == 1:
+                self.entrance2_goods_status = value
+            elif num == 2:
+                self.entrance2_pack_number = value
+            elif num == 3:
+                self.entrance2_location_number = value
+            elif num == 4:
+                #value = 'pack00001'
+                self.entrance2_pack_barcode = value
+            self.modified([
+                'entrance2_pack_number',
+            ])
+            self.env.flush_all()
 
     def emergency_button(self):
         # code = self.env['system.control']
@@ -370,115 +461,138 @@ class ControlSystemOperate(models.Model):
             record.return_store = not record.return_store
 
 
-    @api.model
-    def inventory_information_write(self, bits0, bits1, value1, value2, value3, value4,
-                                    db_number: int = 0, address: int = 0, str_length: int = 20,
-                                    rack: int = 0, slot: int = 1) -> bool:
-        """
-        批量插入plc
-        param: plc_ip
-        param: area （只需要DB， M、Q不需要）
-        param: value [bool, int, float, str, bytes, bytearray]
-        param: db_number
-        param: address 【西门子自占用2个字节】
-        param: bit_offset 【位偏移（0-7，仅布尔类型需要）】
-        param: data_type 数据类型
-        param: str_length 字符串总长度（仅字符串类型需要）
-        param: rack 默认机架号
-        param: slot 默认插槽号
-        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # @api.model
+    # def inventory_information_write(self, bits0, bits1, value1, value2, value3, value4,
+    #                                 db_number: int = 0, address: int = 0, str_length: int = 20,
+    #                                 rack: int = 0, slot: int = 1) -> bool:
+    #     """
+    #     批量插入plc
+    #     param: plc_ip
+    #     param: area （只需要DB， M、Q不需要）
+    #     param: value [bool, int, float, str, bytes, bytearray]
+    #     param: db_number
+    #     param: address 【西门子自占用2个字节】
+    #     param: bit_offset 【位偏移（0-7，仅布尔类型需要）】
+    #     param: data_type 数据类型
+    #     param: str_length 字符串总长度（仅字符串类型需要）
+    #     param: rack 默认机架号
+    #     param: slot 默认插槽号
+    #     """
         #     raise ConnectionError("PLC连接失败")
-        client = self.PlcClient.connect_plc()
-        if not client:
-            pass
-        try:
-            current_data = client.db_read(db_number, address, 1)
-            current_byte = current_data[0]
-            if bits0:
-                new_byte = current_byte | (1 << 0)
-            else:
-                new_byte = current_byte & ~(1 << 0)
-            data_to_write = bytearray([new_byte])
-            client.db_write(db_number, address, data_to_write)
+    #     client = self.PlcClient.connect_plc()
+    #     if not client:
+    #         pass
+    #     try:
+    #         current_data = client.db_read(db_number, address, 1)
+    #         current_byte = current_data[0]
+    #         if bits0:
+    #             new_byte = current_byte | (1 << 0)
+    #         else:
+    #             new_byte = current_byte & ~(1 << 0)
+    #         data_to_write = bytearray([new_byte])
+    #         client.db_write(db_number, address, data_to_write)
+    #
+    #         current_data = client.db_read(db_number, address, 1)
+    #         current_byte = current_data[0]
+    #         if bits1:
+    #             new_byte = current_byte | (1 << 1)
+    #         else:
+    #             new_byte = current_byte & ~(1 << 1)
+    #         data_to_write = bytearray([new_byte])
+    #         client.db_write(db_number, address, data_to_write)
+    #
+    #         data_to_write = bytearray(struct.pack('>h', value1))
+    #         client.db_write(db_number, address + 2, data_to_write)
+    #
+    #         data_to_write = bytearray(struct.pack('>h', value2))
+    #         client.db_write(db_number, address + 4, data_to_write)
+    #
+    #         data_to_write = bytearray(struct.pack('>I', value3))
+    #         client.db_write(db_number, address + 10, data_to_write)
+    #
+    #         # 字符串类型（西门子格式）
+    #         if not isinstance(value4, str):
+    #             raise TypeError("str类型需要字符串值")
+    #         if str_length < len(value4):
+    #             raise ValueError("字符串长度超过定义长度")
+    #         encoded_str = value4.encode('utf-8')
+    #         data_to_write = bytearray(struct.pack(
+    #             f'>BB{str_length}s',  # 格式：最大长度(2字节) + 实际长度(2字节) + 内容
+    #             str_length,
+    #             len(encoded_str),
+    #             encoded_str.ljust(str_length, b'\x00')
+    #         ))
+    #         client.db_write(db_number, address + 14, data_to_write)
+    #         return True
+    #     except Exception as e:
+    #         return False
+    #
+    # def write_storage_information(self):
+    #     plc_interface = self.connect_plc()
+    #     if not plc_interface:
+    #         pass
+    #     code = self.inventory_information_write(
+    #         db_number=202,
+    #         address=0,
+    #         bits0=self.storage_goods_status,
+    #         bits1=self.storage_goods_cancel,
+    #         value1=self.storage_pack_number,
+    #         value2=self.storage_base_number,
+    #         value3=self.storage_location_number,
+    #         value4=self.storage_pack_barcode,
+    #     )
 
-            current_data = client.db_read(db_number, address, 1)
-            current_byte = current_data[0]
-            if bits1:
-                new_byte = current_byte | (1 << 1)
-            else:
-                new_byte = current_byte & ~(1 << 1)
-            data_to_write = bytearray([new_byte])
-            client.db_write(db_number, address, data_to_write)
-
-            data_to_write = bytearray(struct.pack('>h', value1))
-            client.db_write(db_number, address + 2, data_to_write)
-
-            data_to_write = bytearray(struct.pack('>h', value2))
-            client.db_write(db_number, address + 4, data_to_write)
-
-            data_to_write = bytearray(struct.pack('>I', value3))
-            client.db_write(db_number, address + 10, data_to_write)
-
-            # 字符串类型（西门子格式）
-            if not isinstance(value4, str):
-                raise TypeError("str类型需要字符串值")
-            if str_length < len(value4):
-                raise ValueError("字符串长度超过定义长度")
-            encoded_str = value4.encode('utf-8')
-            data_to_write = bytearray(struct.pack(
-                f'>BB{str_length}s',  # 格式：最大长度(2字节) + 实际长度(2字节) + 内容
-                str_length,
-                len(encoded_str),
-                encoded_str.ljust(str_length, b'\x00')
-            ))
-            client.db_write(db_number, address + 14, data_to_write)
-            return True
-        except Exception as e:
-            return False
-
-    def write_storage_information(self):
-        plc_interface = self.connect_plc()
-        if not plc_interface:
-            pass
-        code = self.inventory_information_write(
-            db_number=202,
-            address=0,
-            bits0=self.storage_goods_status,
-            bits1=self.storage_goods_cancel,
-            value1=self.storage_pack_number,
-            value2=self.storage_base_number,
-            value3=self.storage_location_number,
-            value4=self.storage_pack_barcode,
-        )
-
-    @api.model
-    def inventory_information_read(self,
-                                   db_number: int = 0, address: int = 0, str_length: int = 20,
-                                   rack: int = 0, slot: int = 1) -> bool:
-        """
-        批量插入plc
-        param: plc_ip
-        param: area （只需要DB， M、Q不需要）
-        param: value [bool, int, float, str, bytes, bytearray]
-        param: db_number
-        param: address 【西门子自占用2个字节】
-        param: bit_offset 【位偏移（0-7，仅布尔类型需要）】
-        param: data_type 数据类型
-        param: str_length 字符串总长度（仅字符串类型需要）
-        param: rack 默认机架号
-        param: slot 默认插槽号
-        """
+    # @api.model
+    # def inventory_information_read(self,
+    #                                db_number: int = 0, address: int = 0, str_length: int = 20,
+    #                                rack: int = 0, slot: int = 1) -> bool:
+    #     """
+    #     批量插入plc
+    #     param: plc_ip
+    #     param: area （只需要DB， M、Q不需要）
+    #     param: value [bool, int, float, str, bytes, bytearray]
+    #     param: db_number
+    #     param: address 【西门子自占用2个字节】
+    #     param: bit_offset 【位偏移（0-7，仅布尔类型需要）】
+    #     param: data_type 数据类型
+    #     param: str_length 字符串总长度（仅字符串类型需要）
+    #     param: rack 默认机架号
+    #     param: slot 默认插槽号
+    #     """
 
         # data_to_write1:int
         # 创建 PlcClient 实例
-        plc_client = PlcClient()
+        # plc_client = PlcClient()
         # 连接 PLC
-        client = plc_client.connect_plc()
+        # client = plc_client.connect_plc()
         # client = self.connect_plc()
-        if client is None:
-            raise ConnectionError("PLC连接失败")
-
-        try:
+        # if client is None:
+        #     raise ConnectionError("PLC连接失败")
+        #
+        # try:
             # 写入一个字节位
             # if len(bits) != 8:
             #     raise ValueError("必须提供8个布尔值")
@@ -488,20 +602,20 @@ class ControlSystemOperate(models.Model):
             #         byte |= (1 << (7 - i))
             # data_to_write = bytearray([byte])
 
-            current_data = client.db_read(db_number, address, 1)
-            current_byte = current_data[0]
-            bit0 = bool(current_byte & (1 << 0))  # 获取第 0 位的状态
-
-            bit1 = bool(current_byte & (1 << 1))  # 获取第 1 位的状态
-
-            raw_data = client.db_read(db_number, address + 2, 2)
-            value1 = struct.unpack('>h', raw_data)[0]
-            # self.write({'value1': value1})
-            raw_data = client.db_read(db_number, address + 4, 2)
-            value2 = struct.unpack('>h', raw_data)[0]
-
-            raw_data = client.db_read(db_number, address + 10, 4)
-            value3 = struct.unpack('>I', raw_data)[0]
+            # current_data = client.db_read(db_number, address, 1)
+            # current_byte = current_data[0]
+            # bit0 = bool(current_byte & (1 << 0))  # 获取第 0 位的状态
+            #
+            # bit1 = bool(current_byte & (1 << 1))  # 获取第 1 位的状态
+            #
+            # raw_data = client.db_read(db_number, address + 2, 2)
+            # value1 = struct.unpack('>h', raw_data)[0]
+            # # self.write({'value1': value1})
+            # raw_data = client.db_read(db_number, address + 4, 2)
+            # value2 = struct.unpack('>h', raw_data)[0]
+            #
+            # raw_data = client.db_read(db_number, address + 10, 4)
+            # value3 = struct.unpack('>I', raw_data)[0]
 
             # # 字符串类型（西门子格式）
             # if not isinstance(value4, str):
@@ -517,48 +631,48 @@ class ControlSystemOperate(models.Model):
             # ))
             # client.db_write(db_number, address + 14, data_to_write)
 
-            raw_data = client.db_read(db_number, address + 14, str_length)
-            value4 = raw_data[2:2 + raw_data[1]].decode('utf-8').strip('\x00')
-            print(value4)
+            # raw_data = client.db_read(db_number, address + 14, str_length)
+            # value4 = raw_data[2:2 + raw_data[1]].decode('utf-8').strip('\x00')
+            # print(value4)
             # return {value3, 123, }
             # return True
-            return {
-                "bit0": bit0,
-                'bit1': bit1,
-                'value1': value1,
-                'value2': value2,
-                'value3': value3,
-                'value4': value4,
-            }
-
-        except Exception as e:
-            return False
-
-        finally:
-            if client.get_connected():
-                client.disconnect()
-
-    def read_storage_information(self):
+    #         return {
+    #             "bit0": bit0,
+    #             'bit1': bit1,
+    #             'value1': value1,
+    #             'value2': value2,
+    #             'value3': value3,
+    #             'value4': value4,
+    #         }
+    #
+    #     except Exception as e:
+    #         return False
+    #
+    #     finally:
+    #         if client.get_connected():
+    #             client.disconnect()
+    #
+    # def read_storage_information(self):
 
         # plc_interface = self.connect_plc()
         # 创建 PlcClient 实例
-        plc_client = PlcClient()
+        # plc_client = PlcClient()
         # 连接 PLC
-        client = plc_client.connect_plc()
-
-        if not client:
-            pass
-        code = self.inventory_information_read(
-            db_number=202,
-            address=0,
-        )
-        logging.info(code)
-        for result in self:
-            result.storage_goods_status = code.get('bit0')
-            result.storage_pack_number = code.get('value1')
-            result.storage_base_number = code.get('value2')
-            result.storage_location_number = code.get('value3')
-            result.storage_pack_barcode = code.get('value4')
+        # client = plc_client.connect_plc()
+        #
+        # if not client:
+        #     pass
+        # code = self.inventory_information_read(
+        #     db_number=202,
+        #     address=0,
+        # )
+        # logging.info(code)
+        # for result in self:
+        #     result.storage_goods_status = code.get('bit0')
+        #     result.storage_pack_number = code.get('value1')
+        #     result.storage_base_number = code.get('value2')
+        #     result.storage_location_number = code.get('value3')
+        #     result.storage_pack_barcode = code.get('value4')
         # print(value)
 
 

@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import struct
-from odoo import models, fields, api
+from odoo import models, fields, api, http, Command
 import logging
 import threading
+from odoo.http import request
 from .control_system_operate import ControlSystemOperate
 from .plc_connect import PlcClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+
+from .test import Tste_val
+
 _logger = logging.getLogger(__name__)
 scheduler_started = False
 plc_lock = threading.Lock()
@@ -32,6 +36,7 @@ class SystemControl(models.Model):
     emergency_stop = fields.Boolean(string="紧急停止", default=True)
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
+    start = fields.Boolean(string="开始")
     stop = fields.Boolean(string="停止")
     pause = fields.Boolean(string="暂停")
     reset = fields.Boolean(string="复位")
@@ -62,18 +67,13 @@ class Public_PlcInterface(models.Model):
     emergency_stop_state = fields.Boolean(string='急停状态',default=False,)
 
 
+class New_Public_PlcInterfaces:
 
+    _name = 'plc.storage.interface'
 
-class New_Public_PlcInterfaces():
-
-    _name = 'new.plc.interface'
-    _description = 'new plc communication'
-
-
-    def __init__(self):
-
-     self.one_second = 0
-
+    def __init__(self, env):
+        self.env = env
+        self.one_second = 0
 
     def batch_read_plc(self, data):
         """
@@ -112,7 +112,7 @@ class New_Public_PlcInterfaces():
         # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
         # return value
 
-    @api .model
+    #@api .model
     def initialize_data_start(self):
         """
         hook调用
@@ -149,37 +149,70 @@ class New_Public_PlcInterfaces():
         scheduler.start()
         return scheduler
 
-
     def read_write_plc_data(self):
-        if plc_lock.locked():
-            _logger.info("上一次任务未完成，本次跳过")
-            return None
-        with plc_lock:
-            results = [
-                {'db_number': 262, 'start_address': 0, 'value_type': 'bool', 'bit_index': 0},
-                # 库位有货
-            ]
-            for result in results:
-                row_results = self.batch_read_plc(result)
-                return row_results
-        _logger.info("读取完成")
+        results = [
+            # PC控制
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 1},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 2},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 3},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 4},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 5},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 6},
+            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 7},
+        ]
+        num = 0
+        for result in results:
+            num += 1
+            value = self.batch_read_plc(result)
+            if num == 1:
+                SystemControl.start = value
+                print(SystemControl.start)
+                # record = self.env['system.control'].search([], limit=1)
+                # try:
+                #     record.write({'start': value})
+            elif num == 2:
+                SystemControl.stop = value
+            elif num == 3:
+                SystemControl.pause = value
+            elif num == 4:
+                SystemControl.reset = value
+
 
     def one_second_task(self):
         """1S执行"""
-        if not isinstance(self.one_second, int):
-            self.one_second = 0
-            # 更新状态
-        self.one_second = (self.one_second + 1) % 60
-        SystemControl.one_second = self.one_second
-        ControlSystemOperate.one_second  = self.one_second
-        print(SystemControl.one_second)
-        return self.one_second
+
+        _logger.info("1秒的定时任务")
+        return None
         # 获取所有 ControlSystemOperate 记录
         # control_records = self.env['control.system.operate'].search([])
         # for record in control_records:
         #     record.one_second = self.one_second
         # print(record.one_second)
 
+    def ten_second_task(self):
+        """1S执行"""
+        # information real
+        self.env['control.system.operate'].storage_information_read()
+        self.env['control.system.operate'].stacker_information_read()
+        self.env['control.system.operate'].entrance1_information_read()
+        self.env['control.system.operate'].entrance2_information_read()
+
+        # partner = self.env['control.system.operate'].create({'name': 'MyPartner1'})
+        # args = (partner.ids, ['name'])
+        # kwargs = {'context': {'test': True}}
+        # api.call_kw(self.env['control.system.operate'],'storage_information_read', args, kwargs)
+
+        self.read_write_plc_data()
+        _logger.info("10秒的定时任务")
+        return None
+        # """1S执行"""
+        # try:
+        #
+        #     _logger.info("10秒的定时任务")
+        # except Exception as e:
+        #     _logger.error("[ten_second_task] 执行过程中发生异常: %s", str(e), exc_info=True)
+        # return None
 
 
     # def do_something(self):
@@ -192,12 +225,6 @@ class New_Public_PlcInterfaces():
     #         'line': 'do_something',
     #         'func': 'do_something'
     #     })
-
-
-
-
-
-
 
 
 

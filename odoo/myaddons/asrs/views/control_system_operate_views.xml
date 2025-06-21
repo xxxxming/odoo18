@@ -97,17 +97,17 @@
                             <form>
                                 <group>
                                     <header>
-                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>
+<!--                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>-->
 <!--                                        <button name="write_stacker_information" type="object" string="写堆高" class="btn-info"/>-->
 <!--                                        <button name="write_entrance1_information" type="object" string="写出入1" class="btn-info"/>-->
 <!--                                        <button name="write_entrance2_information" type="object" string="写出入2" class="btn-info"/>-->
-                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>
+<!--                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>-->
 <!--                                        <button name="read_stacker_information" type="object" string="读堆高" class="btn-info"/>-->
 <!--                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>-->
 <!--                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>-->
 <!--                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>-->
                                         <button name="update_plc" type="object" string="写入测试"/>
-                                        <button name="fetch_plc" type="object" string="读取测试"/>
+                                        <button name="storage_information_read" type="object" string="读库位信息"/>
                                     </header>
                                     >
                                     <newline/>
@@ -115,7 +115,8 @@
                                         <group>
                                             <field name="storage_goods_status"/>
                                             <field name="storage_goods_cancel"/>
-                                            <field name="one_second"/>
+<!--                                            <field name="one_second"/>-->
+                                            <field name="pc_start"/>
                                         </group>
                                         <!--                                        <newline/>-->
                                         <group>
@@ -125,7 +126,6 @@
                                                 <field name="storage_location_number"/>
                                                 <field name="storage_pack_barcode"/>
                                             </group>
-                                            >
                                         </group>
                                     </group>
                                     <group string="堆高机">
