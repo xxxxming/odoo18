@@ -45,6 +45,7 @@
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
+<!--                    <component name="AutoRecordRefresher" record="record"/>-->
                     <group>
                         <group>
                             <group>
@@ -94,6 +95,8 @@
                     </group>
                     <notebook>
                         <page string="出入库" >
+                            <group>
+                            </group>
                             <form>
                                 <group>
                                     <header>
@@ -121,13 +124,16 @@
                                         <!--                                        <newline/>-->
                                         <group>
                                             <group cols="4">
-                                                <field name="storage_pack_number"/>
+                                                <field name="storage_pack_number" invisible="1"/>
                                                 <field name="storage_base_number"/>
                                                 <field name="storage_location_number"/>
                                                 <field name="storage_pack_barcode"/>
                                             </group>
                                         </group>
+
                                     </group>
+
+
                                     <group string="堆高机">
                                         <group>
                                             <field name="stacker_goods_status"/>
@@ -174,7 +180,6 @@
                                         </group>
                                     </group>
                                 </group>
-
                             </form>
                         </page>
                         <page string="记录">

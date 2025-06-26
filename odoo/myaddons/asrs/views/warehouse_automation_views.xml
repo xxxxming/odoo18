@@ -1,0 +1,35 @@
+<odoo>
+
+    <record id="warehouse_automation_view_list" model="ir.ui.view">
+        <field name="name">warehouse_automation_view_list</field>
+        <field name="model">warehouse.automation</field>
+        <field name="arch" type="xml">
+            <list>
+                <!--                <header>-->
+                <!--                    <button name="create_location_record" type="object" string="创建库位" class="btn-info" display="always"/>-->
+                <!--                    <button name="batch_create_location_records" type="object" string="批量创建" class="btn-info" display="always"/>-->
+                <!--                </header>-->
+
+                <field name="creation_date"/>
+                <field name="reference_number"/>
+                <field name="pack_number"/>
+                <field name="source_target"/>
+                <field name="new_target"/>
+                <field name="entrance"/>
+                <field name="order_mode"/>
+                <field name="inventory_action"/>
+                <field name="order_status"/>
+
+            </list>
+        </field>
+    </record>
+
+    <record id="warehouse_automation_act_window" model="ir.actions.act_window">
+        <field name="name">自动仓库运行</field>
+        <field name="res_model">warehouse.automation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+
+</odoo>

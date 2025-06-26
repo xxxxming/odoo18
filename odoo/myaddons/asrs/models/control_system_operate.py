@@ -3,6 +3,8 @@ import logging
 import odoo
 from odoo import models, fields, api, SUPERUSER_ID
 import threading
+from odoo import http
+from odoo.http import request
 import struct
 from apscheduler.schedulers.background import BackgroundScheduler
 from odoo.api import readonly
@@ -255,26 +257,29 @@ class ControlSystemOperate(models.Model):
         PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
+    @api.model
     def storage_information_read(self):
         """读取测试-批量"""
         results = [
-            #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index':0},
+            # 库位有货，框号，库位号，框条码
+            {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
             {'db_number': 262, 'offset': 4, 'value_type': 'int'},
             {'db_number': 262, 'offset': 10, 'value_type': 'dint'},
             {'db_number': 262, 'offset': 14, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
+
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
-            # _logger.info(type(value))
+            _logger.info(type(value))
+
             if num == 1:
                 self.storage_goods_status = value
             elif num == 2:
-                # self.storage_pack_number = value
+                self.storage_pack_number = value
                 # self.update({"storage_pack_number": value})
-                self.write({'storage_pack_number': value})
+                # self.browse(1).write({'storage_pack_number': value})
                 print(value)
                 # record = self.env['control.system.operate'].search([], limit=1)
                 # if record:
@@ -286,7 +291,7 @@ class ControlSystemOperate(models.Model):
                 self.write({'storage_location_number': value})
                 print(value)
             elif num == 4:
-                #value = 'pack00001'
+                # value = 'pack00001'
                 self.storage_pack_barcode = value
             self.modified([
                 'storage_pack_number',
@@ -294,8 +299,6 @@ class ControlSystemOperate(models.Model):
                 'storage_pack_barcode'
             ])
             self.env.flush_all()
-
-            # _logger.info(f"当前库位号: {self.stacker_location_number}")
 
 
 
@@ -384,6 +387,12 @@ class ControlSystemOperate(models.Model):
                 'entrance2_pack_number',
             ])
             self.env.flush_all()
+
+    # @http.route('/my/model/pack_number', type='json', auth='user')
+    # def real_update_val(self):
+    #     """实时更新"""
+    #     record = request.env['my.model'].sudo().browse(int(record_id))
+    #     return {'pack_number': record.storage_pack_number}
 
     def emergency_button(self):
         # code = self.env['system.control']

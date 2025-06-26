@@ -5,19 +5,24 @@
         <field name="model">warehouse.location.information</field>
         <field name="arch" type="xml">
             <list>
-<!--                <header>-->
-<!--                    <button name="start" type="object" string="启动线程" display="always"/>-->
-<!--                    <button name="stop" type="object" string="停止线程" display="always"/>-->
-<!--                    <button name="_run_scheduler" type="object" string="定时运行" display="always"/>-->
-<!--                </header>-->
+                <header>
+                    <button name="create_location_record" type="object" string="创建库位" class="btn-info" display="always"/>
+                    <button name="batch_create_location_records" type="object" string="批量创建" class="btn-info" display="always"/>
+                </header>
+
                 <field name="goods_status"/>
                 <field name="goods_cancel"/>
                 <field name="fixed_pack_number"/>
                 <field name="fixed_pack_barcode"/>
-                <field name="pack_number"/>
                 <field name="base_number"/>
                 <field name="location_number"/>
+                <field name="pack_number"/>
                 <field name="pack_barcode"/>
+<!--                <control>-->
+<!--                    <create string="Add an item"/>-->
+<!--                    <create string="Add a section" context="{'default_type': 'section'}"/>-->
+<!--                    <create string="Add a note" context="{'default_type': 'note'}"/>-->
+<!--                </control>-->
             </list>
         </field>
     </record>
@@ -25,7 +30,36 @@
     <record id="warehouse_information_act_window" model="ir.actions.act_window">
         <field name="name">库位信息</field>
         <field name="res_model">warehouse.location.information</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record id="warehouse_information_view_kanban" model="ir.ui.view">
+        <field name="name">warehouse_information_view_kanban</field>
+        <field name="model">warehouse.location.information</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_box">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div>
+
+                                <div style="position: absolute; top: 8px; right: 10px;">
+                                    序号：<field name="base_number"/>
+                                </div>
+
+                                <!-- 主体内容 -->
+                                <div>
+                                    <p style="background-color: #d4edda;">库位：<field name="location_number"/></p>
+                                    <p>框号：<field name="pack_number"/></p>
+                                    <p>框码：<field name="pack_barcode"/></p>
+
+<!--                                 <button type="object" name="action_view_details" string="查看详情" class="btn btn-primary btn-sm"/>-->
+                                </div>
+
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
     </record>
 
 </odoo>

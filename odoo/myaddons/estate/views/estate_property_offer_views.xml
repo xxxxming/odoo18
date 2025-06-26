@@ -25,10 +25,10 @@
     <field name="domain">[('property_type_id','=',activ_id)]</field>
     </record>
 
-    price = fields.Float(string='价格')
-    status = fields.Selection(string='报价状态',selection=[('Accepted','接受报价'),('Refused','拒绝报价')],copy=False)
-    partner_id = fields.Many2one('res.partner',string='买家',required=True)
-    property_id = fields.Many2one('estate.property',string='房产',required=True)
+<!--    price = fields.Float(string='价格')-->
+<!--    status = fields.Selection(string='报价状态',selection=[('Accepted','接受报价'),('Refused','拒绝报价')],copy=False)-->
+<!--    partner_id = fields.Many2one('res.partner',string='买家',required=True)-->
+<!--    property_id = fields.Many2one('estate.property',string='房产',required=True)-->
 
 <!--    <record id="estate_property_type_view_form" model="ir.ui.view">-->
 <!--        <field name="name">estate_property_type_view_form</field>-->

@@ -5,12 +5,15 @@
         <field name="model">warehouse.settings</field>
         <field name="arch" type="xml">
             <list>
-                <field name="number_layers"/>
-                <field name="number_column"/>
-                <field name="lift_coordinate"/>
-                <field name="shuttle_coordinate"/>
-                <field name="layer_spacing"/>
+                <field name="building"/>
+                <field name="column"/>
+                <field name="layer"/>
+                <field name="total_locations"/>
+<!--                <field name="lift_coordinate"/>-->
+<!--                <field name="shuttle_coordinate"/>-->
                 <field name="column_spacing"/>
+                <field name="layer_spacing"/>
+
 
             </list>
         </field>

@@ -2,6 +2,7 @@
     <menuitem id="warehouse_menu_root" name="智能仓库">
         <menuitem id="warehouse_menu_property" name="自动仓库">
             <menuitem id="warehouse_menu_action_property" action="warehouse_property_act_window"/>
+            <menuitem id="warehouse_menu_action_automation" action="warehouse_automation_act_window"/>
         </menuitem>
         <menuitem id="warehouse_menu_information" name="库位信息">
             <menuitem id="warehouse_menu_action_information" action="warehouse_information_act_window"/>

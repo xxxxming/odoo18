@@ -193,6 +193,7 @@ class New_Public_PlcInterfaces:
     def ten_second_task(self):
         """1S执行"""
         # information real
+
         self.env['control.system.operate'].storage_information_read()
         self.env['control.system.operate'].stacker_information_read()
         self.env['control.system.operate'].entrance1_information_read()
@@ -202,6 +203,8 @@ class New_Public_PlcInterfaces:
         # args = (partner.ids, ['name'])
         # kwargs = {'context': {'test': True}}
         # api.call_kw(self.env['control.system.operate'],'storage_information_read', args, kwargs)
+
+
 
         self.read_write_plc_data()
         _logger.info("10秒的定时任务")
@@ -226,9 +229,15 @@ class New_Public_PlcInterfaces:
     #         'func': 'do_something'
     #     })
 
-
-
-
+    # def safe_call_entrance2_information_read(self):
+    #     try:
+    #         _logger.info("开始调用 entrance2_information_read 方法")
+    #         result = self.env['control.system.operate'].call_kw('storage_information_read', [], {})
+    #         _logger.info("调用成功，返回结果: %s", result)
+    #         return result
+    #     except Exception as e:
+    #         _logger.error("调用 entrance2_information_read 方法失败: %s", str(e))
+    #         raise
 
 
 

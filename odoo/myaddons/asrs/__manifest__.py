@@ -10,17 +10,21 @@
         'views/control_system_operate_views.xml',
         'views/warehouse_property_views.xml',
         'views/warehouse_information_views.xml',
+        'views/warehouse_automation_views.xml',
         'views/control_system_views.xml',
         'views/frame_barcode_views.xml',
         'views/warehouse_settings_views.xml',
         'views/warehouse_menus.xml',
         # 'data/scheduled_actions.xml',
-        # 'views/assets.xml',
+        #'views/assets.xml'
     ],
     'assets': {
         'web.assets_backend': [
-            'static/src/js/button_color.js',
-        ],
+
+            'asrs/static/src/js/refresh_base_number.js',
+            'asrs/static/src/xml/refresh_base_number_template.xml',
+
+        ]
     },
     'installable': True,
     'application': True,

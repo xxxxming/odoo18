@@ -17,16 +17,4 @@ class WarehouseProperty(models.Model):
      frame_number = fields.Integer(string='框号')
      pack_barcode = fields.Char(string='框条码')
 
-# class asrs01(models.Model):
-#     _name = 'asrs01.asrs01'
-#     _description = 'asrs01.asrs01'
 
-#     name = fields.Char()
-#     value = fields.Integer()
-#     value2 = fields.Float(compute="_value_pc", store=True)
-#     description = fields.Text()
-#
-#     @api.depends('value')
-#     def _value_pc(self):
-#         for record in self:
-#             record.value2 = float(record.value) / 100

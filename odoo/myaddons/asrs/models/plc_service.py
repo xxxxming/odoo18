@@ -37,13 +37,6 @@ class PlcService(models.Model):
         return client
 
 
-
-
-
-
-
-
-
     def _read_write_plc_data(self):
         """每 500ms 执行一次数据读写"""
         data = self.plc_client.db_read(1, 0, 4)  # 示例：读取 DB1 的 0-4 字节

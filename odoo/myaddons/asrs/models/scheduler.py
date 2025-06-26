@@ -27,17 +27,18 @@ class PlcScheduler():
         """
         if not self.started:
             _logger.info("🚀 启动 PLC 调度器")
-            # 添加间隔任务：每1秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.one_second_task, 'interval', seconds=1, max_instances=2)
+            #添加间隔任务：每1秒调用一次 one_second_task 方法
+            self.scheduler.add_job(self.one_second_task, 'interval', seconds=2
+                                   , max_instances=1)
             # 添加间隔任务：每10秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=10, max_instances=2)
+            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=20, max_instances=2)
             # 启动后台调度器
             self.scheduler.start()
             self.started = True
 
     def one_second_task(self):
-        """
-        每秒执行的任务，调用 New_Public_PlcInterfaces 的 one_second_task 方法。
+        """00
+        每秒执行的任务，调用 New_Public_PlcInterfaces 的 one_second_0task 方法。0
         用于处理与 PLC（可编程逻辑控制器）的通信任务。
         """
 
