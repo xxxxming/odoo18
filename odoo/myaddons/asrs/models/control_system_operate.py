@@ -257,7 +257,7 @@ class ControlSystemOperate(models.Model):
         PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
-    @api.model
+
     def storage_information_read(self):
         """读取测试-批量"""
         results = [
@@ -293,12 +293,12 @@ class ControlSystemOperate(models.Model):
             elif num == 4:
                 # value = 'pack00001'
                 self.storage_pack_barcode = value
-            self.modified([
-                'storage_pack_number',
-                'storage_location_number',
-                'storage_pack_barcode'
-            ])
-            self.env.flush_all()
+            # self.modified([
+            #     'storage_pack_number',
+            #     'storage_location_number',
+            #     'storage_pack_barcode'
+            # ])
+            # self.env.flush_all()
 
 
 

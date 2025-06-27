@@ -6,6 +6,7 @@ import logging
 from odoo import models, fields
 from .control_system_operate import ControlSystemOperate
 from .warehouse_communication import New_Public_PlcInterfaces
+from .control_system_operate import ControlSystemOperate
 import odoo
 from odoo import api
 from odoo.modules.registry import Registry
@@ -31,7 +32,7 @@ class PlcScheduler():
             self.scheduler.add_job(self.one_second_task, 'interval', seconds=2
                                    , max_instances=1)
             # 添加间隔任务：每10秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=20, max_instances=2)
+            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=10, max_instances=2)
             # 启动后台调度器
             self.scheduler.start()
             self.started = True
@@ -67,9 +68,15 @@ class PlcScheduler():
             # 调用 New_Public_PlcInterfaces 类的 one_second_task 方法
             # New_Public_PlcInterfaces().read_write_plc_data()
             # ControlSystemOperate().fetch_plc()
-
+            #
             result = New_Public_PlcInterfaces(env)
             result.ten_second_task()
+
+            # result = ControlSystemOperate(env)
+            # result.storage_information_read()
+
+            # self.env['control.system.operate'].storage_information_read()
+
             self.ten_second = (self.ten_second + 1) % 60
             if self.ten_second == 1:
              _logger.info("ten second task running")

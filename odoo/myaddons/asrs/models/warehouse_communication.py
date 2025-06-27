@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import struct
-from odoo import models, fields, api, http, Command
+from odoo import models, fields, api, http, Command, registry, SUPERUSER_ID
 import logging
 import threading
 from odoo.http import request
@@ -11,6 +11,7 @@ from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 
 from .test import Tste_val
 
+import odoo
 _logger = logging.getLogger(__name__)
 scheduler_started = False
 plc_lock = threading.Lock()
@@ -194,19 +195,60 @@ class New_Public_PlcInterfaces:
         """1S执行"""
         # information real
 
-        self.env['control.system.operate'].storage_information_read()
-        self.env['control.system.operate'].stacker_information_read()
-        self.env['control.system.operate'].entrance1_information_read()
-        self.env['control.system.operate'].entrance2_information_read()
+        # 修改后：
+        # record = self.env['control.system.operate'].search([], limit=1)
+        # if record:
+        #     record.storage_information_read()  # 执行数据更新
+        #     record.modified([
+        #         'storage_goods_status',
+        #         'storage_pack_number',
+        #         'storage_location_number',
+        #         'storage_pack_barcode'
+        #     ])
+        #     self.env.flush_all()  # 强制刷新 ORM 缓存
 
-        # partner = self.env['control.system.operate'].create({'name': 'MyPartner1'})
-        # args = (partner.ids, ['name'])
-        # kwargs = {'context': {'test': True}}
-        # api.call_kw(self.env['control.system.operate'],'storage_information_read', args, kwargs)
+        # 手动获取游标
+        # db_name = 'odoo18e'  # ← 修改为你自己的数据库名
+        #
+        # with odoo.sql_db.db_connect(db_name).cursor() as cr:
+        #     env = api.Environment(cr, 1, {})  # 1 表示超级管理员 user_id
+        # try:
+            # 调用 New_Public_PlcInterfaces 类的 one_second_task 方法
+            # New_Public_PlcInterfaces().read_write_plc_data()
+            # ControlSystemOperate().fetch_plc()
+            #
 
+        #         self.env['control.system.operate'].storage_information_read()
+        #         self.env['control.system.operate'].modified([
+        #             'storage_goods_status',
+        #             'storage_pack_number',
+        #             'storage_location_number',
+        #             'storage_pack_barcode'
+        #         ])
+        #         self.env.flush_all()  # 强制刷新 ORM 缓存)
+        #
+        # except Exception as e:
+        #     # 记录异常信息
+        #     _logger.error(f"PLC 每10秒任务发生错误: {str(e)}")
 
+        # self.env['control.system.operate'].storage_information_read()
+        # self.env['control.system.operate'].stacker_information_read()
+        # self.env['control.system.operate'].entrance1_information_read()
+        # self.env['control.system.operate'].entrance2_information_read()
 
-        self.read_write_plc_data()
+        partner = self.env['control.system.operate'].create({'name': 'MyPartner1'})
+        args = [[1]],
+        kwargs = {"context": {
+            "lang": "zh_CN",
+            "tz": "Asia/Shanghai",
+            "uid": 2,
+            "allowed_company_ids": [1]
+        }
+        },
+
+        api.call_kw(self.env['control.system.operate'], 'storage_information_read', args, kwargs)
+
+        # self.read_write_plc_data()
         _logger.info("10秒的定时任务")
         return None
         # """1S执行"""
