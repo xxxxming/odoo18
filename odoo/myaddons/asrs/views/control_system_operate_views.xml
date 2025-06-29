@@ -123,8 +123,8 @@
                                         </group>
                                         <!--                                        <newline/>-->
                                         <group>
-                                            <group cols="4">
-                                                <field name="storage_pack_number" invisible="1"/>
+                                            <group>
+                                                <field name="storage_pack_number"/>
                                                 <field name="storage_base_number"/>
                                                 <field name="storage_location_number"/>
                                                 <field name="storage_pack_barcode"/>

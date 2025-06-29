@@ -139,12 +139,9 @@ class ControlSystemOperate(models.Model):
 
     @api.onchange('storage_goods_status')
     def _onchange_one_second(self):
-        # if self.one_second == 5:
-        #     self.one_second = 0
-        #     print(self.one_second)
+        print(self.storage_pack_number)
         # self.one_second += 1
         # self.one_second = self.control_id.one_second
-        print(self.pc_start)
         print("test_onchange")
     def initialize_data(self):
         """
@@ -187,6 +184,7 @@ class ControlSystemOperate(models.Model):
         #         'res_id': cron.id,
         #     })
         # return cron
+
 
     def batch_read_plc(self, row_data):
         """
@@ -257,136 +255,137 @@ class ControlSystemOperate(models.Model):
         PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
-
+    # @api.model
     def storage_information_read(self):
         """读取测试-批量"""
         results = [
             # 库位有货，框号，库位号，框条码
             {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 262, 'offset': 2, 'value_type': 'int'},
             {'db_number': 262, 'offset': 4, 'value_type': 'int'},
             {'db_number': 262, 'offset': 10, 'value_type': 'dint'},
             {'db_number': 262, 'offset': 14, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
-
+        values_to_write = {}
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
-            _logger.info(type(value))
-
+            # _logger.info(type(value))
             if num == 1:
-                self.storage_goods_status = value
+                # self.storage_goods_status = value
+                values_to_write['storage_goods_status'] = value
             elif num == 2:
-                self.storage_pack_number = value
-                # self.update({"storage_pack_number": value})
-                # self.browse(1).write({'storage_pack_number': value})
-                print(value)
-                # record = self.env['control.system.operate'].search([], limit=1)
-                # if record:
-                #     # 读取 storage_pack_number 字段
-                #     print("Current Storage Pack Number:", record.storage_pack_number)
-
+                # self.storage_pack_number = value
+                values_to_write['storage_base_number'] = value
             elif num == 3:
-                self.storage_location_number = value
-                self.write({'storage_location_number': value})
-                print(value)
+                # self.storage_pack_number = value
+                values_to_write['storage_pack_number'] = value
+                # self.browse(1).write({'storage_pack_number': value})
             elif num == 4:
-                # value = 'pack00001'
-                self.storage_pack_barcode = value
-            # self.modified([
-            #     'storage_pack_number',
-            #     'storage_location_number',
-            #     'storage_pack_barcode'
-            # ])
-            # self.env.flush_all()
-
-
+                values_to_write['storage_location_number'] = value
+            elif num == 5:
+                values_to_write['storage_pack_barcode'] = value
+            # record = self.env['control.system.operate'].search([], limit=1)
+            # current_record = self.read()
+            # _logger.info("当前记录字段及值: %s", record)
+        # 统一写入数据库，减少 I/O 次数
+        if values_to_write:
+            # print(values_to_write)
+            # self.browse(1).write(values_to_write)
+            record = self.browse(1)
+            record.write(values_to_write)
+            # print(values_to_write)
 
     def stacker_information_read(self):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
             {'db_number': 262, 'offset': 36, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 38, 'value_type': 'int'},
             {'db_number': 262, 'offset': 40, 'value_type': 'int'},
             {'db_number': 262, 'offset': 46, 'value_type': 'dint'},
             {'db_number': 262, 'offset': 50, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
+        values_to_write = {}
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
             # _logger.info(type(value))
             if num == 1:
-                self.stacker_goods_status = value
-                #self.env['control.system.operate'].create({"stacker_goods_status": value})
+                values_to_write['stacker_goods_status'] = value
             elif num == 2:
-                self.stacker_pack_number = value
+                values_to_write['stacker_base_number'] = value
             elif num == 3:
-                # self.stacker_location_number = value
-                self.write({'stacker_location_number': value})
+                values_to_write['stacker_pack_number'] = value
             elif num == 4:
-                #value = 'pack00001'
-                self.stacker_pack_barcode = value
-            self.modified([
-                'stacker_pack_number',
-            ])
-            self.env.flush_all()
-
+                values_to_write['stacker_location_number'] = value
+            elif num == 5:
+                values_to_write['stacker_pack_barcode'] = value
+        if values_to_write:
+            record = self.browse(1)
+            record.write(values_to_write)
+            # print(values_to_write)
     def entrance1_information_read(self):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
             {'db_number': 262, 'offset': 72, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 74, 'value_type': 'int'},
             {'db_number': 262, 'offset': 76, 'value_type': 'int'},
             {'db_number': 262, 'offset': 82, 'value_type': 'dint'},
             {'db_number': 262, 'offset': 86, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
+        values_to_write = {}
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
             # _logger.info(type(value))
             if num == 1:
-                self.entrance1_goods_status = value
+                values_to_write['entrance1_goods_status'] = value
             elif num == 2:
-                self.entrance1_pack_number = value
+                values_to_write['entrance1_base_number'] = value
             elif num == 3:
-                self.entrance1_location_number = value
+                values_to_write['entrance1_pack_number'] = value
             elif num == 4:
-                #value = 'pack00001'
-                self.entrance1_pack_barcode = value
-            self.modified([
-                'entrance1_pack_number',
-            ])
-            self.env.flush_all()
-
+                values_to_write['entrance1_location_number'] = value
+            elif num == 5:
+                values_to_write['entrance1_pack_barcode'] = value
+        if values_to_write:
+            record = self.browse(1)
+            record.write(values_to_write)
+            # print(values_to_write)
     def entrance2_information_read(self):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 72, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 76, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 82, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 86, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 262, 'offset': 108, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 110, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 112, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 118, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 122, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
+        values_to_write = {}
         for result in results:
             num += 1
             value = self.batch_read_plc(result)
-            # _logger.info(type(value))
             if num == 1:
-                self.entrance2_goods_status = value
+                values_to_write['entrance2_goods_status'] = value
             elif num == 2:
-                self.entrance2_pack_number = value
+                values_to_write['entrance2_base_number'] = value
             elif num == 3:
-                self.entrance2_location_number = value
+                values_to_write['entrance2_pack_number'] = value
             elif num == 4:
-                #value = 'pack00001'
-                self.entrance2_pack_barcode = value
-            self.modified([
-                'entrance2_pack_number',
-            ])
-            self.env.flush_all()
+                values_to_write['entrance2_location_number'] = value
+            elif num == 5:
+                values_to_write['entrance2_pack_barcode'] = value
+        if values_to_write:
+            record = self.browse(1)
+            record.write(values_to_write)
+            # print(values_to_write)
 
     # @http.route('/my/model/pack_number', type='json', auth='user')
     # def real_update_val(self):
@@ -468,28 +467,6 @@ class ControlSystemOperate(models.Model):
     def return_store_button(self):
         for record in self:
             record.return_store = not record.return_store
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

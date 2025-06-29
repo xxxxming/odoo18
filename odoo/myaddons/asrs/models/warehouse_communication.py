@@ -8,7 +8,7 @@ from .control_system_operate import ControlSystemOperate
 from .plc_connect import PlcClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
-
+# from odoo.modules.registry import Registry
 from .test import Tste_val
 
 import odoo
@@ -70,8 +70,8 @@ class Public_PlcInterface(models.Model):
 
 class New_Public_PlcInterfaces:
 
-    _name = 'plc.storage.interface'
-
+    _name = 'new.public.interface'
+    _description = 'new public interface'
     def __init__(self, env):
         self.env = env
         self.one_second = 0
@@ -195,8 +195,14 @@ class New_Public_PlcInterfaces:
         """1S执行"""
         # information real
 
+        #修改后：
+        # from odoo.modules.registry import Registry
+        # registry = Registry('odoo18e')
         # 修改后：
-        # record = self.env['control.system.operate'].search([], limit=1)
+        # with registry.cursor() as cr:
+        #     env = api.Environment(cr, SUPERUSER_ID, {})
+        #
+        # record = env['control.system.operate'].search([], limit=1)
         # if record:
         #     record.storage_information_read()  # 执行数据更新
         #     record.modified([
@@ -231,25 +237,62 @@ class New_Public_PlcInterfaces:
         #     # 记录异常信息
         #     _logger.error(f"PLC 每10秒任务发生错误: {str(e)}")
 
+        with self.env.registry.cursor() as new_cr:
+            new_env = api.Environment(new_cr, self.env.uid, {})
+            new_env['control.system.operate'].storage_information_read()
+            new_env['control.system.operate'].stacker_information_read()
+            new_env['control.system.operate'].entrance1_information_read()
+            new_env['control.system.operate'].entrance2_information_read()
+
+            # new_env['control.system.operate'].modified([
+            #     'storage_goods_status',
+            #     'storage_pack_number',
+            #     'storage_location_number',
+            #     'storage_pack_barcode'
+            # ])
+            # new_env.flush_all()  # 强制刷新 ORM 缓存)
+
+
+        # self.env['control.system.operate'].storage_information_read()
+
+        # if not self.env.cr.closed:
+        #     _logger.info("Cursor 1 is open.")
+        # else:
+        #     _logger.info("Cursor 1 is closed.")
+
         # self.env['control.system.operate'].storage_information_read()
         # self.env['control.system.operate'].stacker_information_read()
         # self.env['control.system.operate'].entrance1_information_read()
         # self.env['control.system.operate'].entrance2_information_read()
 
-        partner = self.env['control.system.operate'].create({'name': 'MyPartner1'})
-        args = [[1]],
-        kwargs = {"context": {
-            "lang": "zh_CN",
-            "tz": "Asia/Shanghai",
-            "uid": 2,
-            "allowed_company_ids": [1]
-        }
-        },
+        # self.env.cr.execute("SELECT * FROM control_system_operate")  # 显式检查游标有效性
+        # if self.env.cr.closed:
+        #     self.env.cr = self.env.registry.cursor()  # 重建游标
+        #
+        # try:
+        #   # self.storage_information_read()
+        #   self.env['control.system.operate'].storage_information_read()
+        # finally:
+        #     if not self.env.cr.closed:  # 避免重复关闭
+        #         self.env.cr.close()
 
-        api.call_kw(self.env['control.system.operate'], 'storage_information_read', args, kwargs)
+        # partner = self.env['control.system.operate'].create({'name': 'MyPartner1'})
+        # args = [[1]],
+        # kwargs = {"context": {
+        #     "lang": "zh_CN",
+        #     "tz": "Asia/Shanghai",
+        #     "uid": 2,
+        #     "allowed_company_ids": [1]}
+        # },
+        # api.call_kw(new_env['control.system.operate'],'storage_information_read', args,kwargs)
+
+        # if not self.env.cr.closed:
+        #     _logger.info("Cursor 2 is open.")
+        # else:
+        #     _logger.info("Cursor 2 is closed.")
 
         # self.read_write_plc_data()
-        _logger.info("10秒的定时任务")
+        # _logger.info("information 10 second")
         return None
         # """1S执行"""
         # try:
