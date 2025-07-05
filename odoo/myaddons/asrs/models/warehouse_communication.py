@@ -11,6 +11,8 @@ from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 # from odoo.modules.registry import Registry
 from .test import Tste_val
 
+# from odoo.addons.bus.models.bus import Bus
+
 import odoo
 _logger = logging.getLogger(__name__)
 scheduler_started = False
@@ -237,20 +239,12 @@ class New_Public_PlcInterfaces:
         #     # 记录异常信息
         #     _logger.error(f"PLC 每10秒任务发生错误: {str(e)}")
 
-        with self.env.registry.cursor() as new_cr:
-            new_env = api.Environment(new_cr, self.env.uid, {})
-            new_env['control.system.operate'].storage_information_read()
-            new_env['control.system.operate'].stacker_information_read()
-            new_env['control.system.operate'].entrance1_information_read()
-            new_env['control.system.operate'].entrance2_information_read()
-
-            # new_env['control.system.operate'].modified([
-            #     'storage_goods_status',
-            #     'storage_pack_number',
-            #     'storage_location_number',
-            #     'storage_pack_barcode'
-            # ])
-            # new_env.flush_all()  # 强制刷新 ORM 缓存)
+        with (self.env.registry.cursor() as new_cr):
+             new_env = api.Environment(new_cr, self.env.uid, {})
+             new_env['control.system.operate'].storage_information_read()
+            # new_env['control.system.operate'].stacker_information_read()
+            # new_env['control.system.operate'].entrance1_information_read()
+            # new_env['control.system.operate'].entrance2_information_read()
 
 
         # self.env['control.system.operate'].storage_information_read()

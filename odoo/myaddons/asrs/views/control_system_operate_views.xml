@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <template id="assets_backend" inherit_id="control_system_operate_view_form">
+        <xpath expr="." position="inside">
+            <script src="/asrs/static/src/js/record_refresh.js" type="text/javascript"/>
 
+        </xpath>
+    </template>
     <record id="control_system_operate_view_list" model="ir.ui.view">
         <field name="name">control_system_operate_view_list</field>
         <field name="model">control.system.operate</field>
@@ -13,10 +18,13 @@
                 <field name="manual_control"/>
                 <field name="auto_control"/>
                 <field name="stop"/>
+                <!-- 隐藏的刷新触发字段 -->
+<!--                <field name="refresh_trigger" invisible="1"/>-->
 
             </list>
         </field>
     </record>
+
 
     <record id="control_system_operate_view_form" model="ir.ui.view">
         <field name="name">control_system_operate_view_form</field>
@@ -38,14 +46,12 @@
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
 
-                    <!--                    <button name="run_at_startup" type="object" string="启动线程" display="always"/>-->
                     <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>
                     <button name="initialize_data" type="object" string="初始化" display="always"/>
-
+                    <field name="refresh_trigger" invisible="1"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
-<!--                    <component name="AutoRecordRefresher" record="record"/>-->
                     <group>
                         <group>
                             <group>
@@ -54,7 +60,7 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-                                <field name="emergency_stop" readonly="emergency_stop"/>
+<!--                                <field name="emergency_stop" readonly="True"/>-->
                                 <field name="manual_control" readonly="True"/>
                                 <field name="auto_control"/>
                             </group>
@@ -109,8 +115,8 @@
 <!--                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>-->
 <!--                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>-->
 <!--                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>-->
-                                        <button name="update_plc" type="object" string="写入测试"/>
-                                        <button name="storage_information_read" type="object" string="读库位信息"/>
+                                        <button name="storage_information_write" type="object" string="库位写入"/>
+                                        <button name="storage_information_read" type="object" string="库位读取"/>
                                     </header>
                                     >
                                     <newline/>
@@ -119,11 +125,12 @@
                                             <field name="storage_goods_status"/>
                                             <field name="storage_goods_cancel"/>
 <!--                                            <field name="one_second"/>-->
-                                            <field name="pc_start"/>
+<!--                                            <field name="pc_start"/>-->
                                         </group>
                                         <!--                                        <newline/>-->
                                         <group>
                                             <group>
+
                                                 <field name="storage_pack_number"/>
                                                 <field name="storage_base_number"/>
                                                 <field name="storage_location_number"/>

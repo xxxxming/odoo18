@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
+from email.policy import default
+
 import odoo
 from odoo import models, fields, api, SUPERUSER_ID
 import threading
 from odoo import http
+from odoo.addons.test_convert.tests.test_env import record
 from odoo.http import request
 import struct
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,6 +14,9 @@ from odoo.api import readonly
 from odoo.fields import Many2one
 from .plc_connect import PlcClient
 # from .warehouse_communication import New_Public_PlcInterfaces
+
+from odoo.addons.bus.models.bus import dispatch
+from odoo.addons.bus.models.bus import channel_with_db
 
 _logger = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
@@ -55,14 +61,17 @@ class ControlSystemOperate(models.Model):
     _name = 'control.system.operate'
     _description = 'control system operate'
 
+    refresh_trigger = fields.Boolean(
+        string="视图重载",default=False,
+        help="When set to True, triggers a view refresh via bus notification")
 
     workshop = fields.Char(string="车间代号")
-    line = fields.Char(string="线体代号")
+    line = fields.Char(string="产线代号")
     machine = fields.Char(string="机台代号")
     # emergency_stop = fields.Boolean(string="紧急停止", default=False)
     control_id = Many2one('system.control',string='系统控制')
-    pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
-    one_second = fields.Integer(string='一秒周期')
+    # pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
+    # one_second = fields.Integer(string='一秒周期')
     emergency_stop = fields.Boolean(related='control_id.emergency_stop',string='紧急停止')
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
@@ -125,7 +134,7 @@ class ControlSystemOperate(models.Model):
     entrance2_location_number = fields.Integer(string='库位号')
     entrance2_pack_barcode = fields.Char(string='框条码')
 
-    @api.depends('one_second')
+    @api.depends('storage_goods_status')
     def _compute_one_second(self):
         # self.one_second = self.control_id.one_second
         # for record in self:
@@ -133,12 +142,16 @@ class ControlSystemOperate(models.Model):
         #         record.one_second = record.control_id.one_second
         #     else:
         #         record.one_second = 0  # 默认值或空值处理
-        print(self.one_second)
-        print(self.control_id.one_second2)
+
         print("test_compute")
 
-    @api.onchange('storage_goods_status')
+    @api.onchange('storage_goods_cancel')
     def _onchange_one_second(self):
+        if self.storage_goods_status:
+            self.status = 'idle'
+        else:
+            self.status = 'running'
+        print(self.status)
         print(self.storage_pack_number)
         # self.one_second += 1
         # self.one_second = self.control_id.one_second
@@ -154,7 +167,7 @@ class ControlSystemOperate(models.Model):
         pass
 
     def start_plc_scheduler(self):
-        print(self.pc_start)
+        # print(self.pc_start)
         _logger.info("开始启动定时任务测试")
         pass
 
@@ -196,7 +209,7 @@ class ControlSystemOperate(models.Model):
         # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
         return value
 
-    def update_plc(self):
+    def storage_information_write(self):
         """传递到PLC进行写入"""
         # 单独写入
         # 库位有货
@@ -245,14 +258,15 @@ class ControlSystemOperate(models.Model):
         stacker_pack_barcode = 'pk' + str(self.stacker_pack_barcode)
         #stacker_pack_barcode = 'pl1255'
         _logger.info(stacker_pack_barcode)
-        data = {
-            'value': stacker_pack_barcode,
-            'offset': 14,
-            "string_max_len": 8,
-            'value_type': 'string',
-            "db_number": 262
-        }
-        PlcClient().set_db_number_write(data)
+
+        # data = {
+        #     'value': stacker_pack_barcode,
+        #     'offset': 14,
+        #     "string_max_len": 8,
+        #     'value_type': 'string',
+        #     "db_number": 262
+        # }
+        # PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
     # @api.model
@@ -275,13 +289,15 @@ class ControlSystemOperate(models.Model):
             if num == 1:
                 # self.storage_goods_status = value
                 values_to_write['storage_goods_status'] = value
+                values_to_write['refresh_trigger'] = value
             elif num == 2:
                 # self.storage_pack_number = value
                 values_to_write['storage_base_number'] = value
             elif num == 3:
                 # self.storage_pack_number = value
                 values_to_write['storage_pack_number'] = value
-                # self.browse(1).write({'storage_pack_number': value})
+                # self.env['control.system.operate'].browse(1).write({'storage_pack_number': value})
+
             elif num == 4:
                 values_to_write['storage_location_number'] = value
             elif num == 5:
@@ -295,7 +311,89 @@ class ControlSystemOperate(models.Model):
             # self.browse(1).write(values_to_write)
             record = self.browse(1)
             record.write(values_to_write)
-            # print(values_to_write)
+            # record.write(self.refresh_trigger, True)
+
+            print(values_to_write)
+
+            # self.refresh_trigger = True
+
+            # record.write({'refresh_trigger': True})
+            # print(self.refresh_trigger)
+            # self.write_refresh(values_to_write)
+            record.write_refresh(values_to_write)
+
+
+            # 显式刷新缓存，确保前端感知到字段变更
+            # if record:
+            #     record.modified([
+            #         'storage_goods_status',
+            #         'storage_base_number',
+            #         'storage_pack_number',
+            #         'storage_location_number',
+            #         'storage_pack_barcode'
+            #     ])
+            #     record.env.flush_all()
+            #     self.env.cr.commit()
+                # _logger.info(values_to_write)
+            print('refresh_trigger4', record.refresh_trigger)
+
+
+        return values_to_write
+
+    def write_refresh(self, vals):
+        # res = super().write(vals)
+
+        print('trigger1',vals['refresh_trigger'])
+        if 'refresh_trigger' in vals and vals['refresh_trigger']:
+            # 为每个记录发送单独的通知
+            print('trigger2', vals['refresh_trigger'])
+            print(self)
+            if not self:
+                print("self is empty or None")
+            else:
+                for record in self:
+
+                    self._send_refresh_notification(record)
+                    # 可选：立即重置触发器
+                    # record.with_context(skip_refresh=True).write({'refresh_trigger': False})
+
+                    # 🔍 打印所有从 vals 传入的字段和值
+                    # for key, value in vals.items():
+                    #     print(f"Key: {key}, Value: {value}")
+
+                    refresh_trigger5 = record
+                    print('trigger4',refresh_trigger5)
+
+        return None
+
+    def _send_refresh_notification(self, record):
+        """发送总线通知"""
+        notification = {
+            'type': 'record_refresh',
+            'model': self._name,
+            'record_id': record.id,
+            'timestamp': fields.Datetime.now(),
+        }
+
+
+        # 使用特定频道发送通知
+        self.env['bus.bus']._sendone(
+            self._get_record_channel(record),
+            'record_refresh',
+            notification
+        )
+
+        # data = record.read()
+        # _logger.info("Record data: %s", data)
+
+    def _get_record_channel(self, record):
+        """生成记录特定频道名称"""
+        return channel_with_db(
+            self.env.cr.dbname,
+            f'{self._name}.record.refresh.{record.id}'
+        )
+
+
 
     def stacker_information_read(self):
         """读取测试-批量"""
@@ -315,6 +413,7 @@ class ControlSystemOperate(models.Model):
             # _logger.info(type(value))
             if num == 1:
                 values_to_write['stacker_goods_status'] = value
+
             elif num == 2:
                 values_to_write['stacker_base_number'] = value
             elif num == 3:
@@ -326,7 +425,10 @@ class ControlSystemOperate(models.Model):
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
+
             # print(values_to_write)
+
+
     def entrance1_information_read(self):
         """读取测试-批量"""
         results = [
@@ -392,6 +494,9 @@ class ControlSystemOperate(models.Model):
     #     """实时更新"""
     #     record = request.env['my.model'].sudo().browse(int(record_id))
     #     return {'pack_number': record.storage_pack_number}
+
+
+
 
     def emergency_button(self):
         # code = self.env['system.control']

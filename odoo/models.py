@@ -7328,6 +7328,9 @@ class BaseModel(metaclass=MetaModel):
     def read_plc_data(self, ip, rack, slot, db_number, start, size):
         pass
 
+    def _sendone(self, param, param1, notification):
+        pass
+
 
 collections.abc.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have index or count

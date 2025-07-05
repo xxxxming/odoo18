@@ -75,7 +75,7 @@ data = {
                 "allow_return": {},
                 "storage_goods_status": {},
                 "storage_goods_cancel": {},
-                "pc_start": {},
+                # "pc_start": {},
                 "storage_pack_number": {},
                 "storage_base_number": {},
                 "storage_location_number": {},
