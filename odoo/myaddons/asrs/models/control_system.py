@@ -51,24 +51,3 @@ class ControlSystem(models.Model):
      output_Q16 = fields.Boolean(string="输入Q1.6")
      output_Q17 = fields.Boolean(string="输入Q1.7")
 
-
-
-     #测试
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
