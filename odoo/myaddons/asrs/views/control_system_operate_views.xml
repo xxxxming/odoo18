@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<!--    <template id="assets_backend" inherit_id="control_system_operate_view_form">-->
-<!--        <xpath expr="." position="inside">-->
-<!--            <script src="/asrs/static/src/js/record_refresh.js" type="text/javascript"/>-->
-
-<!--        </xpath>-->
-<!--    </template>-->
     <record id="control_system_operate_view_list" model="ir.ui.view">
         <field name="name">control_system_operate_view_list</field>
         <field name="model">control.system.operate</field>
@@ -18,37 +12,23 @@
                 <field name="manual_control"/>
                 <field name="auto_control"/>
                 <field name="stop"/>
-                <!-- 隐藏的刷新触发字段 -->
-<!--                <field name="refresh_trigger" invisible="1"/>-->
-
             </list>
         </field>
     </record>
-
-
     <record id="control_system_operate_view_form" model="ir.ui.view">
         <field name="name">control_system_operate_view_form</field>
         <field name="model">control.system.operate</field>
         <field name="arch" type="xml">
             <form string="立库操作">
                 <header>
-<!--                    <button name="emergency_button" type="object" string="急停按钮"-->
-<!--                            widget="CustomButton" options="{'value_field': 'emergency_stop'}"/>-->
-<!--                    -->
-<!--                    <button name="emergency_button" type="object" string="急停按钮"-->
-<!--                            widget="CustomButton" class="btn_color_toggle"/>-->
-<!--                     <field name="emergency_stop" invisible="1"/>-->
-<!--                     <field name="emergency_stop"/>&ndash;&gt;-->
                     <button name="emergency_button" type="object" string="急停按钮"/>
                     <button name="manual_button" type="object" string="手动模式"/>
                     <button name="auto_button" type="object" string="自动模式"/>
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
-
                     <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>
                     <button name="initialize_data" type="object" string="初始化" display="always"/>
-                    <field name="refresh_trigger" invisible="1"/>
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -60,7 +40,6 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-<!--                                <field name="emergency_stop" readonly="True"/>-->
                                 <field name="manual_control" readonly="True"/>
                                 <field name="auto_control"/>
                             </group>
@@ -74,7 +53,7 @@
                             <group>
                                 <newline/>
                                 <group>
-                                    <field name="allow_outbound" />
+                                    <field name="allow_outbound"/>
                                 </group>
                                 <group>
                                     <button name="store_button" type="object" string="入库"
@@ -100,21 +79,12 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="出入库" >
+                        <page string="出入库">
                             <group>
                             </group>
                             <form>
                                 <group>
                                     <header>
-<!--                                        <button name="write_storage_information" type="object" string="写库位" class="btn-info"/>-->
-<!--                                        <button name="write_stacker_information" type="object" string="写堆高" class="btn-info"/>-->
-<!--                                        <button name="write_entrance1_information" type="object" string="写出入1" class="btn-info"/>-->
-<!--                                        <button name="write_entrance2_information" type="object" string="写出入2" class="btn-info"/>-->
-<!--                                        <button name="read_storage_information" type="object" string="读库位" class="btn-info"/>-->
-<!--                                        <button name="read_stacker_information" type="object" string="读堆高" class="btn-info"/>-->
-<!--                                        <button name="read_entrance1_information" type="object" string="读出入1" class="btn-info"/>-->
-<!--                                        <button name="read_entrance2_information" type="object" string="读出入2" class="btn-info"/>-->
-<!--                                        <button name="read_write_plc_data" type="object" string="测试" class="btn-info"/>-->
                                         <button name="storage_information_write" type="object" string="库位写入"/>
                                         <button name="storage_information_read" type="object" string="库位读取"/>
                                     </header>
@@ -122,13 +92,11 @@
                                     <newline/>
                                     <group string="库位信息">
                                         <group>
-                                            <field name="storage_goods_status"/>
+                                            <field name="storage_goods_status" widget="RefreshStorageFields"/>
                                             <field name="storage_goods_cancel"/>
-<!--                                            <field name="one_second"/>-->
-<!--                                            <field name="pc_start"/>-->
                                         </group>
-                                        <!--                                        <newline/>-->
                                         <group>
+<!--                                            # 增加刷新字段-->
                                             <group>
                                                 <field name="storage_pack_number" widget="RefreshStorageFields"/>
                                                 <field name="storage_base_number" widget="RefreshStorageFields"/>
@@ -136,10 +104,7 @@
                                                 <field name="storage_pack_barcode" widget="RefreshStorageFields"/>
                                             </group>
                                         </group>
-
                                     </group>
-
-
                                     <group string="堆高机">
                                         <group>
                                             <field name="stacker_goods_status"/>
@@ -149,11 +114,11 @@
                                         <group>
                                             <group>
                                                 <field name="stacker_pack_number"/>
-    <!--                                        <field name="show_storage_pack_number"/>-->
                                                 <field name="stacker_base_number"/>
                                                 <field name="stacker_location_number"/>
                                                 <field name="stacker_pack_barcode"/>
-                                            </group>>
+                                            </group>
+                                            >
                                         </group>
                                     </group>
                                     <newline/>
@@ -164,11 +129,12 @@
                                         </group>
                                         <group>
                                             <group>
-                                            <field name="entrance1_pack_number"/>
-                                            <field name="entrance1_base_number"/>
-                                            <field name="entrance1_location_number"/>
-                                            <field name="entrance1_pack_barcode"/>
-                                            </group>>
+                                                <field name="entrance1_pack_number"/>
+                                                <field name="entrance1_base_number"/>
+                                                <field name="entrance1_location_number"/>
+                                                <field name="entrance1_pack_barcode"/>
+                                            </group>
+                                            >
                                         </group>
                                     </group>
                                     <group string="出入口2">
@@ -178,11 +144,12 @@
                                         </group>
                                         <group>
                                             <group>
-                                            <field name="entrance2_pack_number"/>
-                                            <field name="entrance2_base_number"/>
-                                            <field name="entrance2_location_number"/>
-                                            <field name="entrance2_pack_barcode"/>
-                                            </group>>
+                                                <field name="entrance2_pack_number"/>
+                                                <field name="entrance2_base_number"/>
+                                                <field name="entrance2_location_number"/>
+                                                <field name="entrance2_pack_barcode"/>
+                                            </group>
+                                            >
                                         </group>
                                     </group>
                                 </group>
@@ -199,7 +166,6 @@
 
         </field>
     </record>
-
 
 
     <record id="control_system_operate_act_window" model="ir.actions.act_window">
