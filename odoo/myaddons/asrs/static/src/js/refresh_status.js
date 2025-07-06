@@ -1,32 +1,56 @@
 /** @odoo-module **/
+import { Field } from "@web/views/fields/field";
+import { registry } from "@web/core/registry";
+import { rpc } from "@web/core/network/rpc";
 
-import { jsonRpc } from "@web/core/network/rpc";
-
-console.log("✅ 模块加载成功");
-
-function getRecordIdFromURL() {
-    const match = window.location.pathname.match(/\/(\d+)$/);
-    return match ? parseInt(match[1]) : null;
-}
-
-function refreshPackNumber() {
-    const recordId = getRecordIdFromURL();
-    if (!recordId) {
-        console.warn("❌ 未找到记录 ID");
-        return;
+class RefreshStorageFields extends Field {
+    setup() {
+        super.setup();
+        this.value = this.props.value;
+        this.startRefreshing();
     }
 
-    jsonRpc("/asrs/pack_number", { record_id: recordId }).then(result => {
-        console.log("✅ 包装数：", result.pack_number);
-        const el = document.getElementById("pack_number_field");
-        if (el) {
-            el.innerText = result.pack_number || "0";
+    startRefreshing() {
+        const recordId = this.props.record.resId;
+        if (!recordId) return;
+
+        this.timer = setInterval(async () => {
+    try {
+        const data = await rpc("/asrs/refresh_status", { record_id: recordId });
+        console.log('refresh_status', data['refresh_status']);
+        if (data && data['refresh_status'] === true) {  // 判断 statu_code 是否为真
+            console.log('data', data);
+            for (const field of ['storage_pack_number', 'storage_base_number', 'storage_location_number', 'storage_pack_barcode']) {
+                if (data[field] !== undefined) {
+                    this.props.record.data[field] = data[field];
+                }
+            }
+            this.update();
         } else {
-            console.warn("❌ 未找到字段元素");
+            console.log('statut_code 为 false，跳过刷新');
         }
-    }).catch(err => {
-        console.error("❌ RPC 错误：", err);
-    });
+    } catch (e) {
+        console.warn("🔥 刷新失败:", e);
+    }
+}, 3000);
+
+
+
+
+
+    }
+
+    willUnmount() {
+        clearInterval(this.timer);
+        super.willUnmount?.();
+    }
+
+    render() {
+        return this.value === undefined ? '' : String(this.value);
+    }
 }
 
-setInterval(refreshPackNumber, 5000);
+registry.category("fields").add("RefreshStorageFields", {
+    component: RefreshStorageFields,
+    supportedTypes: ["char", "integer"],
+});

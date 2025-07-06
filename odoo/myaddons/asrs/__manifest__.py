@@ -18,13 +18,11 @@
         # 'data/scheduled_actions.xml',
         #'views/assets.xml'
     ],
-    # 'assets': {
-    #     'web.assets_backend': [
-    #         'asrs/static/src/js/refresh_base_number.js',
-    #         'asrs/static/src/xml/refresh_base_number_template.xml',
-    #
-    #     ]
-    # },
+    'assets': {
+        'web.assets_backend': [
+            'asrs/static/src/js/refresh_status.js',
+        ]
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

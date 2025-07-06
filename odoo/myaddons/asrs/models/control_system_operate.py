@@ -70,7 +70,7 @@ class ControlSystemOperate(models.Model):
     machine = fields.Char(string="机台代号")
     # emergency_stop = fields.Boolean(string="紧急停止", default=False)
     control_id = Many2one('system.control',string='系统控制')
-    # pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
+    pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
     # one_second = fields.Integer(string='一秒周期')
     emergency_stop = fields.Boolean(related='control_id.emergency_stop',string='紧急停止')
     manual_control = fields.Boolean(string="手动控制")
@@ -133,6 +133,9 @@ class ControlSystemOperate(models.Model):
     entrance2_base_number = fields.Integer(string='库位编号')
     entrance2_location_number = fields.Integer(string='库位号')
     entrance2_pack_barcode = fields.Char(string='框条码')
+
+    x_dummy_widget_field = fields.Char(string='Dummy Widget Field')
+    refresh_status = fields.Boolean(string='是否自动刷新')
 
     @api.depends('storage_goods_status')
     def _compute_one_second(self):

@@ -9,7 +9,7 @@ from .plc_connect import PlcClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 # from odoo.modules.registry import Registry
-from .test import Tste_val
+
 
 # from odoo.addons.bus.models.bus import Bus
 

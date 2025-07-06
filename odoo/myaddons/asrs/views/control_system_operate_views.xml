@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="assets_backend" inherit_id="control_system_operate_view_form">
-        <xpath expr="." position="inside">
-            <script src="/asrs/static/src/js/record_refresh.js" type="text/javascript"/>
+<!--    <template id="assets_backend" inherit_id="control_system_operate_view_form">-->
+<!--        <xpath expr="." position="inside">-->
+<!--            <script src="/asrs/static/src/js/record_refresh.js" type="text/javascript"/>-->
 
-        </xpath>
-    </template>
+<!--        </xpath>-->
+<!--    </template>-->
     <record id="control_system_operate_view_list" model="ir.ui.view">
         <field name="name">control_system_operate_view_list</field>
         <field name="model">control.system.operate</field>
@@ -130,11 +130,10 @@
                                         <!--                                        <newline/>-->
                                         <group>
                                             <group>
-
-                                                <field name="storage_pack_number"/>
-                                                <field name="storage_base_number"/>
-                                                <field name="storage_location_number"/>
-                                                <field name="storage_pack_barcode"/>
+                                                <field name="storage_pack_number" widget="RefreshStorageFields"/>
+                                                <field name="storage_base_number" widget="RefreshStorageFields"/>
+                                                <field name="storage_location_number" widget="RefreshStorageFields"/>
+                                                <field name="storage_pack_barcode" widget="RefreshStorageFields"/>
                                             </group>
                                         </group>
 
