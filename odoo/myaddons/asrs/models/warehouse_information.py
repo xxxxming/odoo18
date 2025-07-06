@@ -5,6 +5,7 @@ _logger = logging.getLogger(__name__)
 from odoo.exceptions import UserError
 
 class WarehouseLocationInformation(models.Model):
+
      _name = 'warehouse.location.information'
      _description = 'warehouse location information'
 

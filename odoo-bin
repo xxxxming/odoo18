@@ -3,6 +3,10 @@
 # set server timezone in UTC before time module imported
 __import__('os').environ['TZ'] = 'UTC'
 import odoo
+import logging
+# 设置 werkzeug 日志级别为 WARNING（不输出 INFO 日志,减少后端调用输出日志，调试场景下可取消）
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
 
 if __name__ == "__main__":
     odoo.cli.main()
