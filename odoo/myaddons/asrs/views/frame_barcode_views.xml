@@ -25,7 +25,6 @@
 
 <!--<button name="increment_number" type="object" string="按钮"/>-->
 
-
     <record id="frame_barcode_act_window" model="ir.actions.act_window">
         <field name="name">框码定义</field>
         <field name="res_model">frame.barcode</field>

@@ -7,7 +7,7 @@ class FrameBarcode(models.Model):
 
     _name = 'frame.barcode'
     _description = 'inventory frame barcode'
-    serial_number = fields.Integer(string='序号')
+    serial_number = fields.Integer(string='序号',readonly=True)
     frame_number = fields.Integer(string='框号')
     frame_barcode = fields.Char(string='框条码')
     # total_locations_id = fields.Many2one('warehouse.settings',string='框码定义',domain=[('total_locations','!=',0)])
