@@ -30,9 +30,9 @@ class PlcScheduler():
         if not self.started:
             _logger.info("🚀 启动 PLC 调度器")
             #添加间隔任务：每1秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.one_second_task, 'interval', seconds=2, max_instances=4)
+            self.scheduler.add_job(self.one_second_task, 'interval', seconds=10, max_instances=4)
             # 添加间隔任务：每10秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=2, max_instances=4)
+            self.scheduler.add_job(self.ten_second_task, 'interval', seconds=20, max_instances=4)
             # 启动后台调度器
             self.scheduler.start()
             self.started = True

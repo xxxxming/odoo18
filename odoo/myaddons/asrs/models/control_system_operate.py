@@ -41,18 +41,18 @@ class AutomaticStorageLocation(models.Model):
     pack_barcode = fields.Char(string='框条码')
 
 
-def read_information():
-    """读取测试-批量"""
-    # 读取库位信息例子
-    results = [
-        # 库位有货
-        {'db_number': 202,'start_address': 0, 'value_type': 'bool', 'bit_index':0},
-        # 框号
-    ]
-    for result in results:
-        # value = self.batch_read_plc(result)
-        value =  PlcClient().set_db_number_read(result)
-        return value
+# def read_information():
+#     """读取测试-批量"""
+#     # 读取库位信息例子
+#     results = [
+#         # 库位有货
+#         {'db_number': 202,'start_address': 0, 'value_type': 'bool', 'bit_index':0},
+#         # 框号
+#     ]
+#     for result in results:
+#         # value = self.batch_read_plc(result)
+#         value =  PlcClient().set_db_number_read(result)
+#         return value
 
 
 class ControlSystemOperate(models.Model):
@@ -61,18 +61,14 @@ class ControlSystemOperate(models.Model):
     _name = 'control.system.operate'
     _description = 'control system operate'
 
-    refresh_trigger = fields.Boolean(
-        string="视图重载",default=False,
-        help="When set to True, triggers a view refresh via bus notification")
+    # refresh_trigger = fields.Boolean(
+    #     string="视图重载",default=False,
+    #     help="When set to True, triggers a view refresh via bus notification")
 
-    workshop = fields.Char(string="车间代号")
-    line = fields.Char(string="产线代号")
-    machine = fields.Char(string="机台代号")
-    # emergency_stop = fields.Boolean(string="紧急停止", default=False)
-    control_id = Many2one('system.control',string='系统控制')
-    pc_start = fields.Boolean(related='control_id.start',string='开始',store=True)
-    # one_second = fields.Integer(string='一秒周期')
-    emergency_stop = fields.Boolean(related='control_id.emergency_stop',string='紧急停止')
+    workshop = fields.Char(string="车间")
+    line = fields.Char(string="产线")
+    machine = fields.Char(string="机台")
+    emergency_stop = fields.Boolean(string="紧急停止", default=False)
     manual_control = fields.Boolean(string="手动控制")
     auto_control = fields.Boolean(string="自动控制")
     stop = fields.Boolean(string="停止")
@@ -95,10 +91,10 @@ class ControlSystemOperate(models.Model):
         ('emergency', '紧急停止')
     ], string="状态", default='idle')
     # 展示框号
-    show_storage_pack_number = fields.Integer(string='框号')
+    # show_storage_pack_number = fields.Integer(string='框号')
 
     storage_goods_status = fields.Boolean(string='库位有货')
-    storage_goods_status_code = Many2one('plc.storage.interface', string='库位信息')
+    # storage_goods_status_code = Many2one('plc.storage.interface', string='库位信息')
     storage_goods_cancel = fields.Boolean(string='取消库位')
     storage_fixed_pack_number = fields.Boolean(string='绑定框号',store=True)
     storage_fixed_pack_barcode = fields.Boolean(string='绑定条码',store=True)
@@ -149,13 +145,8 @@ class ControlSystemOperate(models.Model):
             self.status = 'running'
 
     def initialize_data(self):
-        """
-        hook调用
-        """
-        # code = New_Public_PlcInterfaces().initialize_data_start()
-        #self.env['storage_goods_status'] = code
-        # self.storage_goods_status = code
-        # _logger.info(f'测试{code}')
+        record = self.env['scheduler'].search([()])
+        record.start()
         pass
 
     def start_plc_scheduler(self):
@@ -253,7 +244,7 @@ class ControlSystemOperate(models.Model):
             if num == 1:
                 # self.storage_goods_status = value
                 values_to_write['storage_goods_status'] = value
-                values_to_write['refresh_trigger'] = value
+                # values_to_write['refresh_trigger'] = value
             elif num == 2:
                 # self.storage_pack_number = value
                 values_to_write['storage_base_number'] = value

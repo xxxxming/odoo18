@@ -8,6 +8,7 @@
                 <field name="workshop"/>
                 <field name="line"/>
                 <field name="machine"/>
+
                 <field name="emergency_stop"/>
                 <field name="manual_control"/>
                 <field name="auto_control"/>
@@ -22,8 +23,8 @@
             <form string="立库操作">
                 <header>
                     <button name="emergency_button" type="object" string="急停按钮"/>
-                    <button name="manual_button" type="object" string="手动模式"/>
-                    <button name="auto_button" type="object" string="自动模式"/>
+<!--                    <button name="manual_button" type="object" string="手动模式"/>-->
+<!--                    <button name="auto_button" type="object" string="自动模式"/>-->
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
@@ -52,25 +53,25 @@
                             </group>
                             <group>
                                 <newline/>
-                                <group>
-                                    <field name="allow_outbound"/>
-                                </group>
+<!--                                <group>-->
+<!--                                    <field name="allow_outbound"/>-->
+<!--                                </group>-->
                                 <group>
                                     <button name="store_button" type="object" string="入库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
-                                <group>
-                                    <field name="allow_outbound"/>
-                                </group>
+<!--                                <group>-->
+<!--                                    <field name="allow_outbound"/>-->
+<!--                                </group>-->
                                 <group>
                                     <button name="outbound_button" type="object" string="出库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
-                                <group>
-                                    <field name="allow_return"/>
-                                </group>
+<!--                                <group>-->
+<!--                                    <field name="allow_return"/>-->
+<!--                                </group>-->
                                 <group>
                                     <button name="return_store_button" type="object" string="返库"
                                             class="btn-info"/>
@@ -85,8 +86,12 @@
                             <form>
                                 <group>
                                     <header>
-                                        <button name="storage_information_write" type="object" string="库位写入"/>
-                                        <button name="storage_information_read" type="object" string="库位读取"/>
+<!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
+<!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
+                                            <field name="stacker_goods_status"/>
+                                            <field name="stacker_goods_cancel"/>
+                                            <field name="manual_control" readonly="True"/>
+                                           <field name="auto_control"/>
                                     </header>
                                     >
                                     <newline/>
@@ -96,7 +101,6 @@
                                             <field name="storage_goods_cancel"/>
                                         </group>
                                         <group>
-<!--                                            # 增加刷新字段-->
                                             <group>
                                                 <field name="storage_pack_number" widget="RefreshStorageFields"/>
                                                 <field name="storage_base_number" widget="RefreshStorageFields"/>

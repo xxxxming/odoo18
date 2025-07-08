@@ -32,7 +32,7 @@
 //   registry.category("views").add("reload_controller", ReloadController);
 
 
-oo.define('custom.ReloadController', function (require) {
+odoo.define('custom.ReloadController', function (require) {
 "use strict";
 
 const { Component } = owl;
