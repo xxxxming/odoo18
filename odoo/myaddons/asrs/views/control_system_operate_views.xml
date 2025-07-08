@@ -98,10 +98,10 @@
                                         <group>
 <!--                                            # 增加刷新字段-->
                                             <group>
-                                                <field name="storage_pack_number" widget="RefreshStorageFields"/>
-                                                <field name="storage_base_number" widget="RefreshStorageFields"/>
-                                                <field name="storage_location_number" widget="RefreshStorageFields"/>
-                                                <field name="storage_pack_barcode" widget="RefreshStorageFields"/>
+                                                <field name="storage_pack_number" />
+                                                <field name="storage_base_number" />
+                                                <field name="storage_location_number" widget="RefreshFullModel"/>
+                                                <field name="storage_pack_barcode" />
                                             </group>
                                         </group>
                                     </group>
