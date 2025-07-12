@@ -10,7 +10,10 @@ class WarehouseSettings(models.Model):
      building = fields.Integer(string='栋数')
      column = fields.Integer(string='列数')
      layer = fields.Integer(string='层数')
-
+     entrance_1 = fields.Char(string='出入口1')
+     entrance_2 = fields.Char(string='出入口2')
+     entrance_3 = fields.Char(string='出入口3')
+     entrance_4 = fields.Char(string='出入口4')
 
      layer_spacing = fields.Float(string='层间距')
      column_spacing = fields.Float(string='列间距')

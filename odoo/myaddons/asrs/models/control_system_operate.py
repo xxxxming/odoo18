@@ -7,6 +7,7 @@ from odoo import models, fields, api, SUPERUSER_ID
 import threading
 from odoo import http
 from odoo.addons.test_convert.tests.test_env import record
+from odoo.exceptions import UserError
 from odoo.http import request
 import struct
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -31,14 +32,14 @@ class AutomaticStorageLocation(models.Model):
     _description = 'automatic storage location'
 
 
-    goods_status = fields.Boolean(string='库位有货')
-    goods_cancel = fields.Boolean(string='取消库位')
-    fixed_pack_number = fields.Boolean(string='绑定框号')
-    fixed_pack_barcode = fields.Boolean(string='绑定条码')
-    pack_number = fields.Integer(string='框号')
-    base_number = fields.Integer(string='库位编号')
-    location_number = fields.Integer(string='库位号')
-    pack_barcode = fields.Char(string='框条码')
+    # goods_status = fields.Boolean(string='库位有货')
+    # goods_cancel = fields.Boolean(string='取消库位')
+    # fixed_pack_number = fields.Boolean(string='绑定框号')
+    # fixed_pack_barcode = fields.Boolean(string='绑定条码')
+    # pack_number = fields.Integer(string='框号')
+    # base_number = fields.Integer(string='库位编号')
+    # location_number = fields.Integer(string='库位号')
+    # pack_barcode = fields.Char(string='框条码')
 
 
 # def read_information():
@@ -76,13 +77,17 @@ class ControlSystemOperate(models.Model):
     reset = fields.Boolean(string="复位")
     store = fields.Boolean(string="存储")
     outbound = fields.Boolean(string="出库")
-    return_store = fields.Boolean(string="回库")
+    return_store = fields.Boolean(string="返库")
     allow_store = fields.Boolean(string="允许入库")
     allow_outbound = fields.Boolean(string="允许出库")
     allow_return = fields.Boolean(string="允许返库")
     pack_number = fields.Integer(string='框号')
+    location_number = fields.Integer(string='库位号', store=True)
+    pack_barcode = fields.Char(string='框条码')
     source_target = fields.Integer(string="源目标")
     new_target = fields.Integer(string="新目标")
+    entrance = fields.Selection(string='出入口',
+    selection=[('entrance1', '出入口1'), ('entrance2', '出入口2')])
     status = fields.Selection([
         ('idle', '空闲'),
         ('running', '运行中'),
@@ -137,12 +142,84 @@ class ControlSystemOperate(models.Model):
     def _compute_one_second(self):
         pass
 
-    @api.onchange('storage_goods_cancel')
-    def _onchange_one_second(self):
-        if self.storage_goods_status:
-            self.status = 'idle'
-        else:
-            self.status = 'running'
+    @api.onchange('pack_number')
+    def _onchange_pack_number(self):
+        record1 = self.browse(1)
+        record1.write({'pack_number': self.pack_number})
+        self._compare_pack_number()
+        # print('change1')
+        # print(record1.pack_number)
+        # print(self.pack_number)
+
+    def _compare_pack_number(self):
+
+        if self.pack_number != 0 :
+            record_settings = self.env['warehouse.settings'].search([], limit=1)
+            entrance_1 = record_settings.entrance_1
+            entrance_2 = record_settings.entrance_2
+            # 在 automatic.storage.location 中搜索匹配的 pack_number
+            storage_record = self.env['warehouse.location.information'].search(
+                [('pack_number', '=', self.pack_number)], limit=1)
+            record = self.browse(1)
+            record.refresh_status = True
+            record.write({
+                'allow_store': False,
+                'allow_outbound': False,
+                'allow_return': False,
+            })
+
+            if storage_record:
+                # 更新字段
+
+                record.write({
+                    'pack_number': storage_record.pack_number,
+                    'location_number': storage_record.location_number,
+                    'pack_barcode': storage_record.pack_barcode,
+                })
+
+                if storage_record.goods_status == True:
+                    record.write({
+                        'allow_store': False,
+                        'allow_outbound': True,
+                        'allow_return': False,
+                    })
+
+                    if self.entrance==False or self.entrance=='entrance1':
+                        record.write({
+                            'source_target': entrance_1,
+                        })
+                    if self.entrance == False or self.entrance == 'entrance2':
+                        record.write({
+                            'source_target': entrance_2,
+                        })
+                    record.write({
+                        'new_target': storage_record.location_number,
+                    })
+            else:
+                record.write({
+                    'pack_number': self.pack_number,
+
+                    'pack_barcode': storage_record.pack_barcode,
+                })
+
+            # 查询模型A
+            # storage_records = self.env['automatic.storage.location'].search([('pack_number', '=', self.pack_number)])
+            # print(self.pack_number)
+            # if storage_records:
+            #     # 如果找到匹配记录，获取目标字段值
+            #     # target_field = storage_records[0].pack_number
+            #     print('查询到框号！')
+            # else:
+            #     raise UserError('没有查询到框号！')
+
+            # 获取 automatic.storage.location 模型中的所有 pack_number 值
+            # location_records = self.env['automatic.storage.location'].search([])
+            # pack_numbers = [record.pack_number for record in location_records if record.pack_number]
+            # print(pack_numbers)
+
+            # 输出结果示例
+            # _logger.info("Pack Numbers: %s", pack_numbers)
+
 
     def initialize_data(self):
         record = self.env['scheduler'].search([()])
@@ -261,8 +338,8 @@ class ControlSystemOperate(models.Model):
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
-            #print(values_to_write)
-        return values_to_write
+
+
 
 
     def stacker_information_read(self):

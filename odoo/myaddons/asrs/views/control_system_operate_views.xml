@@ -28,8 +28,10 @@
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
-                    <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>
-                    <button name="initialize_data" type="object" string="初始化" display="always"/>
+<!--                    <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>-->
+<!--                    <button name="initialize_data" type="object" string="初始化" display="always"/>-->
+
+<!--                    <field name="status" widget="statusbar"/>-->
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -41,37 +43,38 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-                                <field name="manual_control" readonly="True"/>
-                                <field name="auto_control"/>
+                                <field name="pack_number"/>
+                                <field name="pack_barcode"/>
+                                <field name="entrance"/>
                             </group>
                         </group>
                         <group>
                             <group>
-                                <field name="pack_number"/>
-                                <field name="source_target" readonly="True"/>
-                                <field name="new_target" readonly="True"/>
+                                <field name="location_number" readonly="True" widget="RefreshStorageFields"/>
+                                <field name="source_target" readonly="True" widget="RefreshStorageFields"/>
+                                <field name="new_target" readonly="True" widget="RefreshStorageFields"/>
                             </group>
                             <group>
                                 <newline/>
-<!--                                <group>-->
-<!--                                    <field name="allow_outbound"/>-->
-<!--                                </group>-->
+                                    <group>
+                                        <field name="allow_store"  widget="RefreshStorageFields"/>
+                                    </group>
                                 <group>
                                     <button name="store_button" type="object" string="入库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
-<!--                                <group>-->
-<!--                                    <field name="allow_outbound"/>-->
-<!--                                </group>-->
+                                <group>
+                                    <field name="allow_outbound" widget="RefreshStorageFields"/>
+                                </group>
                                 <group>
                                     <button name="outbound_button" type="object" string="出库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
-<!--                                <group>-->
-<!--                                    <field name="allow_return"/>-->
-<!--                                </group>-->
+                                <group>
+                                    <field name="allow_return" widget="RefreshStorageFields"/>
+                                </group>
                                 <group>
                                     <button name="return_store_button" type="object" string="返库"
                                             class="btn-info"/>
@@ -80,7 +83,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="出入库">
+                        <page string="出入库" widget="RefreshFullModel">
                             <group>
                             </group>
                             <form>
@@ -88,23 +91,19 @@
                                     <header>
 <!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
 <!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
-                                            <field name="stacker_goods_status"/>
-                                            <field name="stacker_goods_cancel"/>
-                                            <field name="manual_control" readonly="True"/>
-                                           <field name="auto_control"/>
+
                                     </header>
-                                    >
                                     <newline/>
                                     <group string="库位信息">
                                         <group>
-                                            <field name="storage_goods_status" widget="RefreshStorageFields"/>
+                                            <field name="storage_goods_status"/>
                                             <field name="storage_goods_cancel"/>
                                         </group>
                                         <group>
                                             <group>
                                                 <field name="storage_pack_number" />
                                                 <field name="storage_base_number" />
-                                                <field name="storage_location_number" widget="RefreshFullModel"/>
+                                                <field name="storage_location_number"/>
                                                 <field name="storage_pack_barcode" />
                                             </group>
                                         </group>

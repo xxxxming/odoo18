@@ -5,13 +5,14 @@
         <field name="model">warehouse.settings</field>
         <field name="arch" type="xml">
             <list>
-                <field name="warehouse_name"/>
-                <field name="building"/>
-                <field name="column"/>
-                <field name="layer"/>
-                <field name="total_locations"/>
-                <field name="column_spacing"/>
-                <field name="layer_spacing"/>
+
+                    <field name="warehouse_name"/>
+                    <field name="building"/>
+                    <field name="column"/>
+                    <field name="layer"/>
+                    <field name="total_locations"/>
+                    <field name="column_spacing"/>
+                    <field name="layer_spacing"/>
 
             </list>
         </field>
@@ -35,7 +36,13 @@
                             <field name="total_locations"/>
                             <field name="column_spacing"/>
                             <field name="layer_spacing"/>
+                        </group>
 
+                        <group>
+                            <field name="entrance_1"/>
+                            <field name="entrance_2"/>
+                            <field name="entrance_3"/>
+                            <field name="entrance_4"/>
                         </group>
 
                     </group>

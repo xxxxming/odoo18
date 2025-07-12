@@ -68,9 +68,10 @@ class WarehouseLocationInformation(models.Model):
           # _logger.info(f"Decomposed values: Building={building}, column={column}, Layer={layer}")
           # 获取最后一条记录
           last_record = self.search([], order='id desc', limit=1)
-          if not last_record:
-               _logger.error("未找到任何记录")
-               raise UserError("未找到任何记录")
+          # if not last_record:
+          #
+          #      _logger.error("未找到任何记录")
+          #      raise UserError("未找到任何记录")
 
           # 获取 warehouse.settings 配置
           settings = self.env['warehouse.settings'].search([], limit=1)
@@ -81,7 +82,9 @@ class WarehouseLocationInformation(models.Model):
           # 如果没有记录，初始化 location_number 为 10101
           if not last_record:
                new_location = 10101
+               new_base_number = 1
                self.create({
+                    'base_number': new_base_number,
                     'location_number': new_location,
                })
                _logger.info(f"初始化新库位编号: {new_location}")
