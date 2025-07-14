@@ -19,7 +19,7 @@ class RefreshStorageFields extends Field {
         console.log('refresh_status', data['refresh_status']);
         if (data && data['refresh_status'] === true) {  // 判断 statu_code 是否为真
 //            增加刷新字段
-            for (const field of ['location_number','source_target', 'new_target']) {
+            for (const field of ['allow_store','allow_outbound','allow_return','pack_barcode','location_number','source_target', 'new_target']) {
                 if (data[field] !== undefined) {
                     this.props.record.data[field] = data[field];
                 }

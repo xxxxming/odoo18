@@ -160,6 +160,9 @@ class ControlSystemOperate(models.Model):
             # 在 automatic.storage.location 中搜索匹配的 pack_number
             storage_record = self.env['warehouse.location.information'].search(
                 [('pack_number', '=', self.pack_number)], limit=1)
+            barcode_record = self.env['frame.barcode'].search(
+                [('frame_number', '=', self.pack_number)], limit=1)
+
             record = self.browse(1)
             record.refresh_status = True
             record.write({
@@ -167,40 +170,107 @@ class ControlSystemOperate(models.Model):
                 'allow_outbound': False,
                 'allow_return': False,
             })
-
+            #如果库存中数据中没有对应的框条码，则获取框条码
+            if storage_record.pack_barcode :
+                record.write({
+                'pack_barcode': storage_record.pack_barcode,
+                })
+            else:
+                record.write({
+                'pack_barcode': barcode_record.frame_barcode,
+                })
+            print('10',record.pack_barcode)
+            print('11',storage_record.pack_barcode)
+            # 如果能在库存里找到对应的框号，则获取库位信息
             if storage_record:
-                # 更新字段
-
                 record.write({
                     'pack_number': storage_record.pack_number,
                     'location_number': storage_record.location_number,
-                    'pack_barcode': storage_record.pack_barcode,
                 })
-
                 if storage_record.goods_status == True:
                     record.write({
                         'allow_store': False,
                         'allow_outbound': True,
                         'allow_return': False,
                     })
-
-                    if self.entrance==False or self.entrance=='entrance1':
-                        record.write({
-                            'source_target': entrance_1,
+                    record.write({
+                        'source_target': storage_record.location_number,
                         })
-                    if self.entrance == False or self.entrance == 'entrance2':
+                    if self.entrance == False or self.entrance == 'entrance1':
                         record.write({
-                            'source_target': entrance_2,
+                        'new_target': entrance_1,
+                        })
+                    if self.entrance == 'entrance2':
+                        record.write({
+                        'new_target': entrance_2,
+                        })
+                else:
+                    record.write({
+                        'allow_store': False,
+                        'allow_outbound': False,
+                        'allow_return': True,
+                    })
+                    if self.entrance == False or self.entrance == 'entrance1':
+                        record.write({
+                        'source_target': entrance_1,
+                        })
+                    if self.entrance == 'entrance2':
+                        record.write({
+                        'source_target': entrance_2,
                         })
                     record.write({
                         'new_target': storage_record.location_number,
                     })
+
             else:
                 record.write({
-                    'pack_number': self.pack_number,
-
-                    'pack_barcode': storage_record.pack_barcode,
+                    'allow_store': True,
+                    'allow_outbound': False,
+                    'allow_return': False,
                 })
+                location_record_1 = self.env['warehouse.location.information'].search(
+                    [('location_number', '!=', entrance_1),
+                     ('location_number', '!=', entrance_2),
+                     ('location_number', '<', 20000),
+                     ('goods_cancel', '=', False),
+                     ('goods_status', '=', False)], limit=1)
+                location_record_2 = self.env['warehouse.location.information'].search(
+                    [('location_number', '!=', entrance_1),
+                     ('location_number', '!=', entrance_2),
+                     ('location_number', '>', 20000),
+                     ('goods_cancel', '=', False),
+                     ('goods_status', '=', False)], limit=1)
+                     # 剩余部分为后四位
+                column_layer_1 = location_record_1.location_number % 10000
+                column_layer_2 = location_record_2.location_number % 10000
+
+                if column_layer_1<column_layer_2:
+                    record.write({
+                        'location_number': location_record_1.location_number,
+                    })
+                else:
+                    record.write({
+                        'location_number': location_record_2.location_number,
+                    })
+
+                record.write({
+                    'source_target': record.location_number,
+                })
+
+                if self.entrance == False or self.entrance == 'entrance1':
+                    record.write({
+                        'new_target': entrance_1,
+                    })
+                if self.entrance == 'entrance2':
+                    record.write({
+                        'new_target': entrance_2,
+                    })
+
+
+
+
+
+
 
             # 查询模型A
             # storage_records = self.env['automatic.storage.location'].search([('pack_number', '=', self.pack_number)])

@@ -11,10 +11,13 @@ class RefreshStatusController(http.Controller):
             return {
 
                 'refresh_status': record.refresh_status,
-                'storage_goods_status': record.storage_goods_status,
-                'storage_pack_number': record.storage_pack_number,
-                'storage_base_number': record.storage_base_number,
-                'storage_location_number': record.storage_location_number,
-                'storage_pack_barcode': record.storage_pack_barcode,
+                'allow_store': record.allow_store,
+                'allow_outbound': record.allow_outbound,
+                'allow_return': record.allow_return,
+                'pack_barcode': record.pack_barcode,
+                'location_number': record.location_number,
+                'source_target': record.source_target,
+                'new_target': record.new_target,
+
             }
         return {}

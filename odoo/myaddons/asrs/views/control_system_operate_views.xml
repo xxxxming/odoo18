@@ -43,16 +43,16 @@
                                 <field name="machine"/>
                             </group>
                             <group>
-                                <field name="pack_number"/>
-                                <field name="pack_barcode"/>
-                                <field name="entrance"/>
+                                <field name="pack_number"  style="background-color: #d4edda;"/>
+                                <field name="pack_barcode" widget="RefreshStorageFields"/>
+                                <field name="location_number"  widget="RefreshStorageFields"/>
                             </group>
                         </group>
                         <group>
                             <group>
-                                <field name="location_number" readonly="True" widget="RefreshStorageFields"/>
-                                <field name="source_target" readonly="True" widget="RefreshStorageFields"/>
-                                <field name="new_target" readonly="True" widget="RefreshStorageFields"/>
+                                <field name="entrance"/>
+                                <field name="source_target"  widget="RefreshStorageFields"/>
+                                <field name="new_target"  widget="RefreshStorageFields"/>
                             </group>
                             <group>
                                 <newline/>
@@ -60,7 +60,7 @@
                                         <field name="allow_store"  widget="RefreshStorageFields"/>
                                     </group>
                                 <group>
-                                    <button name="store_button" type="object" string="入库"
+                                    <button name="store_button" type="object" string="执行入库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
@@ -68,7 +68,7 @@
                                     <field name="allow_outbound" widget="RefreshStorageFields"/>
                                 </group>
                                 <group>
-                                    <button name="outbound_button" type="object" string="出库"
+                                    <button name="outbound_button" type="object" string="执行出库"
                                             class="btn-info"/>
                                 </group>
                                 <newline/>
@@ -76,7 +76,7 @@
                                     <field name="allow_return" widget="RefreshStorageFields"/>
                                 </group>
                                 <group>
-                                    <button name="return_store_button" type="object" string="返库"
+                                    <button name="return_store_button" type="object" string="执行返库"
                                             class="btn-info"/>
                                 </group>
                             </group>

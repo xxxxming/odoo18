@@ -101,11 +101,11 @@ class WarehouseLocationInformation(models.Model):
                # 层递增
                layer += 1
                if layer > settings.layer:
-                    layer = 0
+                    layer = 1
                     column += 1
 
                if column > settings.column:
-                    column = 0
+                    column = 1
                     building += 1
 
                base_number += 1
