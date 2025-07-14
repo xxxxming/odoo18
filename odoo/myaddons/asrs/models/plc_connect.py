@@ -84,15 +84,8 @@ class PlcClient:
         #读取 自动判断是否连接. 否则尝试重连
         if not self.client.get_connected():
             self.connect_plc()
-        if value_type == 'int':
-            if not isinstance(value, int) or not (-32768 <= value <= 32767):
-                raise ValueError("INT值必须是 -32768 到 32767 之间的整数")
-            data = bytearray(2)
-            set_int(data, 0, value)
-            self.client.db_write(db_number, offset, data)
-            _logger.info(f"写入 INT: {value} 到 DB{db_number}, 偏移 {offset}")
 
-        elif value_type == 'bool':
+        if value_type == 'bool':
             if not isinstance(value, bool):
                 raise ValueError("BOOL值必须是 True 或 False")
             if bit_index is None or not (0 <= bit_index <= 7):
@@ -101,6 +94,22 @@ class PlcClient:
             set_bool(data, 0, bit_index, value)
             self.client.db_write(db_number, offset, data)
             _logger.info(f"写入 BOOL: {value} 到 DB{db_number}, 字节 {offset}, 位 {bit_index}")
+
+        elif value_type == 'int':
+            if not isinstance(value, int) or not (-32768 <= value <= 32767):
+                raise ValueError("INT值必须是 -32768 到 32767 之间的整数")
+            data = bytearray(2)
+            set_int(data, 0, value)
+            self.client.db_write(db_number, offset, data)
+            _logger.info(f"写入 INT: {value} 到 DB{db_number}, 偏移 {offset}")
+
+        elif value_type == 'dint':
+            if not isinstance(value, int) or not (-2147483648 <= value <= 2147483647):
+                raise ValueError("DINT值必须是 -2147483648 到 2147483647 之间的整数")
+            data = bytearray(4)
+            set_dint(data, 0, value)
+            self.client.db_write(db_number, offset, data)
+            _logger.info(f"写入 DINT: {value} 到 DB{db_number}, 偏移 {offset}")
 
         elif value_type == 'string':
             if not isinstance(value, str):
@@ -140,9 +149,6 @@ class PlcClient:
         elif value_type == 'dint':
             data = self.client.db_read(db_number, offset, 4)
             swapped = struct.unpack('>I', data)[0]
-            # print('Test')
-            # print(swapped)
-            # return get_int(swapped, 0)
             return swapped
 
         elif value_type == 'bool':

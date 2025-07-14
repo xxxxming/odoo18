@@ -142,6 +142,10 @@ class ControlSystemOperate(models.Model):
     def _compute_one_second(self):
         pass
 
+    @api.onchange('entrance')
+    def _onchange_entrance(self):
+        self._compare_pack_number()
+
     @api.onchange('pack_number')
     def _onchange_pack_number(self):
         record1 = self.browse(1)
@@ -164,7 +168,7 @@ class ControlSystemOperate(models.Model):
                 [('frame_number', '=', self.pack_number)], limit=1)
 
             record = self.browse(1)
-            record.refresh_status = True
+            # record.refresh_status = True
             record.write({
                 'allow_store': False,
                 'allow_outbound': False,
@@ -254,16 +258,16 @@ class ControlSystemOperate(models.Model):
                     })
 
                 record.write({
-                    'source_target': record.location_number,
+                    'new_target': record.location_number,
                 })
 
                 if self.entrance == False or self.entrance == 'entrance1':
                     record.write({
-                        'new_target': entrance_1,
+                        'source_target': entrance_1,
                     })
                 if self.entrance == 'entrance2':
                     record.write({
-                        'new_target': entrance_2,
+                        'source_target': entrance_2,
                     })
 
 
@@ -290,7 +294,6 @@ class ControlSystemOperate(models.Model):
             # 输出结果示例
             # _logger.info("Pack Numbers: %s", pack_numbers)
 
-
     def initialize_data(self):
         record = self.env['scheduler'].search([()])
         record.start()
@@ -315,67 +318,58 @@ class ControlSystemOperate(models.Model):
         """传递到PLC进行写入"""
         # 单独写入
         # 库位有货
-        # read_storage_goods_status = self.storage_goods_status
-        # data = {
-        #     'value' : read_storage_goods_status,
-        #     'bit_index': 0,
-        #     'value_type' : 'bool',
-        # }
-        # PlcClient().set_db_number_write(data)
-        # # 取消库位
-        # read_storage_goods_cancel = self.storage_goods_cancel
-        # if read_storage_goods_cancel == None:
-        #     read_storage_goods_cancel = False
-        # data = {
-        #     'value': read_storage_goods_cancel,
-        #     'bit_index': 2,
-        #     'value_type': 'bool'
-        # }
-        # PlcClient().set_db_number_write(data)
-        # # 框号
-        # read_storage_pack_number = self.storage_pack_number
-        # data = {
-        #     'value': read_storage_pack_number,
-        #     'offset': 2,
-        #     'value_type': 'int'
-        # }
-        # PlcClient().set_db_number_write(data)
-        # # 库位编号
-        # read_storage_base_number = self.storage_base_number
-        # data = {
-        #     'value': read_storage_base_number,
-        #     'offset': 4,
-        #     'value_type': 'int'
-        # }
-        # PlcClient().set_db_number_write(data)
-        # # 库位号
-        # read_storage_location_number = self.storage_location_number
-        # data = {
-        #     'value': read_storage_location_number,
-        #     'offset': 6,
-        #     'value_type': 'int'
-        # }
-        # PlcClient().set_db_number_write(data)
-        # 框条码
-        stacker_pack_barcode = 'pk' + str(self.stacker_pack_barcode)
-        #stacker_pack_barcode = 'pl1255'
-        _logger.info(stacker_pack_barcode)
+        read_storage_goods_status = self.storage_goods_status
+        data = {
+            'value' : read_storage_goods_status,
+            "db_number": 262,
+            'bit_index': 0,
+            'value_type' : 'bool',
+        }
+        PlcClient().set_db_number_write(data)
+        # 库位编号
+        read_storage_base_number = self.storage_base_number
+        data = {
+            'value': read_storage_base_number,
+            "db_number": 262,
+            'offset': 2,
+            'value_type': 'int'
+        }
+        PlcClient().set_db_number_write(data)
+        # 框号
+        read_storage_pack_number = self.storage_pack_number
+        data = {
+            'value': read_storage_pack_number,
+            "db_number": 262,
+            'offset': 4,
+            'value_type': 'int'
+        }
+        PlcClient().set_db_number_write(data)
+        # 库位号
+        read_storage_location_number = self.storage_location_number
+        data = {
+            'value': read_storage_location_number,
+            "db_number": 262,
+            'offset': 10,
+            'value_type': 'dint'
+        }
+        PlcClient().set_db_number_write(data)
 
-        # data = {
-        #     'value': stacker_pack_barcode,
-        #     'offset': 14,
-        #     "string_max_len": 8,
-        #     'value_type': 'string',
-        #     "db_number": 262
-        # }
-        # PlcClient().set_db_number_write(data)
+        read_storage_pack_barcode = self.storage_pack_barcode
+        data = {
+            'value': read_storage_pack_barcode,
+            "db_number": 262,
+            'offset': 14,
+            "string_max_len": 8,
+            'value_type': 'string',
+        }
+        PlcClient().set_db_number_write(data)
         # 对某个DB内进行批量写入
 
     # @api.model
     def storage_information_read(self):
         """读取测试-批量"""
         results = [
-            # 库位有货，框号，库位号，框条码
+            # 库位有货，序号，框号，库位号，框条码
             {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
             {'db_number': 262, 'offset': 2, 'value_type': 'int'},
             {'db_number': 262, 'offset': 4, 'value_type': 'int'},
