@@ -82,7 +82,8 @@ class ControlSystemOperate(models.Model):
     allow_outbound = fields.Boolean(string="允许出库")
     allow_return = fields.Boolean(string="允许返库")
     pack_number = fields.Integer(string='框号')
-    location_number = fields.Integer(string='库位号', store=True)
+    base_number = fields.Integer(string='序号')
+    location_number = fields.Integer(string='库位号')
     pack_barcode = fields.Char(string='框条码')
     source_target = fields.Integer(string="源目标")
     new_target = fields.Integer(string="新目标")
@@ -104,7 +105,7 @@ class ControlSystemOperate(models.Model):
     storage_fixed_pack_number = fields.Boolean(string='绑定框号',store=True)
     storage_fixed_pack_barcode = fields.Boolean(string='绑定条码',store=True)
     storage_pack_number = fields.Integer(string='框号',store=True)
-    storage_base_number = fields.Integer(string='库位编号',store=True)
+    storage_base_number = fields.Integer(string='序号',store=True)
     storage_location_number = fields.Integer(string='库位号',store=True)
     storage_pack_barcode = fields.Char(string='框条码',store=True)
 
@@ -113,7 +114,7 @@ class ControlSystemOperate(models.Model):
     stacker_fixed_pack_number = fields.Boolean(string='绑定框号')
     stacker_fixed_pack_barcode = fields.Boolean(string='绑定条码')
     stacker_pack_number = fields.Integer(string='框号')
-    stacker_base_number = fields.Integer(string='库位编号')
+    stacker_base_number = fields.Integer(string='序号')
     stacker_location_number = fields.Integer(string='库位号')
     stacker_pack_barcode = fields.Char(string='框条码')
 
@@ -122,7 +123,7 @@ class ControlSystemOperate(models.Model):
     entrance1_fixed_pack_number = fields.Boolean(string='绑定框号')
     entrance1_fixed_pack_barcode = fields.Boolean(string='绑定条码')
     entrance1_pack_number = fields.Integer(string='框号')
-    entrance1_base_number = fields.Integer(string='库位编号')
+    entrance1_base_number = fields.Integer(string='序号')
     entrance1_location_number = fields.Integer(string='库位号')
     entrance1_pack_barcode = fields.Char(string='框条码')
 
@@ -131,7 +132,7 @@ class ControlSystemOperate(models.Model):
     entrance2_fixed_pack_number = fields.Boolean(string='绑定框号')
     entrance2_fixed_pack_barcode = fields.Boolean(string='绑定条码')
     entrance2_pack_number = fields.Integer(string='框号')
-    entrance2_base_number = fields.Integer(string='库位编号')
+    entrance2_base_number = fields.Integer(string='序号')
     entrance2_location_number = fields.Integer(string='库位号')
     entrance2_pack_barcode = fields.Char(string='框条码')
 
@@ -151,9 +152,7 @@ class ControlSystemOperate(models.Model):
         record1 = self.browse(1)
         record1.write({'pack_number': self.pack_number})
         self._compare_pack_number()
-        # print('change1')
-        # print(record1.pack_number)
-        # print(self.pack_number)
+
 
     def _compare_pack_number(self):
 
@@ -183,8 +182,6 @@ class ControlSystemOperate(models.Model):
                 record.write({
                 'pack_barcode': barcode_record.frame_barcode,
                 })
-            print('10',record.pack_barcode)
-            print('11',storage_record.pack_barcode)
             # 如果能在库存里找到对应的框号，则获取库位信息
             if storage_record:
                 record.write({
@@ -225,7 +222,6 @@ class ControlSystemOperate(models.Model):
                     record.write({
                         'new_target': storage_record.location_number,
                     })
-
             else:
                 record.write({
                     'allow_store': True,
@@ -270,12 +266,6 @@ class ControlSystemOperate(models.Model):
                         'source_target': entrance_2,
                     })
 
-
-
-
-
-
-
             # 查询模型A
             # storage_records = self.env['automatic.storage.location'].search([('pack_number', '=', self.pack_number)])
             # print(self.pack_number)
@@ -303,67 +293,111 @@ class ControlSystemOperate(models.Model):
         _logger.info("开始启动定时任务测试")
         pass
 
+    def control_system_read_write(self):
+        self.storage_information_write()
+        self.stacker_information_read()
 
-    def batch_read_plc(self, row_data):
-        """
-        通用数据读取方法
-        :param row_data: plc.data 记录集
-        :return: value 读取结果
-        """
-        value = PlcClient().set_db_number_read(row_data)
-        # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
-        return value
+
+
+
 
     def storage_information_write(self):
         """传递到PLC进行写入"""
-        # 单独写入
-        # 库位有货
-        read_storage_goods_status = self.storage_goods_status
-        data = {
-            'value' : read_storage_goods_status,
-            "db_number": 262,
-            'bit_index': 0,
-            'value_type' : 'bool',
-        }
-        PlcClient().set_db_number_write(data)
-        # 库位编号
-        read_storage_base_number = self.storage_base_number
-        data = {
-            'value': read_storage_base_number,
-            "db_number": 262,
-            'offset': 2,
-            'value_type': 'int'
-        }
-        PlcClient().set_db_number_write(data)
-        # 框号
-        read_storage_pack_number = self.storage_pack_number
-        data = {
-            'value': read_storage_pack_number,
-            "db_number": 262,
-            'offset': 4,
-            'value_type': 'int'
-        }
-        PlcClient().set_db_number_write(data)
-        # 库位号
-        read_storage_location_number = self.storage_location_number
-        data = {
-            'value': read_storage_location_number,
-            "db_number": 262,
-            'offset': 10,
-            'value_type': 'dint'
-        }
-        PlcClient().set_db_number_write(data)
-
-        read_storage_pack_barcode = self.storage_pack_barcode
-        data = {
-            'value': read_storage_pack_barcode,
-            "db_number": 262,
-            'offset': 14,
-            "string_max_len": 8,
-            'value_type': 'string',
-        }
-        PlcClient().set_db_number_write(data)
-        # 对某个DB内进行批量写入
+        # 提取字段值
+        storage_goods_status = self.storage_goods_status
+        storage_base_number = self.storage_base_number
+        storage_pack_number = self.storage_pack_number
+        storage_location_number = self.storage_location_number
+        storage_pack_barcode = self.storage_pack_barcode
+        print('1',storage_pack_barcode)
+        print('2',self.storage_pack_barcode)
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': storage_goods_status,"db_number": 262,'bit_index': 0,'value_type': 'bool',},
+                {'value': storage_base_number,"db_number": 262,'offset': 2,'value_type': 'int'},
+                {'value': storage_pack_number,"db_number": 262,'offset': 4,'value_type': 'int'},
+                {'value': storage_location_number,"db_number": 262,'offset': 10,'value_type': 'dint'},
+                {'value': storage_pack_barcode,"db_number": 262,'offset': 14,"string_max_len": 18,'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+    def stacker_information_write(self):
+        """传递到PLC进行写入"""
+        # 提取字段值
+        stacker_goods_status = self. stacker_goods_status
+        stacker_base_number = self. stacker_base_number
+        stacker_pack_number = self. stacker_pack_number
+        stacker_location_number = self. stacker_location_number
+        stacker_pack_barcode = self. stacker_pack_barcode
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': stacker_goods_status, "db_number": 262, 'bit_index': 36, 'value_type': 'bool', },
+                {'value': stacker_base_number, "db_number": 262, 'offset': 38, 'value_type': 'int'},
+                {'value': stacker_pack_number, "db_number": 262, 'offset': 40, 'value_type': 'int'},
+                {'value': stacker_location_number, "db_number": 262, 'offset': 46, 'value_type': 'dint'},
+                {'value': stacker_pack_barcode, "db_number": 262, 'offset': 50, "string_max_len": 18,
+                 'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+    def entrance1_information_write(self):
+        """传递到PLC进行写入"""
+        # 提取字段值
+        entrance1_goods_status = self.entrance1_goods_status
+        entrance1_base_number = self.entrance1_base_number
+        entrance1_pack_number = self.entrance1_pack_number
+        entrance1_location_number = self.entrance1_location_number
+        entrance1_pack_barcode = self.entrance1_pack_barcode
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': entrance1_goods_status, "db_number": 262, 'bit_index': 72, 'value_type': 'bool', },
+                {'value': entrance1_base_number, "db_number": 262, 'offset': 74, 'value_type': 'int'},
+                {'value': entrance1_pack_number, "db_number": 262, 'offset': 76, 'value_type': 'int'},
+                {'value': entrance1_location_number, "db_number": 262, 'offset': 82, 'value_type': 'dint'},
+                {'value': entrance1_pack_barcode, "db_number": 262, 'offset': 86, "string_max_len": 18,
+                 'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+    def entrance2_information_write(self):
+        """传递到PLC进行写入"""
+        # 提取字段值
+        entrance2_goods_status = self.entrance2_goods_status
+        entrance2_base_number = self.entrance2_base_number
+        entrance2_pack_number = self.entrance2_pack_number
+        entrance2_location_number = self.entrance2_location_number
+        entrance2_pack_barcode = self.entrance2_pack_barcode
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': entrance2_goods_status, "db_number": 262, 'bit_index': 108, 'value_type': 'bool', },
+                {'value': entrance2_base_number, "db_number": 262, 'offset': 110, 'value_type': 'int'},
+                {'value': entrance2_pack_number, "db_number": 262, 'offset': 112, 'value_type': 'int'},
+                {'value': entrance2_location_number, "db_number": 262, 'offset': 118, 'value_type': 'dint'},
+                {'value': entrance2_pack_barcode, "db_number": 262, 'offset': 122, "string_max_len": 18,
+                 'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
 
     # @api.model
     def storage_information_read(self):
@@ -380,32 +414,20 @@ class ControlSystemOperate(models.Model):
         values_to_write = {}
         for result in results:
             num += 1
-            value = self.batch_read_plc(result)
-            # _logger.info(type(value))
+            value = PlcClient().db_number_read(result)
             if num == 1:
-                # self.storage_goods_status = value
                 values_to_write['storage_goods_status'] = value
-                # values_to_write['refresh_trigger'] = value
             elif num == 2:
-                # self.storage_pack_number = value
                 values_to_write['storage_base_number'] = value
             elif num == 3:
-                # self.storage_pack_number = value
                 values_to_write['storage_pack_number'] = value
-                # self.env['control.system.operate'].browse(1).write({'storage_pack_number': value})
             elif num == 4:
                 values_to_write['storage_location_number'] = value
             elif num == 5:
                 values_to_write['storage_pack_barcode'] = value
-
-        # 统一写入数据库，减少 I/O 次数
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
-
-
-
-
     def stacker_information_read(self):
         """读取测试-批量"""
         results = [
@@ -420,11 +442,9 @@ class ControlSystemOperate(models.Model):
         values_to_write = {}
         for result in results:
             num += 1
-            value = self.batch_read_plc(result)
-            # _logger.info(type(value))
+            value = PlcClient().db_number_read(result)
             if num == 1:
                 values_to_write['stacker_goods_status'] = value
-
             elif num == 2:
                 values_to_write['stacker_base_number'] = value
             elif num == 3:
@@ -436,7 +456,6 @@ class ControlSystemOperate(models.Model):
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
-
     def entrance1_information_read(self):
         """读取测试-批量"""
         results = [
@@ -451,8 +470,7 @@ class ControlSystemOperate(models.Model):
         values_to_write = {}
         for result in results:
             num += 1
-            value = self.batch_read_plc(result)
-            # _logger.info(type(value))
+            value = PlcClient().db_number_read(result)
             if num == 1:
                 values_to_write['entrance1_goods_status'] = value
             elif num == 2:
@@ -466,7 +484,6 @@ class ControlSystemOperate(models.Model):
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
-
     def entrance2_information_read(self):
         """读取测试-批量"""
         results = [
@@ -481,7 +498,7 @@ class ControlSystemOperate(models.Model):
         values_to_write = {}
         for result in results:
             num += 1
-            value = self.batch_read_plc(result)
+            value = PlcClient().db_number_read(result)
             if num == 1:
                 values_to_write['entrance2_goods_status'] = value
             elif num == 2:
@@ -495,15 +512,12 @@ class ControlSystemOperate(models.Model):
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
-
     def emergency_button(self):
-        # code = self.env['system.control']
+        record = self.browse(1)
+        record.emergency_stop = not record.emergency_stop
 
-        self.write({'emergency_stop': True})
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',  # 强制刷新当前视图
-        }
+        PlcClient().db_number_write({'value': record.emergency_stop, "db_number": 260, 'bit_index': 5, 'value_type': 'bool', })
+
 
     def manual_button(self):
         for record in self:
@@ -528,8 +542,9 @@ class ControlSystemOperate(models.Model):
             record.emergency_stop = not record.emergency_stop
 
     def store_button(self):
-        for record in self:
-            record.store = not record.store
+        print('3',self.allow_store)
+        print('4', self.storage_pack_barcode)
+        print('5', self.storage_pack_barcode)
 
     def outbound_button(self):
         for record in self:
@@ -538,6 +553,52 @@ class ControlSystemOperate(models.Model):
     def return_store_button(self):
         for record in self:
             record.return_store = not record.return_store
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

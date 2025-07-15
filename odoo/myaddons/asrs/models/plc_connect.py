@@ -60,7 +60,7 @@ class PlcClient:
         self.client.disconnect()
         _logger.info("已断开PLC连接")
 
-    def set_db_number_write(self, row_data):
+    def db_number_write(self, row_data):
         """
         写入数据到PLC，自动判断类型。 方案1:用传递db_number
         参数：
@@ -93,7 +93,7 @@ class PlcClient:
             data = self.client.db_read(db_number, offset, 1)
             set_bool(data, 0, bit_index, value)
             self.client.db_write(db_number, offset, data)
-            _logger.info(f"写入 BOOL: {value} 到 DB{db_number}, 字节 {offset}, 位 {bit_index}")
+            # _logger.info(f"写入 BOOL: {value} 到 DB{db_number}, 字节 {offset}, 位 {bit_index}")
 
         elif value_type == 'int':
             if not isinstance(value, int) or not (-32768 <= value <= 32767):
@@ -101,7 +101,7 @@ class PlcClient:
             data = bytearray(2)
             set_int(data, 0, value)
             self.client.db_write(db_number, offset, data)
-            _logger.info(f"写入 INT: {value} 到 DB{db_number}, 偏移 {offset}")
+            # _logger.info(f"写入 INT: {value} 到 DB{db_number}, 偏移 {offset}")
 
         elif value_type == 'dint':
             if not isinstance(value, int) or not (-2147483648 <= value <= 2147483647):
@@ -109,7 +109,7 @@ class PlcClient:
             data = bytearray(4)
             set_dint(data, 0, value)
             self.client.db_write(db_number, offset, data)
-            _logger.info(f"写入 DINT: {value} 到 DB{db_number}, 偏移 {offset}")
+            # _logger.info(f"写入 DINT: {value} 到 DB{db_number}, 偏移 {offset}")
 
         elif value_type == 'string':
             if not isinstance(value, str):
@@ -121,12 +121,12 @@ class PlcClient:
             data = bytearray(string_max_len + 2)
             set_string(data, 0, value, string_max_len)
             self.client.db_write(db_number, offset, data)
-            _logger.info(f"写入 STRING: '{value}' 到 DB{db_number}, 偏移 {offset}")
+            # _logger.info(f"写入 STRING: '{value}' 到 DB{db_number}, 偏移 {offset}")
 
         else:
             raise ValueError(f"不支持的类型: {value_type}")
 
-    def set_db_number_read(self, row_data):
+    def db_number_read(self, row_data):
         """
         方案1:用传递db_number
         用于从PLC的DB块中读取不同类型的数据，根据value_type参数决定读取的数据类型，并调用相应的解析函数返回结果

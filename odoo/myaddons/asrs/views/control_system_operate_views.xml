@@ -38,9 +38,9 @@
                     <group>
                         <group>
                             <group>
-                                <field name="workshop"/>
-                                <field name="line"/>
-                                <field name="machine"/>
+                                <field name="workshop" />
+                                <field name="line" />
+                                <field name="machine" />
                             </group>
                             <group>
                                 <field name="pack_number"  style="background-color: #d4edda;"/>
@@ -89,8 +89,8 @@
                             <form>
                                 <group>
                                     <header>
-                                        <button name="storage_information_write" type="object" string="库位写入"/>
-                                        <button name="storage_information_read" type="object" string="库位读取"/>
+<!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
+<!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
 
                                     </header>
                                     <newline/>
