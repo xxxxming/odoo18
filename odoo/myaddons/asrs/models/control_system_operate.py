@@ -70,8 +70,8 @@ class ControlSystemOperate(models.Model):
     line = fields.Char(string="产线")
     machine = fields.Char(string="机台")
     emergency_stop = fields.Boolean(string="紧急停止", default=False)
-    manual_control = fields.Boolean(string="手动控制")
-    auto_control = fields.Boolean(string="自动控制")
+    manual_auto_control = fields.Boolean(string="手动自动")
+    start = fields.Boolean(string="启动")
     stop = fields.Boolean(string="停止")
     pause = fields.Boolean(string="暂停")
     reset = fields.Boolean(string="复位")
@@ -146,13 +146,14 @@ class ControlSystemOperate(models.Model):
     @api.onchange('entrance')
     def _onchange_entrance(self):
         self._compare_pack_number()
+        self.command_data_write()
 
     @api.onchange('pack_number')
     def _onchange_pack_number(self):
         record1 = self.browse(1)
         record1.write({'pack_number': self.pack_number})
         self._compare_pack_number()
-
+        self.command_data_write()
 
     def _compare_pack_number(self):
 
@@ -284,6 +285,43 @@ class ControlSystemOperate(models.Model):
             # 输出结果示例
             # _logger.info("Pack Numbers: %s", pack_numbers)
 
+    def command_data_write(self):
+        record = self.browse(1)
+        entrance = 0
+        allow_store = record.allow_store
+        allow_outbound = record.allow_outbound
+        allow_return = record.allow_return
+        pack_number = record.pack_number
+        base_number = record.base_number
+        source_target = record.source_target
+        new_target = record.new_target
+        location_number = record.location_number
+        pack_barcode = record.pack_barcode
+        if record.entrance == False or record.entrance == 'entrance1':
+            entrance = 1
+        if record.entrance == 'entrance2':
+            entrance = 2
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 3, 'value_type': 'bool'},
+                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
+                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
+                {'value': entrance,"db_number": 260,'offset': 4,'value_type': 'int'},
+                {'value': pack_number,"db_number": 260,'offset': 6,'value_type': 'int'},
+                {'value': base_number, "db_number": 260, 'offset': 8, 'value_type': 'int'},
+                {'value': source_target, "db_number": 260, 'offset': 10, 'value_type': 'int'},
+                {'value': new_target, "db_number": 260, 'offset': 12, 'value_type': 'int'},
+                {'value': location_number,"db_number": 260,'offset': 14,'value_type': 'dint'},
+                {'value': pack_barcode,"db_number": 260,'offset': 18,"string_max_len": 18,'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+
     def initialize_data(self):
         record = self.env['scheduler'].search([()])
         record.start()
@@ -294,12 +332,8 @@ class ControlSystemOperate(models.Model):
         pass
 
     def control_system_read_write(self):
-        self.storage_information_write()
+        # self.storage_information_write()
         self.stacker_information_read()
-
-
-
-
 
     def storage_information_write(self):
         """传递到PLC进行写入"""
@@ -315,7 +349,7 @@ class ControlSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': storage_goods_status,"db_number": 262,'bit_index': 0,'value_type': 'bool',},
+                {'value': storage_goods_status,"db_number": 262,'offset': 0,'bit_index': 0,'value_type': 'bool'},
                 {'value': storage_base_number,"db_number": 262,'offset': 2,'value_type': 'int'},
                 {'value': storage_pack_number,"db_number": 262,'offset': 4,'value_type': 'int'},
                 {'value': storage_location_number,"db_number": 262,'offset': 10,'value_type': 'dint'},
@@ -515,45 +549,71 @@ class ControlSystemOperate(models.Model):
     def emergency_button(self):
         record = self.browse(1)
         record.emergency_stop = not record.emergency_stop
+        PlcClient().db_number_write(
+            {'value': record.emergency_stop, "db_number": 260,'offset': 0,'bit_index': 5, 'value_type': 'bool', })
 
-        PlcClient().db_number_write({'value': record.emergency_stop, "db_number": 260, 'bit_index': 5, 'value_type': 'bool', })
-
-
-    def manual_button(self):
-        for record in self:
-            record.manual_control = True
-            record.auto_control = False
-
-    def auto_button(self):
+    def manual_auto_button(self):
         for record in self:
             record.manual_control = False
             record.auto_control = True
 
+    def start_button(self):
+        record = self.browse(1)
+        record.start = not record.start
+        PlcClient().db_number_write(
+            {'value': record.start, "db_number": 260,'offset': 0,'bit_index': 0, 'value_type': 'bool', })
+
     def stop_button(self):
-        for record in self:
-            record.emergency_stop = not record.emergency_stop
+        record = self.browse(1)
+        record.stop = not record.stop
+        PlcClient().db_number_write(
+            {'value': record.stop, "db_number": 260,'offset': 0,'bit_index': 1, 'value_type': 'bool', })
 
     def pause_button(self):
-        for record in self:
-            record.emergency_stop = not record.emergency_stop
+        record = self.browse(1)
+        record.pause = not record.pause
+        PlcClient().db_number_write(
+            {'value': record.pause, "db_number": 260,'offset': 0,'bit_index': 2, 'value_type': 'bool', })
 
     def reset_button(self):
-        for record in self:
-            record.emergency_stop = not record.emergency_stop
+        record = self.browse(1)
+        record.reset = not record.reset
+        PlcClient().db_number_write(
+            {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
 
     def store_button(self):
-        print('3',self.allow_store)
-        print('4', self.storage_pack_barcode)
-        print('5', self.storage_pack_barcode)
-
+        record = self.browse(1)
+        record.store = not record.store
+        record.outbound =  False
+        record.return_store =  False
+        PlcClient().db_number_write(
+            {'value': record.store, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260,'offset': 2,'bit_index': 1, 'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260,'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
     def outbound_button(self):
-        for record in self:
-            record.outbound = not record.outbound
-
+        record = self.browse(1)
+        record.store = False
+        record.outbound = not record.outbound
+        record.return_store = False
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': record.outbound, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
     def return_store_button(self):
-        for record in self:
-            record.return_store = not record.return_store
-
+        record = self.browse(1)
+        record.store =  False
+        record.outbound =  False
+        record.return_store = not record.return_store
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 0, 'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
+        PlcClient().db_number_write(
+            {'value': record.return_store, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
 
 
 

@@ -7,6 +7,4 @@ asrs.access_control_system_operate,access_control_system_operate,asrs.model_cont
 asrs.access_frame_barcode,access_frame_barcode,asrs.model_frame_barcode,base.group_user,1,1,1,1
 asrs.access_warehouse_settings,access_warehouse_settings,asrs.model_warehouse_settings,base.group_user,1,1,1,1
 asrs.access_automatic_storage_location,access_automatic_storage_location,asrs.model_automatic_storage_location,base.group_user,1,1,1,1
-asrs.access_communication_property,access_communication_property,asrs.model_communication_property,base.group_user,1,1,1,1
-asrs.access_plc_interface,access_plc_interface,asrs.model_plc_interface,base.group_user,1,1,1,1
 asrs.access_system_control,access_system_control,asrs.model_system_control,base.group_user,1,1,1,1

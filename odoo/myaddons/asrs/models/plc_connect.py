@@ -142,7 +142,13 @@ class PlcClient:
         bit_index = row_data.get('bit_index')
         string_max_len = row_data.get('string_max_len')
 
-        if value_type == 'int':
+        if value_type == 'bool':
+            if bit_index is None or not (0 <= bit_index <= 7):
+                raise ValueError("bit_index 必须在 0~7 范围内")
+            data = self.client.db_read(db_number, offset, 1)
+            return get_bool(data, 0, bit_index)
+
+        elif value_type == 'int':
             data = self.client.db_read(db_number, offset, 2)
             return get_int(data, 0)
 
@@ -150,12 +156,6 @@ class PlcClient:
             data = self.client.db_read(db_number, offset, 4)
             swapped = struct.unpack('>I', data)[0]
             return swapped
-
-        elif value_type == 'bool':
-            if bit_index is None or not (0 <= bit_index <= 7):
-                raise ValueError("bit_index 必须在 0~7 范围内")
-            data = self.client.db_read(db_number, offset, 1)
-            return get_bool(data, 0, bit_index)
 
         elif value_type == 'string':
             if string_max_len is None:

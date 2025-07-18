@@ -10,9 +10,8 @@
                 <field name="machine"/>
 
                 <field name="emergency_stop"/>
-                <field name="manual_control"/>
-                <field name="auto_control"/>
-                <field name="stop"/>
+                <field name="manual_auto_control"/>
+
             </list>
         </field>
     </record>
@@ -23,14 +22,13 @@
             <form string="立库操作">
                 <header>
                     <button name="emergency_button" type="object" string="急停按钮"/>
-<!--                    <button name="manual_button" type="object" string="手动模式"/>-->
-<!--                    <button name="auto_button" type="object" string="自动模式"/>-->
+<!--                    <button name="manual_auto_button" type="object" string="手动模式"/>-->
+<!--                    <button name="start_button" type="object" string="启动按钮"/>-->
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
 <!--                    <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>-->
 <!--                    <button name="initialize_data" type="object" string="初始化" display="always"/>-->
-
 <!--                    <field name="status" widget="statusbar"/>-->
                     <field name="status" widget="statusbar"/>
                 </header>
@@ -38,9 +36,9 @@
                     <group>
                         <group>
                             <group>
-                                <field name="workshop" />
-                                <field name="line" />
-                                <field name="machine" />
+                                <field name="workshop" readonly="True"/>
+                                <field name="line" readonly="True"/>
+                                <field name="machine" readonly="True"/>
                             </group>
                             <group>
                                 <field name="pack_number"  style="background-color: #d4edda;"/>
@@ -57,7 +55,7 @@
                             <group>
                                 <newline/>
                                     <group>
-                                        <field name="allow_store"  widget="RefreshStorageFields"/>
+                                        <field name="allow_store" readonly="True" widget="RefreshStorageFields"/>
                                     </group>
                                 <group>
                                     <button name="store_button" type="object" string="执行入库"
@@ -65,7 +63,7 @@
                                 </group>
                                 <newline/>
                                 <group>
-                                    <field name="allow_outbound" widget="RefreshStorageFields"/>
+                                    <field name="allow_outbound" readonly="True" widget="RefreshStorageFields"/>
                                 </group>
                                 <group>
                                     <button name="outbound_button" type="object" string="执行出库"
@@ -73,7 +71,7 @@
                                 </group>
                                 <newline/>
                                 <group>
-                                    <field name="allow_return" widget="RefreshStorageFields"/>
+                                    <field name="allow_return" readonly="True" widget="RefreshStorageFields"/>
                                 </group>
                                 <group>
                                     <button name="return_store_button" type="object" string="执行返库"

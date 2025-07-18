@@ -18,16 +18,15 @@ _logger = logging.getLogger(__name__)
 scheduler_started = False
 plc_lock = threading.Lock()
 
-class CommunicationProperty(models.Model):
-
-    _name = 'communication.property'
-    _description = 'communication property'
-
-
-    name = fields.Char(string='名称')
-    ip = fields.Char(string='IP地址')
-    rack = fields.Integer(string='机架')
-    slot = fields.Integer(string='插槽')
+# class CommunicationProperty(models.Model):
+#
+#     _name = 'communication.property'
+#     _description = 'communication property'
+#
+#     name = fields.Char(string='名称')
+#     ip = fields.Char(string='IP地址')
+#     rack = fields.Integer(string='机架')
+#     slot = fields.Integer(string='插槽')
 
 
 class SystemControl(models.Model):
@@ -35,39 +34,103 @@ class SystemControl(models.Model):
     _name = 'system.control'
     _description = 'system control'
 
+    netcontrol = fields.Boolean(string='网络控制')
+    pccontrol = fields.Boolean(string='PC控制')
+    alarm = fields.Boolean(string='报警')
+    ready = fields.Boolean(string='就绪')
+    hardware_ready = fields.Boolean(string='硬件就绪')
+    auto_ready = fields.Boolean(string='自动就绪')
+    auto_take_finish = fields.Boolean(string='取料完成')
+    auto_feed_finish = fields.Boolean(string='送料完成')
+    auto_source_position = fields.Boolean(string='源目标定位完成')
+    auto_target_position = fields.Boolean(string='新目标定位完成')
+    auto_finish = fields.Boolean(string='自动完成')
+    auto_estate = fields.Boolean(string='自动状态')
+    none1 = fields.Boolean(string='无1')
+    none2 = fields.Boolean(string='无2')
 
-    emergency_stop = fields.Boolean(string="紧急停止", default=True)
-    manual_control = fields.Boolean(string="手动控制")
-    auto_control = fields.Boolean(string="自动控制")
-    start = fields.Boolean(string="开始")
-    stop = fields.Boolean(string="停止")
-    pause = fields.Boolean(string="暂停")
-    reset = fields.Boolean(string="复位")
-    one_second = fields.Integer(string='一秒周期',store=True)
+    def automation_state_read(self):
+        results = [
+            {'db_number': 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 6, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 7, 'value_type': 'bool'},
+
+            {'db_number': 260, 'offset': 41, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 5, 'value_type': 'bool'},
+        ]
+        num = 0
+        values_to_write = {}
+        for result in results:
+            num += 1
+            value = PlcClient().db_number_read(result)
+            if num == 1:
+                values_to_write['netcontrol'] = value
+            elif num == 2:
+                values_to_write['pccontrol'] = value
+            elif num == 3:
+                values_to_write['alarm'] = value
+            elif num == 4:
+                values_to_write['ready'] = value
+            elif num == 5:
+                values_to_write['hardware_ready'] = value
+            elif num == 6:
+                values_to_write['auto_ready'] = value
+            elif num == 7:
+                values_to_write['auto_take_finish'] = value
+            elif num == 8:
+                values_to_write['auto_feed_finish'] = value
+            elif num == 9:
+                values_to_write['auto_source_position'] = value
+            elif num == 10:
+                values_to_write['auto_target_position'] = value
+            elif num == 11:
+                values_to_write['auto_finish'] = value
+            elif num == 12:
+                values_to_write['auto_estate'] = value
+            elif num == 13:
+                values_to_write['none1'] = value
+                print('none1', value)
+            elif num == 14:
+                values_to_write['none2'] = value
+                print('none2', value)
+
+        if values_to_write:
+            record = self.browse(1)
+            record.write(values_to_write)
 
 
-class Public_PlcInterface(models.Model):
 
-    _name = 'plc.interface'
-    _description = 'PLC Communication Interface'
-
-
-    name = fields.Char(string='名称')
-    ip = fields.Char(string='IP地址')
-    rack = fields.Integer(string='机架')
-    slot = fields.Integer(string='插槽')
-    storage_goods_status = fields.Boolean(string='库位有货')
-    cron_interval = fields.Integer(
-        string='同步间隔(分钟)',
-        default=5,
-        help="数据同步频率（单位：分钟）"
-    )
-    cron_active = fields.Boolean(
-        string='启用定时同步',
-        default=True
-    )
-    # 急停状态
-    emergency_stop_state = fields.Boolean(string='急停状态',default=False,)
+# class Public_PlcInterface(models.Model):
+#
+#     _name = 'plc.interface'
+#     _description = 'PLC Communication Interface'
+#
+#
+#     name = fields.Char(string='名称')
+#     ip = fields.Char(string='IP地址')
+#     rack = fields.Integer(string='机架')
+#     slot = fields.Integer(string='插槽')
+#     storage_goods_status = fields.Boolean(string='库位有货')
+#     cron_interval = fields.Integer(
+#         string='同步间隔(分钟)',
+#         default=5,
+#         help="数据同步频率（单位：分钟）"
+#     )
+#     cron_active = fields.Boolean(
+#         string='启用定时同步',
+#         default=True
+#     )
+#     # 急停状态
+#     emergency_stop_state = fields.Boolean(string='急停状态',default=False,)
 
 
 class New_Public_PlcInterfaces:
@@ -76,40 +139,40 @@ class New_Public_PlcInterfaces:
     _description = 'new public interface'
     def __init__(self, env):
         self.env = env
-        self.one_second = 0
+        # self.one_second = 0
 
-    def batch_read_plc(self, data):
-        """
-        批量读取PLC数据（支持字符串、整数、浮点、布尔值）
-        :param requests: 读取请求列表，每个请求格式为：
-        :return: 结果列表，每个元素格式为：
-            {
-                'success': bool,
-                'value': Union[str, int, float, bool, bytes],
-                'error': str
-            }
-        """
-        # 根据数据类型计算读取参数
-        code = PlcClient().set_db_number_read(data)
-        return code
+    # def batch_read_plc(self, data):
+    #     """
+    #     批量读取PLC数据（支持字符串、整数、浮点、布尔值）
+    #     :param requests: 读取请求列表，每个请求格式为：
+    #     :return: 结果列表，每个元素格式为：
+    #         {
+    #             'success': bool,
+    #             'value': Union[str, int, float, bool, bytes],
+    #             'error': str
+    #         }
+    #     """
+    #     # 根据数据类型计算读取参数
+    #     code = PlcClient().set_db_number_read(data)
+    #     return code
 
-    def write_to_plc(self, db_number: 202, offset, value, value_type, bit_index=None, string_max_len=None):
-        """
-        写入数据到PLC，自动判断类型。
-        参数：
-        - client: snap7 client 实例
-        - db_number: 数据块编号
-        - offset: 起始偏移地址（字节）
-        - value: 要写入的值
-        - value_type: 类型字符串：'int'、'bool'、'string'
-        - bit_index: 若为bool，指定字节内位索引（0~7）
-        - string_max_len: 若为string，最大长度（如 STRING[20] => 20）
-        """
-        pass
+    # def write_to_plc(self, db_number: 202, offset, value, value_type, bit_index=None, string_max_len=None):
+    #     """
+    #     写入数据到PLC，自动判断类型。
+    #     参数：
+    #     - client: snap7 client 实例
+    #     - db_number: 数据块编号
+    #     - offset: 起始偏移地址（字节）
+    #     - value: 要写入的值
+    #     - value_type: 类型字符串：'int'、'bool'、'string'
+    #     - bit_index: 若为bool，指定字节内位索引（0~7）
+    #     - string_max_len: 若为string，最大长度（如 STRING[20] => 20）
+    #     """
+    #     pass
 
-    def read_emergency_stop_state(self):
-        # 临时测试
-        return False
+    # def read_emergency_stop_state(self):
+    #     # 临时测试
+    #     return False
         # row = {'db_number': 202, 'start_address': 0, 'value_type': 'bool', 'bit_index': 0},
         # value = PlcClient().set_db_number_read(row)
         # _logger.info(f'{row_data.get("value_type")}查询结果：{value}')
@@ -152,40 +215,13 @@ class New_Public_PlcInterfaces:
         scheduler.start()
         return scheduler
 
-    def read_write_plc_data(self):
-        results = [
-            # PC控制
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 1},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 2},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 3},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 4},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 5},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 6},
-            {'db_number': 260, 'offset': 0, 'value_type': 'bool', 'bit_index': 7},
-        ]
-        num = 0
-        for result in results:
-            num += 1
-            value = self.batch_read_plc(result)
-            if num == 1:
-                SystemControl.start = value
-                print(SystemControl.start)
-                # record = self.env['system.control'].search([], limit=1)
-                # try:
-                #     record.write({'start': value})
-            elif num == 2:
-                SystemControl.stop = value
-            elif num == 3:
-                SystemControl.pause = value
-            elif num == 4:
-                SystemControl.reset = value
-
-
     def one_second_task(self):
         """1S执行"""
+        with (self.env.registry.cursor() as new_cr):
+            new_env = api.Environment(new_cr, self.env.uid, {})
+            new_env['system.control'].automation_state_read()
 
-        _logger.info("1秒的定时任务")
+        # _logger.info("1秒的定时任务")
         return None
         # 获取所有 ControlSystemOperate 记录
         # control_records = self.env['control.system.operate'].search([])
