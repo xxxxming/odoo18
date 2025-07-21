@@ -13,52 +13,113 @@ from snap7.util import (
 _logger = logging.getLogger(__name__)
 
 
+# class PlcClient:
+
+    # _client = None
+    #
+    # def __init__(self):
+    #     self.ip = '192.168.0.10'
+    #     self.rack = 0
+    #     self.slot = 1
+    #     #self.db_number = 202
+    #     if PlcClient._client is None:
+    #         PlcClient._client = snap7.client.Client()
+    #     self.client = PlcClient._client
+    #
+    #
+    # def connect_plc(self) -> snap7.client.Client:
+    #     """
+    #     连接西门子PLC并返回客户端对象
+    #     : retries: 最大重试次数
+    #     : retry_interval: 重试间隔（秒）
+    #     :return: 成功返回client对象，失败返回None
+    #     """
+    #     retries = 3
+    #     retry_interval = 5
+    #     for attempt in range(1, retries + 1):
+    #         try:
+    #             self.client.connect(self.ip, self.rack, self.slot)
+    #             if  self.client.get_connected():
+    #                 _logger.info("PLC连接成功!")
+    #                 return  self.client
+    #         except Exception as e:
+    #             _logger.error(f"\n连接失败: {str(e)}\n")
+    #             if attempt < retries:
+    #                 _logger.error(f"{retry_interval}秒后重试...")
+    #                 time.sleep(retry_interval)
+    #     return None
+    #
+    # def is_connected(self) -> bool:
+    #     """
+    #     检查PLC连接状态
+    #     :return: 返回当前PLC的连接状态（True表示已连接，False表示未连接）
+    #     """
+    #     return self.client.get_connected()
+    #
+    # def disconnect(self):
+    #     self.client.disconnect()
+    #     _logger.info("已断开PLC连接")
+
+    # ... existing code ...
 class PlcClient:
 
-    _client = None
+    _clients = {}  # 使用字典管理多个连接实例
 
-    def __init__(self):
+    def __init__(self, connection_name='default'):
         self.ip = '192.168.0.10'
         self.rack = 0
         self.slot = 1
-        #self.db_number = 202
-        if PlcClient._client is None:
-            PlcClient._client = snap7.client.Client()
-        self.client = PlcClient._client
+        self.connection_name = connection_name
 
+        # 如果连接不存在，则创建一个新的 Client 实例
+        if connection_name not in PlcClient._clients:
+            PlcClient._clients[connection_name] = snap7.client.Client()
+        self.client = PlcClient._clients[connection_name]
+
+        # if 'faster' not in PlcClient._clients:
+        #     PlcClient._clients['faster'] = snap7.client.Client()
+        #     self.client_faster = PlcClient._clients['faster']
+        #
+        # if 'slower' not in PlcClient._clients:
+        #     PlcClient._clients['slower'] = snap7.client.Client()
+        #     self.client_slower = PlcClient._clients['slower']
 
     def connect_plc(self) -> snap7.client.Client:
         """
         连接西门子PLC并返回客户端对象
-        : retries: 最大重试次数
-        : retry_interval: 重试间隔（秒）
         :return: 成功返回client对象，失败返回None
         """
+        if self.client.get_connected():
+            _logger.info(f"PLC连接 [{self.connection_name}] 已存在，无需重复连接")
+            return self.client
+
         retries = 3
         retry_interval = 5
         for attempt in range(1, retries + 1):
             try:
                 self.client.connect(self.ip, self.rack, self.slot)
-                if  self.client.get_connected():
-                    _logger.info("PLC连接成功!")
-                    return  self.client
+
+                if self.client.get_connected():
+                    _logger.info(f"PLC连接 [{self.connection_name}] 成功!")
+                    return self.client
             except Exception as e:
-                _logger.error(f"\n连接失败: {str(e)}\n")
+                _logger.error(f"连接失败: {str(e)}")
                 if attempt < retries:
                     _logger.error(f"{retry_interval}秒后重试...")
                     time.sleep(retry_interval)
         return None
 
     def is_connected(self) -> bool:
-        """
-        检查PLC连接状态
-        :return: 返回当前PLC的连接状态（True表示已连接，False表示未连接）
-        """
         return self.client.get_connected()
 
     def disconnect(self):
-        self.client.disconnect()
-        _logger.info("已断开PLC连接")
+        if self.client.get_connected():
+            self.client.disconnect()
+            _logger.info(f"已断开PLC连接 [{self.connection_name}]")
+        else:
+            _logger.warning(f"PLC连接 [{self.connection_name}] 当前未连接")
+
+    # ... existing code ...
 
     def db_number_write(self, row_data):
         """
@@ -131,6 +192,7 @@ class PlcClient:
         方案1:用传递db_number
         用于从PLC的DB块中读取不同类型的数据，根据value_type参数决定读取的数据类型，并调用相应的解析函数返回结果
         """
+        # print('Read',self.client.get_connected())
         if not self.client.get_connected():
             self.connect_plc()
 
@@ -167,83 +229,83 @@ class PlcClient:
             raise ValueError(f"不支持的数据类型: {value_type}")
 
     # 位置偏移量 #
-    def read_by_offset(self, row_data):
-        """
-        根据 row_data 中的 db_number、offset 和 value_type 从 PLC 的 DB 中按偏移量读取数据。
-        支持类型：int、bool、string
-        """
-        if not self.client.get_connected():
-            self.connect_plc()
+    # def read_by_offset(self, row_data):
+    #     """
+    #     根据 row_data 中的 db_number、offset 和 value_type 从 PLC 的 DB 中按偏移量读取数据。
+    #     支持类型：int、bool、string
+    #     """
+    #     if not self.client.get_connected():
+    #         self.connect_plc()
+    #
+    #     db_number = row_data.get('db_number')
+    #     offset = row_data.get('offset')
+    #     value_type = row_data.get('value_type')
+    #     bit_index = row_data.get('bit_index')  # 仅 bool 类型需要
+    #     string_max_len = row_data.get('string_max_len')  # 仅 string 类型需要
+    #
+    #     if db_number is None or offset is None or value_type is None:
+    #         raise ValueError("必须提供 db_number、offset 和 value_type")
+    #
+    #     if value_type == 'int':
+    #         data = self.client.db_read(db_number, offset, 2)
+    #         return get_int(data, 0)
+    #
+    #     elif value_type == 'dint':
+    #         data = self.client.db_read(db_number, offset, 4)
+    #         swapped = struct.unpack('>I',data)[0]
+    #         return get_dint(swapped, 0)
+    #
+    #     elif value_type == 'bool':
+    #         if bit_index is None or not (0 <= bit_index <= 7):
+    #             raise ValueError("bool 类型必须提供 bit_index (0~7)")
+    #         data = self.client.db_read(db_number, offset, 1)
+    #         return get_bool(data, 0, bit_index)
+    #
+    #     elif value_type == 'string':
+    #         if string_max_len is None:
+    #             raise ValueError("string 类型必须提供 string_max_len")
+    #         data = self.client.db_read(db_number, offset, string_max_len + 2)
+    #         return get_string(data, 0, string_max_len)
+    #
+    #     else:
+    #         raise ValueError(f"不支持的 value_type: {value_type}")
 
-        db_number = row_data.get('db_number')
-        offset = row_data.get('offset')
-        value_type = row_data.get('value_type')
-        bit_index = row_data.get('bit_index')  # 仅 bool 类型需要
-        string_max_len = row_data.get('string_max_len')  # 仅 string 类型需要
-
-        if db_number is None or offset is None or value_type is None:
-            raise ValueError("必须提供 db_number、offset 和 value_type")
-
-        if value_type == 'int':
-            data = self.client.db_read(db_number, offset, 2)
-            return get_int(data, 0)
-
-        elif value_type == 'dint':
-            data = self.client.db_read(db_number, offset, 4)
-            swapped = struct.unpack('>I',data)[0]
-            return get_dint(swapped, 0)
-
-        elif value_type == 'bool':
-            if bit_index is None or not (0 <= bit_index <= 7):
-                raise ValueError("bool 类型必须提供 bit_index (0~7)")
-            data = self.client.db_read(db_number, offset, 1)
-            return get_bool(data, 0, bit_index)
-
-        elif value_type == 'string':
-            if string_max_len is None:
-                raise ValueError("string 类型必须提供 string_max_len")
-            data = self.client.db_read(db_number, offset, string_max_len + 2)
-            return get_string(data, 0, string_max_len)
-
-        else:
-            raise ValueError(f"不支持的 value_type: {value_type}")
-
-    def write_by_offset(self, row_data):
-        """
-        根据 row_data 中的 db_number、offset 和 value_type 向 PLC 的 DB 中按偏移量写入数据。
-        支持类型：int、bool、string
-        """
-        if not self.client.get_connected():
-            self.connect_plc()
-
-        db_number = row_data.get('db_number')
-        offset = row_data.get('offset')
-        value_type = row_data.get('value_type')
-        value = row_data.get('value')
-        bit_index = row_data.get('bit_index')  # 仅 bool 类型需要
-        string_max_len = row_data.get('string_max_len')  # 仅 string 类型需要
-
-        if db_number is None or offset is None or value_type is None or value is None:
-            raise ValueError("必须提供 db_number、offset、value_type 和 value")
-
-        if value_type == 'int':
-            data = bytearray(2)
-            set_int(data, 0, int(value))
-            self.client.db_write(db_number, offset, data)
-
-        elif value_type == 'bool':
-            if bit_index is None or not (0 <= bit_index <= 7):
-                raise ValueError("bool 类型必须提供 bit_index (0~7)")
-            data = self.client.db_read(db_number, offset, 1)  # 先读出原始字节
-            set_bool(data, 0, bit_index, bool(value))
-            self.client.db_write(db_number, offset, data)
-
-        elif value_type == 'string':
-            if string_max_len is None:
-                raise ValueError("string 类型必须提供 string_max_len")
-            data = bytearray(string_max_len + 2)
-            set_string(data, 0, value, string_max_len)
-            self.client.db_write(db_number, offset, data)
-
-        else:
-            raise ValueError(f"不支持的 value_type: {value_type}")
+    # def write_by_offset(self, row_data):
+    #     """
+    #     根据 row_data 中的 db_number、offset 和 value_type 向 PLC 的 DB 中按偏移量写入数据。
+    #     支持类型：int、bool、string
+    #     """
+    #     if not self.client.get_connected():
+    #         self.connect_plc()
+    #
+    #     db_number = row_data.get('db_number')
+    #     offset = row_data.get('offset')
+    #     value_type = row_data.get('value_type')
+    #     value = row_data.get('value')
+    #     bit_index = row_data.get('bit_index')  # 仅 bool 类型需要
+    #     string_max_len = row_data.get('string_max_len')  # 仅 string 类型需要
+    #
+    #     if db_number is None or offset is None or value_type is None or value is None:
+    #         raise ValueError("必须提供 db_number、offset、value_type 和 value")
+    #
+    #     if value_type == 'int':
+    #         data = bytearray(2)
+    #         set_int(data, 0, int(value))
+    #         self.client.db_write(db_number, offset, data)
+    #
+    #     elif value_type == 'bool':
+    #         if bit_index is None or not (0 <= bit_index <= 7):
+    #             raise ValueError("bool 类型必须提供 bit_index (0~7)")
+    #         data = self.client.db_read(db_number, offset, 1)  # 先读出原始字节
+    #         set_bool(data, 0, bit_index, bool(value))
+    #         self.client.db_write(db_number, offset, data)
+    #
+    #     elif value_type == 'string':
+    #         if string_max_len is None:
+    #             raise ValueError("string 类型必须提供 string_max_len")
+    #         data = bytearray(string_max_len + 2)
+    #         set_string(data, 0, value, string_max_len)
+    #         self.client.db_write(db_number, offset, data)
+    #
+    #     else:
+    #         raise ValueError(f"不支持的 value_type: {value_type}")

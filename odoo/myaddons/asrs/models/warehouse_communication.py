@@ -49,7 +49,40 @@ class SystemControl(models.Model):
     none1 = fields.Boolean(string='无1')
     none2 = fields.Boolean(string='无2')
 
+    def connect_faster(self):
+        """
+        建立名为 'faster' 的 PLC 连接
+        """
+        # 创建名为 'faster' 的 PLC 连接
+        faster_plc = PlcClient(connection_name='faster')
+        # 连接 PLC
+        client = faster_plc.connect_plc()
+        if client:
+            # 你可以在这里进行其他 PLC 操作
+            _logger.info("连接到名为 'faster' 成功 ！")
+        else:
+            _logger.error("连接到名为 'faster' 失败 ！")
+
+
+
+
     def automation_state_read(self):
+
+        # connection_name = PlcClient().connection_name
+        #    print(PlcClient._clients)
+
+        # 判断连接名称是否为 'faster'
+        # if connection_name == 'faster':
+        #     _logger.info("当前连接名称为 'faster'")
+        # else:
+        #     _logger.info(f"当前连接名称为 '{connection_name}'")
+        #     if 'faster' in PlcClient._clients:
+        #         print('faster connected !')
+        #     if 'slower' in PlcClient._clients:
+        #         print('slower connected !')
+             # self.connect_faster()
+
+
         results = [
             {'db_number': 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
             {'db_number': 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
@@ -71,6 +104,7 @@ class SystemControl(models.Model):
         values_to_write = {}
         for result in results:
             num += 1
+            # value = PlcClient().db_number_read(result)
             value = PlcClient().db_number_read(result)
             if num == 1:
                 values_to_write['netcontrol'] = value
@@ -219,6 +253,7 @@ class New_Public_PlcInterfaces:
         """1S执行"""
         with (self.env.registry.cursor() as new_cr):
             new_env = api.Environment(new_cr, self.env.uid, {})
+
             new_env['system.control'].automation_state_read()
 
         # _logger.info("1秒的定时任务")
@@ -277,6 +312,8 @@ class New_Public_PlcInterfaces:
 
         with (self.env.registry.cursor() as new_cr):
              new_env = api.Environment(new_cr, self.env.uid, {})
+
+             # new_env['system.control'].automation_state_read()
              new_env['control.system.operate'].control_system_read_write()
              # new_env['control.system.operate'].storage_information_read()
              # new_env['control.system.operate'].stacker_information_read()
@@ -324,7 +361,7 @@ class New_Public_PlcInterfaces:
 
         # self.read_write_plc_data()
         # _logger.info("information 10 second")
-        return None
+        # return None
         # """1S执行"""
         # try:
         #
