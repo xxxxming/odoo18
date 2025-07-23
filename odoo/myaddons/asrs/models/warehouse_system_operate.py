@@ -32,14 +32,14 @@ class AutomaticStorageLocation(models.Model):
     _description = 'automatic storage location'
 
 
-    # goods_status = fields.Boolean(string='库位有货')
-    # goods_cancel = fields.Boolean(string='取消库位')
-    # fixed_pack_number = fields.Boolean(string='绑定框号')
-    # fixed_pack_barcode = fields.Boolean(string='绑定条码')
-    # pack_number = fields.Integer(string='框号')
-    # base_number = fields.Integer(string='库位编号')
-    # location_number = fields.Integer(string='库位号')
-    # pack_barcode = fields.Char(string='框条码')
+    goods_status = fields.Boolean(string='库位有货')
+    goods_cancel = fields.Boolean(string='取消库位')
+    fixed_pack_number = fields.Boolean(string='绑定框号')
+    fixed_pack_barcode = fields.Boolean(string='绑定条码')
+    pack_number = fields.Integer(string='框号')
+    base_number = fields.Integer(string='库位编号')
+    location_number = fields.Integer(string='库位号')
+    pack_barcode = fields.Char(string='框条码')
 
 
 # def read_information():
@@ -56,17 +56,18 @@ class AutomaticStorageLocation(models.Model):
 #         return value
 
 
-class ControlSystemOperate(models.Model):
+class WarehouseSystemOperate(models.Model):
 
     # _inherit = 'system.control'
-    _name = 'control.system.operate'
-    _description = 'control system operate'
+    _name = 'warehouse.system.operate'
+    #_name = 'control.system.operate'
+    _description = 'warehouse system operate'
 
     # refresh_trigger = fields.Boolean(
     #     string="视图重载",default=False,
     #     help="When set to True, triggers a view refresh via bus notification")
 
-    workshop = fields.Char(string="车间")
+    workshop = fields.Char(string="车间",default='车间1')
     line = fields.Char(string="产线")
     machine = fields.Char(string="机台")
     emergency_stop = fields.Boolean(string="紧急停止", default=False)
@@ -154,6 +155,7 @@ class ControlSystemOperate(models.Model):
         record1.write({'pack_number': self.pack_number})
         self._compare_pack_number()
         self.command_data_write()
+        record.refresh_status = True
 
     def _compare_pack_number(self):
 
@@ -164,11 +166,11 @@ class ControlSystemOperate(models.Model):
             # 在 automatic.storage.location 中搜索匹配的 pack_number
             storage_record = self.env['warehouse.location.information'].search(
                 [('pack_number', '=', self.pack_number)], limit=1)
-            barcode_record = self.env['frame.barcode'].search(
+            barcode_record = self.env['warehouse.frame.barcode'].search(
                 [('frame_number', '=', self.pack_number)], limit=1)
 
             record = self.browse(1)
-            # record.refresh_status = True
+
             record.write({
                 'allow_store': False,
                 'allow_outbound': False,
@@ -284,6 +286,14 @@ class ControlSystemOperate(models.Model):
 
             # 输出结果示例
             # _logger.info("Pack Numbers: %s", pack_numbers)
+
+    def _compare_pack_barcode(self):
+        if not self.pack_barcode:
+            print(self.pack_barcode)
+
+
+
+
 
     def command_data_write(self):
         record = self.browse(1)

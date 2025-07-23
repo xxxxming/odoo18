@@ -1,7 +1,7 @@
 <odoo>
 
-    <record id="warehouse_information_view_list" model="ir.ui.view">
-        <field name="name">warehouse_information_view_list</field>
+    <record id="warehouse_location_information_view_list" model="ir.ui.view">
+        <field name="name">warehouse_location_information_view_list</field>
         <field name="model">warehouse.location.information</field>
         <field name="arch" type="xml">
             <list>
@@ -27,14 +27,14 @@
         </field>
     </record>
 
-    <record id="warehouse_information_act_window" model="ir.actions.act_window">
+    <record id="warehouse_location_information_act_window" model="ir.actions.act_window">
         <field name="name">库位信息</field>
         <field name="res_model">warehouse.location.information</field>
         <field name="view_mode">kanban,list,form</field>
     </record>
 
-    <record id="warehouse_information_view_kanban" model="ir.ui.view">
-        <field name="name">warehouse_information_view_kanban</field>
+    <record id="warehouse_location_information_view_kanban" model="ir.ui.view">
+        <field name="name">warehouse_location_information_view_kanban</field>
         <field name="model">warehouse.location.information</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_small_box">

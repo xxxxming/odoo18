@@ -37,7 +37,6 @@ class WarehouseLocationInformation(models.Model):
           # 组合数值：每两位表示一个字段 (building -> 前两位, column -> 中间两位, layer -> 最后两位)
           location = building * 10000 + column * 100 + layer
           return location
-
      def location_disintegrate(self,location):
           # 获取 warehouse.settings 配置
           settings = self.env['warehouse.settings'].search([], limit=1)
@@ -62,7 +61,6 @@ class WarehouseLocationInformation(models.Model):
                raise UserError(f"Layer {layer} 超出最大允许值 {settings.layer} !")
 
           return building, column, layer
-
      def create_location_record(self):
           # building, column, layer = self.location_disintegrate(30911)
           # _logger.info(f"Decomposed values: Building={building}, column={column}, Layer={layer}")
@@ -128,9 +126,6 @@ class WarehouseLocationInformation(models.Model):
                     'pack_barcode': '',
                     })
                _logger.info(f"Created new location: {new_location}")
-
-
-
      def batch_create_location_records(self):
           # 获取设定数据
           settings = self.env['warehouse.settings'].search([], limit=1)
@@ -155,8 +150,6 @@ class WarehouseLocationInformation(models.Model):
                building, column, layer = self.location_disintegrate(location)
                print(building, column, layer)
           return
-
-
      def action_view_details(self):
           self.ensure_one()
           return {
@@ -166,3 +159,35 @@ class WarehouseLocationInformation(models.Model):
                'view_mode': 'form',
                'target': 'current',  # 或 'new' 表示在弹窗打开
           }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

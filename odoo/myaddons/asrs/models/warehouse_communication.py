@@ -4,7 +4,7 @@ from odoo import models, fields, api, http, Command, registry, SUPERUSER_ID
 import logging
 import threading
 from odoo.http import request
-from .control_system_operate import ControlSystemOperate
+# from .warehouse_system_operate import ControlSystemOperate
 from .plc_connect import PlcClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
@@ -48,40 +48,22 @@ class SystemControl(models.Model):
     auto_estate = fields.Boolean(string='自动状态')
     none1 = fields.Boolean(string='无1')
     none2 = fields.Boolean(string='无2')
-
-    def connect_faster(self):
-        """
-        建立名为 'faster' 的 PLC 连接
-        """
-        # 创建名为 'faster' 的 PLC 连接
-        faster_plc = PlcClient(connection_name='faster')
-        # 连接 PLC
-        client = faster_plc.connect_plc()
-        if client:
-            # 你可以在这里进行其他 PLC 操作
-            _logger.info("连接到名为 'faster' 成功 ！")
-        else:
-            _logger.error("连接到名为 'faster' 失败 ！")
-
-
-
+    estate = fields.Integer(string='状态')
+    # def connect_faster(self):
+    #     """
+    #     建立名为 'faster' 的 PLC 连接
+    #     """
+    #     # 创建名为 'faster' 的 PLC 连接
+    #     faster_plc = PlcClient(connection_name='faster')
+    #     # 连接 PLC
+    #     client = faster_plc.connect_plc()
+    #     if client:
+    #         # 你可以在这里进行其他 PLC 操作
+    #         _logger.info("连接到名为 'faster' 成功 ！")
+    #     else:
+    #         _logger.error("连接到名为 'faster' 失败 ！")
 
     def automation_state_read(self):
-
-        # connection_name = PlcClient().connection_name
-        #    print(PlcClient._clients)
-
-        # 判断连接名称是否为 'faster'
-        # if connection_name == 'faster':
-        #     _logger.info("当前连接名称为 'faster'")
-        # else:
-        #     _logger.info(f"当前连接名称为 '{connection_name}'")
-        #     if 'faster' in PlcClient._clients:
-        #         print('faster connected !')
-        #     if 'slower' in PlcClient._clients:
-        #         print('slower connected !')
-             # self.connect_faster()
-
 
         results = [
             {'db_number': 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
@@ -99,6 +81,7 @@ class SystemControl(models.Model):
             {'db_number': 260, 'offset': 41, 'bit_index': 3, 'value_type': 'bool'},
             {'db_number': 260, 'offset': 41, 'bit_index': 4, 'value_type': 'bool'},
             {'db_number': 260, 'offset': 41, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 44, 'value_type': 'int'},
         ]
         num = 0
         values_to_write = {}
@@ -132,10 +115,10 @@ class SystemControl(models.Model):
                 values_to_write['auto_estate'] = value
             elif num == 13:
                 values_to_write['none1'] = value
-                print('none1', value)
             elif num == 14:
                 values_to_write['none2'] = value
-                print('none2', value)
+            elif num == 15:
+                values_to_write['estate'] = value
 
         if values_to_write:
             record = self.browse(1)
@@ -213,48 +196,48 @@ class New_Public_PlcInterfaces:
         # return value
 
     #@api .model
-    def initialize_data_start(self):
-        """
-        hook调用
-        """
-        scheduler = self.start_plc_scheduler()
-        _logger.info(scheduler)
-        return scheduler
-
-
-    def start_plc_scheduler(self):
-        """启动定时任务"""
-        scheduler = BackgroundScheduler()
-        # scheduler.add_job(
-        #     self.read_write_plc_data,
-        #     'interval',
-        #     seconds=0.5,
-        #     max_instances=2
-        # )
-        # 1秒的定时任务
-        _logger.info("1秒的定时任务")
-        scheduler.add_job(
-            self.one_second_task,  # 可以指向另一个方法
-            'interval',
-            seconds=10,
-            max_instances=2
-        )
-        # 添加事件监听器
-        def job_listener(event):
-            if event.code == EVENT_JOB_EXECUTED:
-                _logger.info(f"任务 {event.job_id} 返回结果: {event.retval}")
-            elif event.code == EVENT_JOB_ERROR:
-                _logger.error(f"任务失败: {event.exception}")
-        scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
-        scheduler.start()
-        return scheduler
+    # def initialize_data_start(self):
+    #     """
+    #     hook调用
+    #     """
+    #     scheduler = self.start_plc_scheduler()
+    #     _logger.info(scheduler)
+    #     return scheduler
+    #
+    #
+    # def start_plc_scheduler(self):
+    #     """启动定时任务"""
+    #     scheduler = BackgroundScheduler()
+    #     # scheduler.add_job(
+    #     #     self.read_write_plc_data,
+    #     #     'interval',
+    #     #     seconds=0.5,
+    #     #     max_instances=2
+    #     # )
+    #     # 1秒的定时任务
+    #     _logger.info("1秒的定时任务no")
+    #     scheduler.add_job(
+    #         self.one_second_task,  # 可以指向另一个方法
+    #         'interval',
+    #         seconds=10,
+    #         max_instances=2
+    #     )
+    #     # 添加事件监听器
+    #     def job_listener(event):
+    #         if event.code == EVENT_JOB_EXECUTED:
+    #             _logger.info(f"任务 {event.job_id} 返回结果: {event.retval}")
+    #         elif event.code == EVENT_JOB_ERROR:
+    #             _logger.error(f"任务失败: {event.exception}")
+    #     scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+    #     scheduler.start()
+    #     return scheduler
 
     def one_second_task(self):
         """1S执行"""
         with (self.env.registry.cursor() as new_cr):
             new_env = api.Environment(new_cr, self.env.uid, {})
 
-            new_env['system.control'].automation_state_read()
+            # new_env['system.control'].automation_state_read()
 
         # _logger.info("1秒的定时任务")
         return None
@@ -314,12 +297,12 @@ class New_Public_PlcInterfaces:
              new_env = api.Environment(new_cr, self.env.uid, {})
 
              # new_env['system.control'].automation_state_read()
-             new_env['control.system.operate'].control_system_read_write()
+             # new_env['warehouse.system.operate'].control_system_read_write()
              # new_env['control.system.operate'].storage_information_read()
              # new_env['control.system.operate'].stacker_information_read()
             # new_env['control.system.operate'].entrance1_information_read()
             # new_env['control.system.operate'].entrance2_information_read()
-
+        # _logger.info("10秒的定时任务")
 
         # self.env['control.system.operate'].storage_information_read()
 

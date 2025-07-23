@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 
-class ControlSystem(models.Model):
+class WarehouseControlSystem(models.Model):
 
 
-     _name = 'control.system'
-     _description = 'inventory control system'
+     _name = 'warehouse.control.system'
+     _description = 'warehouse control system'
 
 
      # life = fields.Boolean(string="心跳符号")

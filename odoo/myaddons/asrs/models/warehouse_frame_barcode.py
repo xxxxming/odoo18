@@ -5,8 +5,8 @@ _logger = logging.getLogger(__name__)
 class FrameBarcode(models.Model):
 
 
-    _name = 'frame.barcode'
-    _description = 'inventory frame barcode'
+    _name = 'warehouse.frame.barcode'
+    _description = 'warehouse frame barcode'
     serial_number = fields.Integer(string='序号',readonly=True)
     frame_number = fields.Integer(string='框号')
     frame_barcode = fields.Char(string='框条码')

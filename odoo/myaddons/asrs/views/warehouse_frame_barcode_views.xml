@@ -1,8 +1,8 @@
 <odoo>
 
-    <record id="frame_barcode_view_list" model="ir.ui.view">
-        <field name="name">frame_barcode_view_list</field>
-        <field name="model">frame.barcode</field>
+    <record id="warehouse_frame_barcode_view_list" model="ir.ui.view">
+        <field name="name">warehouse_frame_barcode_view_list</field>
+        <field name="model">warehouse.frame.barcode</field>
         <field name="arch" type="xml">
             <list>
                 <header>
@@ -25,15 +25,15 @@
 
 <!--<button name="increment_number" type="object" string="按钮"/>-->
 
-    <record id="frame_barcode_act_window" model="ir.actions.act_window">
+    <record id="warehouse_frame_barcode_act_window" model="ir.actions.act_window">
         <field name="name">框码定义</field>
-        <field name="res_model">frame.barcode</field>
+        <field name="res_model">warehouse.frame.barcode</field>
         <field name="view_mode">kanban,list</field>
     </record>
 
-    <record id="frame_barcode_view_kanban" model="ir.ui.view">
+    <record id="warehouse_frame_barcode_view_kanban" model="ir.ui.view">
         <field name="name">frame_barcode_view_kanban</field>
-        <field name="model">frame.barcode</field>
+        <field name="model">warehouse.frame.barcode</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_small_box" >
                 <templates>

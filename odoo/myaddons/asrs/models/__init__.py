@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-
-from . import warehouse_property
-from . import warehouse_information
-from . import warehouse_automation
-from . import warehouse_settings
-from . import control_system
-from . import control_system_operate
-from . import frame_barcode
-from . import warehouse_communication
 from . import plc_connect
-
+from . import  scheduler
+from . import warehouse_automation
+from . import warehouse_communication
+from . import warehouse_control_system
+from . import warehouse_frame_barcode
+from . import  warehouse_property
+from . import warehouse_settings
+from . import warehouse_system_operate
+from . import warehouse_location_information
 
 from .scheduler import PlcScheduler
 import threading

@@ -13,68 +13,68 @@ from snap7.util import (
 _logger = logging.getLogger(__name__)
 
 
-# class PlcClient:
-
-    # _client = None
-    #
-    # def __init__(self):
-    #     self.ip = '192.168.0.10'
-    #     self.rack = 0
-    #     self.slot = 1
-    #     #self.db_number = 202
-    #     if PlcClient._client is None:
-    #         PlcClient._client = snap7.client.Client()
-    #     self.client = PlcClient._client
-    #
-    #
-    # def connect_plc(self) -> snap7.client.Client:
-    #     """
-    #     连接西门子PLC并返回客户端对象
-    #     : retries: 最大重试次数
-    #     : retry_interval: 重试间隔（秒）
-    #     :return: 成功返回client对象，失败返回None
-    #     """
-    #     retries = 3
-    #     retry_interval = 5
-    #     for attempt in range(1, retries + 1):
-    #         try:
-    #             self.client.connect(self.ip, self.rack, self.slot)
-    #             if  self.client.get_connected():
-    #                 _logger.info("PLC连接成功!")
-    #                 return  self.client
-    #         except Exception as e:
-    #             _logger.error(f"\n连接失败: {str(e)}\n")
-    #             if attempt < retries:
-    #                 _logger.error(f"{retry_interval}秒后重试...")
-    #                 time.sleep(retry_interval)
-    #     return None
-    #
-    # def is_connected(self) -> bool:
-    #     """
-    #     检查PLC连接状态
-    #     :return: 返回当前PLC的连接状态（True表示已连接，False表示未连接）
-    #     """
-    #     return self.client.get_connected()
-    #
-    # def disconnect(self):
-    #     self.client.disconnect()
-    #     _logger.info("已断开PLC连接")
-
-    # ... existing code ...
 class PlcClient:
 
-    _clients = {}  # 使用字典管理多个连接实例
+    _client = None
 
-    def __init__(self, connection_name='default'):
+    def __init__(self):
         self.ip = '192.168.0.10'
         self.rack = 0
         self.slot = 1
-        self.connection_name = connection_name
+        #self.db_number = 202
+        if PlcClient._client is None:
+            PlcClient._client = snap7.client.Client()
+        self.client = PlcClient._client
 
-        # 如果连接不存在，则创建一个新的 Client 实例
-        if connection_name not in PlcClient._clients:
-            PlcClient._clients[connection_name] = snap7.client.Client()
-        self.client = PlcClient._clients[connection_name]
+
+    def connect_plc(self) -> snap7.client.Client:
+        """
+        连接西门子PLC并返回客户端对象
+        : retries: 最大重试次数
+        : retry_interval: 重试间隔（秒）
+        :return: 成功返回client对象，失败返回None
+        """
+        retries = 3
+        retry_interval = 5
+        for attempt in range(1, retries + 1):
+            try:
+                self.client.connect(self.ip, self.rack, self.slot)
+                if  self.client.get_connected():
+                    _logger.info("PLC连接成功!")
+                    return  self.client
+            except Exception as e:
+                _logger.error(f"\n连接失败: {str(e)}\n")
+                if attempt < retries:
+                    _logger.error(f"{retry_interval}秒后重试...")
+                    time.sleep(retry_interval)
+        return None
+
+    def is_connected(self) -> bool:
+        """
+        检查PLC连接状态
+        :return: 返回当前PLC的连接状态（True表示已连接，False表示未连接）
+        """
+        return self.client.get_connected()
+
+    def disconnect(self):
+        self.client.disconnect()
+        _logger.info("已断开PLC连接")
+
+    # ... existing code ...
+# class PlcClient:
+#
+#     _clients = {}  # 使用字典管理多个连接实例
+#
+#     def __init__(self, connection_name='default'):
+#         self.ip = '192.168.0.10'
+#         self.rack = 0
+#         self.slot = 1
+#         self.connection_name = connection_name
+#
+#         # 如果连接不存在，则创建一个新的 Client 实例
+#         if connection_name not in PlcClient._clients:
+#             PlcClient._clients[connection_name] = snap7.client.Client()
+#         self.client = PlcClient._clients[connection_name]
 
         # if 'faster' not in PlcClient._clients:
         #     PlcClient._clients['faster'] = snap7.client.Client()
@@ -84,40 +84,40 @@ class PlcClient:
         #     PlcClient._clients['slower'] = snap7.client.Client()
         #     self.client_slower = PlcClient._clients['slower']
 
-    def connect_plc(self) -> snap7.client.Client:
-        """
-        连接西门子PLC并返回客户端对象
-        :return: 成功返回client对象，失败返回None
-        """
-        if self.client.get_connected():
-            _logger.info(f"PLC连接 [{self.connection_name}] 已存在，无需重复连接")
-            return self.client
+    # def connect_plc(self) -> snap7.client.Client:
+    #     """
+    #     连接西门子PLC并返回客户端对象
+    #     :return: 成功返回client对象，失败返回None
+    #     """
+    #     if self.client.get_connected():
+    #         _logger.info(f"PLC连接 [{self.connection_name}] 已存在，无需重复连接")
+    #         return self.client
+    #
+    #     retries = 3
+    #     retry_interval = 5
+    #     for attempt in range(1, retries + 1):
+    #         try:
+    #             self.client.connect(self.ip, self.rack, self.slot)
+    #
+    #             if self.client.get_connected():
+    #                 _logger.info(f"PLC连接 [{self.connection_name}] 成功!")
+    #                 return self.client
+    #         except Exception as e:
+    #             _logger.error(f"连接失败: {str(e)}")
+    #             if attempt < retries:
+    #                 _logger.error(f"{retry_interval}秒后重试...")
+    #                 time.sleep(retry_interval)
+    #     return None
 
-        retries = 3
-        retry_interval = 5
-        for attempt in range(1, retries + 1):
-            try:
-                self.client.connect(self.ip, self.rack, self.slot)
-
-                if self.client.get_connected():
-                    _logger.info(f"PLC连接 [{self.connection_name}] 成功!")
-                    return self.client
-            except Exception as e:
-                _logger.error(f"连接失败: {str(e)}")
-                if attempt < retries:
-                    _logger.error(f"{retry_interval}秒后重试...")
-                    time.sleep(retry_interval)
-        return None
-
-    def is_connected(self) -> bool:
-        return self.client.get_connected()
-
-    def disconnect(self):
-        if self.client.get_connected():
-            self.client.disconnect()
-            _logger.info(f"已断开PLC连接 [{self.connection_name}]")
-        else:
-            _logger.warning(f"PLC连接 [{self.connection_name}] 当前未连接")
+    # def is_connected(self) -> bool:
+    #     return self.client.get_connected()
+    #
+    # def disconnect(self):
+    #     if self.client.get_connected():
+    #         self.client.disconnect()
+    #         _logger.info(f"已断开PLC连接 [{self.connection_name}]")
+    #     else:
+    #         _logger.warning(f"PLC连接 [{self.connection_name}] 当前未连接")
 
     # ... existing code ...
 

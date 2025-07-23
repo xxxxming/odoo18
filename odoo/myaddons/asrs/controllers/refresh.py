@@ -5,7 +5,7 @@ class RefreshStatusController(http.Controller):
 
     @http.route('/asrs/refresh_status', type='json', auth='user', log=False)
     def refresh_status(self, record_id):
-        record = request.env['control.system.operate'].browse(int(record_id))
+        record = request.env['warehouse.system.operate'].browse(int(record_id))
         if record.exists():
             # 增加刷新字段
             return {
