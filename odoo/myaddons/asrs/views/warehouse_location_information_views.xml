@@ -27,12 +27,6 @@
         </field>
     </record>
 
-    <record id="warehouse_location_information_act_window" model="ir.actions.act_window">
-        <field name="name">库位信息</field>
-        <field name="res_model">warehouse.location.information</field>
-        <field name="view_mode">kanban,list,form</field>
-    </record>
-
     <record id="warehouse_location_information_view_kanban" model="ir.ui.view">
         <field name="name">warehouse_location_information_view_kanban</field>
         <field name="model">warehouse.location.information</field>
@@ -60,6 +54,12 @@
                 </templates>
             </kanban>
         </field>
+    </record>
+
+    <record id="warehouse_location_information_act_window" model="ir.actions.act_window">
+        <field name="name">库位信息</field>
+        <field name="res_model">warehouse.location.information</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
 
 </odoo>

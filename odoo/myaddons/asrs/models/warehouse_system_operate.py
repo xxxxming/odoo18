@@ -146,15 +146,31 @@ class WarehouseSystemOperate(models.Model):
 
     @api.onchange('entrance')
     def _onchange_entrance(self):
-        self._compare_pack_number()
-        self.command_data_write()
+        print('entrance change!')
+        record = self.browse(1)
+        if record.exists():
+            self._compare_pack_number()
+            self.command_data_write()
 
     @api.onchange('pack_number')
     def _onchange_pack_number(self):
-        record1 = self.browse(1)
-        record1.write({'pack_number': self.pack_number})
-        self._compare_pack_number()
-        self.command_data_write()
+        print('pack change!')
+        # record = self.browse(1)
+        record = self.browse(1)
+        if record.exists():
+            print('2',record)
+            record.write({'pack_number': self.pack_number})
+            self._compare_pack_number()
+            self.command_data_write()
+            # record.refresh_status = True
+
+    @api.onchange('pack_barcode')
+    def _onchange_barcode(self):
+        print('entrance barcode!')
+        barcode_record = self.env['warehouse.frame.barcode'].search(
+            [('frame_barcode', '=', self.pack_barcode)], limit=1)
+        print(barcode_record.frame_number)
+
         record.refresh_status = True
 
     def _compare_pack_number(self):
@@ -287,10 +303,13 @@ class WarehouseSystemOperate(models.Model):
             # 输出结果示例
             # _logger.info("Pack Numbers: %s", pack_numbers)
 
-    def _compare_pack_barcode(self):
-        if not self.pack_barcode:
-            print(self.pack_barcode)
 
+    def compare_pack_barcode(self):
+        barcode_record = self.env['warehouse.frame.barcode'].search(
+            [('frame_barcode', '=', self.pack_barcode)], limit=1)
+        print(barcode_record.frame_number)
+
+        record.refresh_status = False
 
 
 
@@ -347,7 +366,8 @@ class WarehouseSystemOperate(models.Model):
         self.stacker_information_read()
         self.entrance1_information_read()
         self.entrance2_information_read()
-
+        record.refresh_status = False
+        print(record.refresh_status)
     def storage_information_write(self):
         """传递到PLC进行写入"""
         # 提取字段值
@@ -445,8 +465,6 @@ class WarehouseSystemOperate(models.Model):
         except Exception as e:
             _logger.error(f"库位信息写入失败！: {str(e)}")
             raise
-
-    # @api.model
     def storage_information_read(self):
         """读取测试-批量"""
         results = [

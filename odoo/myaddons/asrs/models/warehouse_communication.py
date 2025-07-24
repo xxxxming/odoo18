@@ -297,7 +297,7 @@ class New_Public_PlcInterfaces:
              new_env = api.Environment(new_cr, self.env.uid, {})
 
              # new_env['system.control'].automation_state_read()
-             # new_env['warehouse.system.operate'].control_system_read_write()
+             new_env['warehouse.system.operate'].control_system_read_write()
              # new_env['control.system.operate'].storage_information_read()
              # new_env['control.system.operate'].stacker_information_read()
             # new_env['control.system.operate'].entrance1_information_read()

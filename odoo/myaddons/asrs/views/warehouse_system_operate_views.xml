@@ -27,9 +27,7 @@
                     <button name="stop_button" type="object" string="停止按钮"/>
                     <button name="pause_button" type="object" string="暂停按钮"/>
                     <button name="reset_button" type="object" string="复位按钮"/>
-<!--                    <button name="start_plc_scheduler" type="object" string="自动读写" display="always"/>-->
-<!--                    <button name="initialize_data" type="object" string="初始化" display="always"/>-->
-<!--                    <field name="status" widget="statusbar"/>-->
+
                     <field name="status" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -89,6 +87,7 @@
                                     <header>
 <!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
 <!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
+                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>
 
                                     </header>
                                     <newline/>

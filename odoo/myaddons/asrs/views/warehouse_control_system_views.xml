@@ -20,7 +20,7 @@
         <field name="model">warehouse.control.system</field>
         <field name="arch" type="xml">
 
-            <form>
+            <form string="自控系统">
                 <sheet>
                     <group>
                         <group>
@@ -141,8 +141,6 @@
 
         </field>
     </record>
-
-
 
     <record id="warehouse_control_system_act_window" model="ir.actions.act_window">
         <field name="name">自控系统</field>
