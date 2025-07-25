@@ -87,7 +87,7 @@
                                     <header>
 <!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
 <!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
-                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>
+<!--                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>-->
 
                                     </header>
                                     <newline/>

@@ -2,6 +2,8 @@
 import logging
 from email.policy import default
 
+from reportlab.lib.pagesizes import elevenSeventeen
+
 import odoo
 from odoo import models, fields, api, SUPERUSER_ID
 import threading
@@ -91,11 +93,12 @@ class WarehouseSystemOperate(models.Model):
     entrance = fields.Selection(string='出入口',
     selection=[('entrance1', '出入口1'), ('entrance2', '出入口2')])
     status = fields.Selection([
-        ('idle', '空闲'),
-        ('running', '运行中'),
-        ('paused', '暂停'),
-        ('stopped', '停止'),
-        ('emergency', '紧急停止')
+        ('start', '开始'),
+        ('reach_source_target', '到源目标'),
+        ('take_finish', '取料完成'),
+        ('reach_new_target', '到新目标'),
+        ('feed_finish', '送料完成'),
+        ('finish', '任务完成'),
     ], string="状态", default='idle')
     # 展示框号
     # show_storage_pack_number = fields.Integer(string='框号')
@@ -160,20 +163,32 @@ class WarehouseSystemOperate(models.Model):
         if record.exists():
             print('2',record)
             record.write({'pack_number': self.pack_number})
-            self._compare_pack_number()
+            self.compare_pack_number()
             self.command_data_write()
-            # record.refresh_status = True
+            record.refresh_status = True
 
     @api.onchange('pack_barcode')
     def _onchange_barcode(self):
-        print('entrance barcode!')
+        print('barcode change!')
+        self.compare_pack_barcode()
+    def compare_pack_barcode(self):
         barcode_record = self.env['warehouse.frame.barcode'].search(
             [('frame_barcode', '=', self.pack_barcode)], limit=1)
-        print(barcode_record.frame_number)
 
-        record.refresh_status = True
+        if barcode_record:
+            self.pack_number = barcode_record.frame_number
+            print('Find barcode!')
+            record = self.browse(1)
+            print(record)
+            record.write({
+                'pack_number': barcode_record.frame_number,
+            })
+            self.compare_pack_number()
+            self.refresh_fields_turn_on()
+        else:
+            raise UserError("未找到条码，请确认是否正确。如果是新条码，请从新登记。")
 
-    def _compare_pack_number(self):
+    def compare_pack_number(self):
 
         if self.pack_number != 0 :
             record_settings = self.env['warehouse.settings'].search([], limit=1)
@@ -200,6 +215,9 @@ class WarehouseSystemOperate(models.Model):
             else:
                 record.write({
                 'pack_barcode': barcode_record.frame_barcode,
+                })
+                storage_record.write({
+                    'pack_barcode': barcode_record.frame_barcode,
                 })
             # 如果能在库存里找到对应的框号，则获取库位信息
             if storage_record:
@@ -302,18 +320,6 @@ class WarehouseSystemOperate(models.Model):
 
             # 输出结果示例
             # _logger.info("Pack Numbers: %s", pack_numbers)
-
-
-    def compare_pack_barcode(self):
-        barcode_record = self.env['warehouse.frame.barcode'].search(
-            [('frame_barcode', '=', self.pack_barcode)], limit=1)
-        print(barcode_record.frame_number)
-
-        record.refresh_status = False
-
-
-
-
     def command_data_write(self):
         record = self.browse(1)
         entrance = 0
@@ -366,8 +372,8 @@ class WarehouseSystemOperate(models.Model):
         self.stacker_information_read()
         self.entrance1_information_read()
         self.entrance2_information_read()
-        record.refresh_status = False
-        print(record.refresh_status)
+        self.refresh_fields_turn_off()
+
     def storage_information_write(self):
         """传递到PLC进行写入"""
         # 提取字段值
@@ -376,9 +382,7 @@ class WarehouseSystemOperate(models.Model):
         storage_pack_number = self.storage_pack_number
         storage_location_number = self.storage_location_number
         storage_pack_barcode = self.storage_pack_barcode
-        print('1',storage_pack_barcode)
-        print('2',self.storage_pack_barcode)
-        # plc_client = PlcClient()
+
         try:
             # 批量写入
             data_list = [
@@ -613,48 +617,105 @@ class WarehouseSystemOperate(models.Model):
             {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
 
     def store_button(self):
+        self.location_data_check()
         record = self.browse(1)
-        record.store = not record.store
-        record.outbound =  False
-        record.return_store =  False
-        PlcClient().db_number_write(
-            {'value': record.store, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260,'offset': 2,'bit_index': 1, 'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260,'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+        if record.allow_store:
+            record.store = not record.store
+            record.outbound =  False
+            record.return_store =  False
+            PlcClient().db_number_write(
+                {'value': record.store, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260,'offset': 2,'bit_index': 1, 'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260,'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+            _logger.info("执行入库命令 ！")
+        else:
+            raise UserError(f"不允许执行入库命令！")
+
     def outbound_button(self):
+        self.location_data_check()
         record = self.browse(1)
-        record.store = False
-        record.outbound = not record.outbound
-        record.return_store = False
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': record.outbound, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+        if record.allow_outbound:
+            record.store = False
+            record.outbound = not record.outbound
+            record.return_store = False
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': record.outbound, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+            _logger.info("执行出库命令 ！")
+        else:
+            raise UserError(f"不允许执行出库命令！")
     def return_store_button(self):
+        self.location_data_check()
         record = self.browse(1)
-        record.store =  False
-        record.outbound =  False
-        record.return_store = not record.return_store
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 0, 'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
-        PlcClient().db_number_write(
-            {'value': record.return_store, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+        if record.allow_return:
+            record.store =  False
+            record.outbound =  False
+            record.return_store = not record.return_store
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 0, 'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
+            PlcClient().db_number_write(
+                {'value': record.return_store, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
+            _logger.info("执行返库命令 ！")
+        else:
+            raise UserError(f"不允许执行返库命令！")
+    def location_data_check(self):
+        record = self.browse(1)
+        source_target = record.source_target
+        new_target = record.new_target
+        source_building = source_target // 10000  # 取前两位
+        source_remaining = source_target % 10000  # 剩余部分为后四位
+        source_column = source_remaining // 100  # 取中间两位
+        source_layer = source_remaining % 100  # 取最后两位
 
+        new_building = new_target // 10000  # 取前两位
+        new_remaining = new_target % 10000  # 剩余部分为后四位
+        new_column = new_remaining // 100  # 取中间两位
+        new_layer = new_remaining % 100  # 取最后两位
 
+        print('check', source_target, new_target)
+        settings = self.env['warehouse.settings'].search([], limit=1)
+        if not settings:
+           _logger.error("未找到参数，请先设置基本参数!")
+           raise UserError("未找到参数，请先设置基本参数!")
+        if source_building < 1:
+            raise UserError(f"源目标栋参数 {source_building} 小于 1 ！")
+        if source_building > settings.building:
+            raise UserError(f"源目标栋参数 {source_building} 大于最大允许值 {settings.building} ！")
+        if source_column < 1:
+            raise UserError(f"源目标列参数 {source_column} 小于 1 ！")
+        if source_column > settings.column:
+            raise UserError(f"源列目标列参数 {source_column} 大于最大允许值 {settings.column} ！")
+        if source_layer < 1:
+            raise UserError(f"源目标层参数 {source_layer} 小于 1 ！")
+        if source_layer > settings.column:
+            raise UserError(f"源目标层参数 {source_layer} 大于最大允许值 {settings.layer} ！")
 
+        if new_building < 1:
+            raise UserError(f"源目标栋参数 {new_building} 小于 1 ！")
+        if new_building > settings.building:
+            raise UserError(f"源目标栋参数 {new_building} 大于最大允许值 {settings.building} ！")
+        if new_column < 1:
+            raise UserError(f"源目标列参数 {new_column} 小于 1 ！")
+        if new_column > settings.column:
+            raise UserError(f"源列目标列参数 {new_column} 大于最大允许值 {settings.column} ！")
+        if new_layer < 1:
+            raise UserError(f"源目标层参数 {new_layer} 小于 1 ！")
+        if new_layer > settings.column:
+            raise UserError(f"源目标层参数 {source_layer} 大于最大允许值 {settings.layer} ！")
 
-
-
-
-
-
-
+    def refresh_fields_turn_on(self):
+        record = self.browse(1)
+        record.refresh_status = True
+    def refresh_fields_turn_off(self):
+        record = self.browse(1)
+        record.refresh_status = False
 
 
 

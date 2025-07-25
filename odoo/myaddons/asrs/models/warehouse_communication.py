@@ -42,10 +42,10 @@ class SystemControl(models.Model):
     auto_ready = fields.Boolean(string='自动就绪')
     auto_take_finish = fields.Boolean(string='取料完成')
     auto_feed_finish = fields.Boolean(string='送料完成')
-    auto_source_position = fields.Boolean(string='源目标定位完成')
-    auto_target_position = fields.Boolean(string='新目标定位完成')
+    auto_source_position = fields.Boolean(string='到达源目标')
+    auto_target_position = fields.Boolean(string='到达新目标')
     auto_finish = fields.Boolean(string='自动完成')
-    auto_estate = fields.Boolean(string='自动状态')
+    auto_state = fields.Boolean(string='自动状态')
     none1 = fields.Boolean(string='无1')
     none2 = fields.Boolean(string='无2')
     estate = fields.Integer(string='状态')
@@ -112,14 +112,14 @@ class SystemControl(models.Model):
             elif num == 11:
                 values_to_write['auto_finish'] = value
             elif num == 12:
-                values_to_write['auto_estate'] = value
+                values_to_write['auto_state'] = value
             elif num == 13:
                 values_to_write['none1'] = value
             elif num == 14:
                 values_to_write['none2'] = value
             elif num == 15:
                 values_to_write['estate'] = value
-
+                print(value)
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)
@@ -237,7 +237,7 @@ class New_Public_PlcInterfaces:
         with (self.env.registry.cursor() as new_cr):
             new_env = api.Environment(new_cr, self.env.uid, {})
 
-            # new_env['system.control'].automation_state_read()
+            new_env['system.control'].automation_state_read()
 
         # _logger.info("1秒的定时任务")
         return None
