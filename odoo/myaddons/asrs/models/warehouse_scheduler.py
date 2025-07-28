@@ -4,6 +4,7 @@ import sys
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 from odoo import models, fields
+from .warehouse_system_operate import WarehouseSystemOperate
 
 from .warehouse_communication import New_Public_PlcInterfaces
 import odoo
@@ -13,6 +14,10 @@ from odoo.modules.registry import Registry
 _logger = logging.getLogger(__name__)
 
 class PlcScheduler():
+
+    _name = 'warehouse_scheduler'
+    _description = 'warehouse scheduler'
+
     def __init__(self):
         self.env = None
         self.scheduler = BackgroundScheduler()
@@ -20,12 +25,22 @@ class PlcScheduler():
         self.one_second = 0
         self.one_minute = 0
 
+    # def __init__(self, env=None):
+    #     self.env = env
+    #     self.scheduler = BackgroundScheduler()
+    #     self.started = False
+    #     self.one_second = 0
+    #     self.one_minute = 0
+    #
+    #     if env:
+    #         self.env = env
     def start(self):
         """
         启动调度器，初始化定时任务。
         如果调度器未启动，则添加每100秒执行一次的one_second_task任务，
         并启动调度器。
         """
+
         if not self.started:
             _logger.info("🚀 启动 PLC 调度器")
             # 添加间隔任务：每1秒调用一次 one_second_task 方法
@@ -57,6 +72,29 @@ class PlcScheduler():
             # 记录异常信息
             _logger.error(f"scheduled task error: {str(e)}")
 
+
+    # def scheduled_tasks(self):
+    #
+    #     self.one_second_task()
+    #     if self.one_second == 9:
+    #         self.ten_second_task()
+    #     self.one_second = (self.one_second + 1) % 10
+    #     self.one_minute = (self.one_minute + 1) % 60
+    #     if self.one_minute == 1:
+    #         _logger.info("scheduled task running !")
+    #
+    #
+    # def one_second_task(self):
+    #
+    #     with (self.env.registry.cursor() as new_cr):
+    #         env = api.Environment(new_cr, self.env.uid, {})
+    #         # env['warehouse.system.operate'].control_system_read_write()
+    #
+    #
+    #     print("one_second_task running")
+    #
+    # def ten_second_task(self):
+    #     print("ten_second_task running")
 
 
     # def one_second_task(self):

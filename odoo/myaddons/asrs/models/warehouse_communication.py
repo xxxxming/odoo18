@@ -119,7 +119,7 @@ class SystemControl(models.Model):
                 values_to_write['none2'] = value
             elif num == 15:
                 values_to_write['estate'] = value
-                print(value)
+                # print(value)
         if values_to_write:
             record = self.browse(1)
             record.write(values_to_write)

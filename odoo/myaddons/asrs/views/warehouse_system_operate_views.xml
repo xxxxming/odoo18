@@ -155,10 +155,43 @@
                                 </group>
                             </form>
                         </page>
-                        <page string="记录">
-                            <form>
+<!--                        <page string="记录">-->
+<!--                            <form>-->
 
-                            </form>
+<!--                            </form>-->
+<!--                        </page>-->
+                        <page string="操作日志">
+<!--                                <button name="clear_logs" type="object" string="Clear Logs" class="btn-secondary mt8"/>-->
+<!--                                <field name="log_messages" widget="ace" options="{'mode': 'text'}" placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                <div style="display: flex; flex-direction: row; gap: 10px;">-->
+<!--                                    <div style="flex: 1;">-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                    </div>-->
+<!--                                    <div style="flex: 1;">-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="display: flex; flex-direction: row; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label for="first_30_logs" string="前30条日志记录"/>
+                                            <field name="first_30_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="First 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label for="last_30_logs" string="后30条日志记录"/>
+                                            <field name="last_30_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="Last 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                    </div>
+<!--                                    <div>-->
+<!--                                        <label for="log_messages" string="完整日志记录"/>-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="All operation logs will appear here..." style="min-height: 200px;"/>-->
+<!--                                    </div>-->
+                                </div>
                         </page>
                     </notebook>
                 </sheet>

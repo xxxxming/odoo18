@@ -143,6 +143,13 @@ class WarehouseSystemOperate(models.Model):
     x_dummy_widget_field = fields.Char(string='Dummy Widget Field')
     refresh_status = fields.Boolean(string='是否自动刷新')
 
+    # 添加日志相关字段
+    log_messages = fields.Text(string='Operation Logs', readonly=True)
+    # first_40_logs = fields.Text(string='First 40 Logs', compute='_compute_first_40_logs', readonly=True)
+    # last_40_logs = fields.Text(string='Last 40 Logs', compute='_compute_last_40_logs', readonly=True)
+    first_30_logs = fields.Text(string='First 30 Logs', readonly=True)
+    last_30_logs = fields.Text(string='Last 30 Logs', readonly=True)
+
     @api.depends('storage_goods_status')
     def _compute_one_second(self):
         pass
@@ -367,12 +374,13 @@ class WarehouseSystemOperate(models.Model):
         pass
 
     def control_system_read_write(self):
-        # self.storage_information_write()
-        self.storage_information_read()
-        self.stacker_information_read()
-        self.entrance1_information_read()
-        self.entrance2_information_read()
-        self.refresh_fields_turn_off()
+
+            # self.storage_information_write()
+            self.storage_information_read()
+            self.stacker_information_read()
+            self.entrance1_information_read()
+            self.entrance2_information_read()
+            self.refresh_fields_turn_off()
 
     def storage_information_write(self):
         """传递到PLC进行写入"""
@@ -496,6 +504,7 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['storage_pack_barcode'] = value
         if values_to_write:
             record = self.browse(1)
+            # record = self.env['warehouse.system.operate'].browse(1)
             record.write(values_to_write)
     def stacker_information_read(self):
         """读取测试-批量"""
@@ -630,6 +639,8 @@ class WarehouseSystemOperate(models.Model):
             PlcClient().db_number_write(
                 {'value': False, "db_number": 260,'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
             _logger.info("执行入库命令 ！")
+            # 添加日志记录
+            record.log_operation("Store command executed")
         else:
             raise UserError(f"不允许执行入库命令！")
 
@@ -647,6 +658,8 @@ class WarehouseSystemOperate(models.Model):
             PlcClient().db_number_write(
                 {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
             _logger.info("执行出库命令 ！")
+            # 添加日志记录
+            record.log_operation("Outbound command executed")
         else:
             raise UserError(f"不允许执行出库命令！")
     def return_store_button(self):
@@ -663,6 +676,8 @@ class WarehouseSystemOperate(models.Model):
             PlcClient().db_number_write(
                 {'value': record.return_store, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
             _logger.info("执行返库命令 ！")
+            # 添加日志记录
+            record.log_operation("Return store command executed")
         else:
             raise UserError(f"不允许执行返库命令！")
     def location_data_check(self):
@@ -698,17 +713,25 @@ class WarehouseSystemOperate(models.Model):
             raise UserError(f"源目标层参数 {source_layer} 大于最大允许值 {settings.layer} ！")
 
         if new_building < 1:
-            raise UserError(f"源目标栋参数 {new_building} 小于 1 ！")
+            raise UserError(f"新目标栋参数 {new_building} 小于 1 ！")
         if new_building > settings.building:
-            raise UserError(f"源目标栋参数 {new_building} 大于最大允许值 {settings.building} ！")
+            raise UserError(f"新目标栋参数 {new_building} 大于最大允许值 {settings.building} ！")
         if new_column < 1:
-            raise UserError(f"源目标列参数 {new_column} 小于 1 ！")
+            raise UserError(f"新目标列参数 {new_column} 小于 1 ！")
         if new_column > settings.column:
-            raise UserError(f"源列目标列参数 {new_column} 大于最大允许值 {settings.column} ！")
+            raise UserError(f"新列目标列参数 {new_column} 大于最大允许值 {settings.column} ！")
         if new_layer < 1:
-            raise UserError(f"源目标层参数 {new_layer} 小于 1 ！")
+            raise UserError(f"新目标层参数 {new_layer} 小于 1 ！")
         if new_layer > settings.column:
-            raise UserError(f"源目标层参数 {source_layer} 大于最大允许值 {settings.layer} ！")
+            raise UserError(f"新目标层参数 {source_layer} 大于最大允许值 {settings.layer} ！")
+
+    def clear_logs(self):
+        """清除日志"""
+        self.log_messages = ""
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     def refresh_fields_turn_on(self):
         record = self.browse(1)
@@ -717,8 +740,70 @@ class WarehouseSystemOperate(models.Model):
         record = self.browse(1)
         record.refresh_status = False
 
+    # def log_operation(self, message):
+    #     """记录操作日志"""
+    #     current_logs = self.log_messages or ""
+    #     timestamp = fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #     new_log = f"[{timestamp}] {message}\n"
+    #     self.log_messages = new_log + current_logs
 
+    def log_operation(self, message):
+        """记录操作日志，限制总记录数为100条以保持性能"""
+        current_logs = self.log_messages or ""
+        # 使用用户时区获取时间戳，解决时区不一致问题
+        user_tz = self.env.user.tz or 'UTC'
+        timestamp = fields.Datetime.context_timestamp(self.env.user, fields.Datetime.now()).strftime(
+            "%Y-%m-%d %H:%M:%S")
+        new_log = f"[{timestamp}] {message}\n"
 
+        # 将现有日志按行分割
+        log_lines = current_logs.splitlines()
+        # 添加新日志到最前面
+        log_lines.insert(0, f"[{timestamp}] {message}")
+        # 只保留最新的100条记录以保持性能
+        log_lines = log_lines[:100]
+        # 重新组合日志
+        self.log_messages = "\n".join(log_lines) + "\n"
+        self.load_first_30_logs()
+        self.load_last_30_logs()
+
+    def load_first_30_logs(self):
+        """计算并显示前35条日志记录"""
+        for record in self:
+            if record.log_messages:
+                log_lines = record.log_messages.splitlines()
+                # 获取前35条记录
+                first_lines = log_lines[:30]
+                # record.first_40_logs = "\n".join(first_lines)
+                # 为每行添加序号
+                numbered_lines = [f"{i + 1:2d}. {line}" for i, line in enumerate(first_lines)]
+                record.first_30_logs = "\n".join(numbered_lines)
+            else:
+                record.first_30_logs = ""
+
+    def load_last_30_logs(self):
+        """计算并显示后35条日志记录"""
+        for record in self:
+            if record.log_messages:
+                log_lines = record.log_messages.splitlines()
+                # 只有当总记录数大于30条时才显示后30条记录
+                if len(log_lines) > 30:
+                    if len(log_lines) > 60:
+                        middle_lines = log_lines[30:60]
+                        numbered_lines = [f"{i + 31:2d}. {line}" for i, line in enumerate(middle_lines)]
+                        record.last_30_logs = "\n".join(numbered_lines)
+                    else:
+                        # 如果总记录数在31到60之间，显示从第31条到末尾的记录
+                        middle_lines = log_lines[30:]
+                    # record.last_40_logs = "\n".join(middle_lines)
+                        # 为每行添加序号
+                        numbered_lines = [f"{i + 31:2d}. {line}" for i, line in enumerate(middle_lines)]
+                        record.last_30_logs = "\n".join(numbered_lines)
+                else:
+                    # 如果总记录数不超过30条，则不显示任何内容
+                    record.last_30_logs = ""
+            else:
+                record.last_30_logs = ""
 
 
 
