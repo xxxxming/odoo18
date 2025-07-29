@@ -48,9 +48,17 @@
                             <group>
                                 <field name="entrance"/>
                                 <field name="source_target"  widget="RefreshStorageFields"/>
-                                <field name="new_target"  widget="RefreshStorageFields"/>
+                                <field name="new_target"  widget="custom_selector"/>
                             </group>
                             <group>
+                                <newline/>
+                                <group>
+                                    <field name="allow_move_stock" readonly="True" widget="RefreshStorageFields"/>
+                                </group>
+                                <group>
+                                    <button name="move_stock_button" type="object" string="执行移库"
+                                            class="btn-info"/>
+                                </group>
                                 <newline/>
                                     <group>
                                         <field name="allow_store" readonly="True" widget="RefreshStorageFields"/>
@@ -80,16 +88,15 @@
                     </group>
                     <notebook>
                         <page string="出入库" widget="RefreshFullModel">
-                            <group>
-                            </group>
+
                             <form>
                                 <group>
-                                    <header>
+<!--                                    <header>-->
 <!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
 <!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
 <!--                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>-->
 
-                                    </header>
+<!--                                    </header>-->
                                     <newline/>
                                     <group string="库位信息">
                                         <group>
@@ -99,7 +106,7 @@
                                         <group>
                                             <group>
                                                 <field name="storage_pack_number" />
-                                                <field name="storage_base_number" />
+<!--                                                <field name="storage_base_number" />-->
                                                 <field name="storage_location_number"/>
                                                 <field name="storage_pack_barcode" />
                                             </group>
@@ -114,7 +121,7 @@
                                         <group>
                                             <group>
                                                 <field name="stacker_pack_number"/>
-                                                <field name="stacker_base_number"/>
+<!--                                                <field name="stacker_base_number"/>-->
                                                 <field name="stacker_location_number"/>
                                                 <field name="stacker_pack_barcode"/>
                                             </group>
@@ -130,7 +137,7 @@
                                         <group>
                                             <group>
                                                 <field name="entrance1_pack_number"/>
-                                                <field name="entrance1_base_number"/>
+<!--                                                <field name="entrance1_base_number"/>-->
                                                 <field name="entrance1_location_number"/>
                                                 <field name="entrance1_pack_barcode"/>
                                             </group>
@@ -145,7 +152,7 @@
                                         <group>
                                             <group>
                                                 <field name="entrance2_pack_number"/>
-                                                <field name="entrance2_base_number"/>
+<!--                                                <field name="entrance2_base_number"/>-->
                                                 <field name="entrance2_location_number"/>
                                                 <field name="entrance2_pack_barcode"/>
                                             </group>

@@ -78,9 +78,11 @@ class WarehouseSystemOperate(models.Model):
     stop = fields.Boolean(string="停止")
     pause = fields.Boolean(string="暂停")
     reset = fields.Boolean(string="复位")
-    store = fields.Boolean(string="存储")
+    move_stock = fields.Boolean(string="移库")
+    store = fields.Boolean(string="入库")
     outbound = fields.Boolean(string="出库")
     return_store = fields.Boolean(string="返库")
+    allow_move_stock = fields.Boolean(string="允许移库")
     allow_store = fields.Boolean(string="允许入库")
     allow_outbound = fields.Boolean(string="允许出库")
     allow_return = fields.Boolean(string="允许返库")
@@ -159,7 +161,7 @@ class WarehouseSystemOperate(models.Model):
         print('entrance change!')
         record = self.browse(1)
         if record.exists():
-            self._compare_pack_number()
+            self.compare_pack_number()
             self.command_data_write()
 
     @api.onchange('pack_number')
@@ -172,7 +174,7 @@ class WarehouseSystemOperate(models.Model):
             record.write({'pack_number': self.pack_number})
             self.compare_pack_number()
             self.command_data_write()
-            record.refresh_status = True
+            self.refresh_fields_turn_on()
 
     @api.onchange('pack_barcode')
     def _onchange_barcode(self):
@@ -210,6 +212,7 @@ class WarehouseSystemOperate(models.Model):
             record = self.browse(1)
 
             record.write({
+                'allow_move_stock': False,
                 'allow_store': False,
                 'allow_outbound': False,
                 'allow_return': False,
@@ -233,24 +236,42 @@ class WarehouseSystemOperate(models.Model):
                     'location_number': storage_record.location_number,
                 })
                 if storage_record.goods_status == True:
-                    record.write({
-                        'allow_store': False,
-                        'allow_outbound': True,
-                        'allow_return': False,
-                    })
-                    record.write({
-                        'source_target': storage_record.location_number,
-                        })
-                    if self.entrance == False or self.entrance == 'entrance1':
+
+                    if self.entrance:
                         record.write({
-                        'new_target': entrance_1,
+                            'source_target': storage_record.location_number,
                         })
-                    if self.entrance == 'entrance2':
                         record.write({
-                        'new_target': entrance_2,
+                            'allow_move_stock': False,
+                            'allow_store': False,
+                            'allow_outbound': True,
+                            'allow_return': False,
+                        })
+                        if self.entrance == 'entrance1':
+                            record.write({
+                            'new_target': entrance_1,
+                            })
+                        if self.entrance == 'entrance2':
+                            record.write({
+                            'new_target': entrance_2,
+                            })
+                    else:
+                        record.write({
+                            'allow_move_stock': True,
+                            'allow_store': False,
+                            'allow_outbound': False,
+                            'allow_return': False,
+                        })
+                        record.write({
+                            'source_target': storage_record.location_number,
+                        })
+                        self.find_empty_location()
+                        record.write({
+                            'new_target': record.location_number,
                         })
                 else:
                     record.write({
+                        'allow_move_stock': False,
                         'allow_store': False,
                         'allow_outbound': False,
                         'allow_return': True,
@@ -268,35 +289,12 @@ class WarehouseSystemOperate(models.Model):
                     })
             else:
                 record.write({
+                    'allow_move_stock': False,
                     'allow_store': True,
                     'allow_outbound': False,
                     'allow_return': False,
                 })
-                location_record_1 = self.env['warehouse.location.information'].search(
-                    [('location_number', '!=', entrance_1),
-                     ('location_number', '!=', entrance_2),
-                     ('location_number', '<', 20000),
-                     ('goods_cancel', '=', False),
-                     ('goods_status', '=', False)], limit=1)
-                location_record_2 = self.env['warehouse.location.information'].search(
-                    [('location_number', '!=', entrance_1),
-                     ('location_number', '!=', entrance_2),
-                     ('location_number', '>', 20000),
-                     ('goods_cancel', '=', False),
-                     ('goods_status', '=', False)], limit=1)
-                     # 剩余部分为后四位
-                column_layer_1 = location_record_1.location_number % 10000
-                column_layer_2 = location_record_2.location_number % 10000
-
-                if column_layer_1<column_layer_2:
-                    record.write({
-                        'location_number': location_record_1.location_number,
-                    })
-                else:
-                    record.write({
-                        'location_number': location_record_2.location_number,
-                    })
-
+                self.find_empty_location()
                 record.write({
                     'new_target': record.location_number,
                 })
@@ -310,23 +308,36 @@ class WarehouseSystemOperate(models.Model):
                         'source_target': entrance_2,
                     })
 
-            # 查询模型A
-            # storage_records = self.env['automatic.storage.location'].search([('pack_number', '=', self.pack_number)])
-            # print(self.pack_number)
-            # if storage_records:
-            #     # 如果找到匹配记录，获取目标字段值
-            #     # target_field = storage_records[0].pack_number
-            #     print('查询到框号！')
-            # else:
-            #     raise UserError('没有查询到框号！')
+    def find_empty_location(self):
+        record = self.browse(1)
+        record_settings = self.env['warehouse.settings'].search([], limit=1)
+        entrance_1 = record_settings.entrance_1
+        entrance_2 = record_settings.entrance_2
+        location_record_1 = self.env['warehouse.location.information'].search(
+            [('location_number', '!=', entrance_1),
+             ('location_number', '!=', entrance_2),
+             ('location_number', '<', 20000),
+             ('goods_cancel', '=', False),
+             ('goods_status', '=', False)], limit=1)
+        location_record_2 = self.env['warehouse.location.information'].search(
+            [('location_number', '!=', entrance_1),
+             ('location_number', '!=', entrance_2),
+             ('location_number', '>', 20000),
+             ('goods_cancel', '=', False),
+             ('goods_status', '=', False)], limit=1)
+        # 剩余部分为后四位
+        column_layer_1 = location_record_1.location_number % 10000
+        column_layer_2 = location_record_2.location_number % 10000
 
-            # 获取 automatic.storage.location 模型中的所有 pack_number 值
-            # location_records = self.env['automatic.storage.location'].search([])
-            # pack_numbers = [record.pack_number for record in location_records if record.pack_number]
-            # print(pack_numbers)
+        if column_layer_1 < column_layer_2:
+            record.write({
+                'location_number': location_record_1.location_number,
+            })
+        else:
+            record.write({
+                'location_number': location_record_2.location_number,
+            })
 
-            # 输出结果示例
-            # _logger.info("Pack Numbers: %s", pack_numbers)
     def command_data_write(self):
         record = self.browse(1)
         entrance = 0
@@ -347,9 +358,9 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 3, 'value_type': 'bool'},
-                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
-                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
+                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
+                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
+                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 6, 'value_type': 'bool'},
                 {'value': entrance,"db_number": 260,'offset': 4,'value_type': 'int'},
                 {'value': pack_number,"db_number": 260,'offset': 6,'value_type': 'int'},
                 {'value': base_number, "db_number": 260, 'offset': 8, 'value_type': 'int'},
@@ -625,22 +636,32 @@ class WarehouseSystemOperate(models.Model):
         PlcClient().db_number_write(
             {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
 
+    def move_stock_button(self):
+        self.location_data_check()
+        record = self.browse(1)
+        if record.allow_move_stock:
+            record.move_stock = not record.move_stock
+            record.store = False
+            record.outbound =  False
+            record.return_store =  False
+            log_message = f"执行移库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            _logger.info(log_message)
+            record.log_operation(log_message)
+        else:
+            raise UserError("不允许执行移库命令！")
+
     def store_button(self):
         self.location_data_check()
         record = self.browse(1)
         if record.allow_store:
+            record.move_stock = False
             record.store = not record.store
             record.outbound =  False
             record.return_store =  False
-            PlcClient().db_number_write(
-                {'value': record.store, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260,'offset': 2,'bit_index': 1, 'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260,'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
-            _logger.info("执行入库命令 ！")
-            # 添加日志记录
-            record.log_operation("Store command executed")
+            self.command_button_write()
+            log_message = f"执行入库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            _logger.info(log_message)
+            record.log_operation(log_message)
         else:
             raise UserError(f"不允许执行入库命令！")
 
@@ -648,38 +669,48 @@ class WarehouseSystemOperate(models.Model):
         self.location_data_check()
         record = self.browse(1)
         if record.allow_outbound:
+            record.move_stock = False
             record.store = False
             record.outbound = not record.outbound
             record.return_store = False
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': record.outbound, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
-            _logger.info("执行出库命令 ！")
-            # 添加日志记录
-            record.log_operation("Outbound command executed")
+            self.command_button_write()
+            log_message = f"执行出库命令:库位{record.source_target} 移到{record.entrance}：{record.new_target} ！"
+            _logger.info(log_message)
+            record.log_operation(log_message)
         else:
             raise UserError(f"不允许执行出库命令！")
     def return_store_button(self):
         self.location_data_check()
         record = self.browse(1)
         if record.allow_return:
+            record.move_stock = False
             record.store =  False
             record.outbound =  False
             record.return_store = not record.return_store
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 0, 'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': False, "db_number": 260, 'offset': 2, 'bit_index': 1, 'value_type': 'bool', })
-            PlcClient().db_number_write(
-                {'value': record.return_store, "db_number": 260, 'offset': 2, 'bit_index': 2, 'value_type': 'bool', })
-            _logger.info("执行返库命令 ！")
-            # 添加日志记录
-            record.log_operation("Return store command executed")
+            self.command_button_write()
+            log_message = f"执行返库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            _logger.info(log_message)
+            record.log_operation(log_message)
         else:
             raise UserError(f"不允许执行返库命令！")
+
+    def command_button_write(self):
+        record = self.browse(1)
+        if not record.emergency_stop:
+            try:
+                # 批量写入
+                data_list = [
+                    {'value': record.move_stock, "db_number": 260,'offset': 2,'bit_index': 0,'value_type': 'bool'},
+                    {'value': record.store, "db_number": 260,'offset': 2,'bit_index': 1,'value_type': 'bool'},
+                    {'value': record.outbound, "db_number": 260,'offset': 2,'bit_index': 2,'value_type': 'bool'},
+                    {'value': record.return_store, "db_number": 260,'offset': 2,'bit_index': 3,'value_type': 'bool'}
+                ]
+                for data in data_list:
+                    PlcClient().db_number_write(data)
+            except Exception as e:
+                _logger.error(f"仓库命令信息写入失败！: {str(e)}")
+                raise
+
     def location_data_check(self):
         record = self.browse(1)
         source_target = record.source_target

@@ -21,7 +21,9 @@
     'assets': {
         'web.assets_backend': [
             'asrs/static/src/js/refresh_status.js',
-            "asrs/static/src/js/refresh_full_model.js",
+            "asrs/static/src/js/refresh_full_record.js",
+            'asrs/static/src/js/custom_selector.js',
+            'asrs/static/src/xml/custom_selector.xml',
         ]
     },
     'installable': True,

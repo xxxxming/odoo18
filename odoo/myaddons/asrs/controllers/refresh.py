@@ -11,6 +11,7 @@ class RefreshStatusController(http.Controller):
             return {
 
                 'refresh_status': record.refresh_status,
+                'allow_move_stock': record.allow_move_stock,
                 'allow_store': record.allow_store,
                 'allow_outbound': record.allow_outbound,
                 'allow_return': record.allow_return,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="asrs.CustomSelectorField" owl="1">
+        <div class="o_custom_selector_field" t-on-click="onClick">
+            <input type="text" class="form-control"
+                   t-att-value="props.value or ''"
+                   readonly="readonly"
+                   placeholder="点击选择..."/>
+            <span class="fa fa-chevron-down"/>
+        </div>
+    </t>
+
+    <t t-name="asrs.CustomSelectorDialog" owl="1">
+        <Dialog size="'lg'" title="'选择选项'">
+            <div class="container-fluid">
+                <div class="row">
+                    <t t-foreach="props.data or []" t-as="item" t-key="item.id">
+                        <div class="col-4 mb-2">
+                            <div class="card" t-on-click="(ev) => this.onSelectValue(ev, item.name)"
+                                 t-att-class="{'border-primary': state.selectedValue === item.name, 'cursor-pointer': true}">
+                                <div class="card-body text-center">
+                                    <t t-esc="item.name or ''"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="props.close">取消</button>
+                <button class="btn btn-primary" t-on-click="onConfirm">确定</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
