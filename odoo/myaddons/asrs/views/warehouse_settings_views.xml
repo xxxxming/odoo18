@@ -28,38 +28,136 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="warehouse_name"/>
-
-                            <field name="building"/>
-                            <field name="column"/>
-                            <field name="layer"/>
-                            <field name="total_locations"/>
-                            <field name="column_spacing"/>
-                            <field name="layer_spacing"/>
+                            <group>
+                                <field name="warehouse_name"/>
+                                <field name="building"/>
+                                <field name="stacker_quantity"/>
+                                <field name="total_locations"/>
+                            </group>
+                            <group>
+                                <field name="layer"/>
+                                <field name="column"/>
+                                <field name="column_spacing"/>
+                                <field name="layer_spacing"/>
+                            </group>
                         </group>
-
                         <group>
-                            <field name="entrance_1"/>
-                            <field name="entrance_2"/>
-                            <field name="entrance_3"/>
-                            <field name="entrance_4"/>
-                        </group>
+                            <group>
+                                <field name="entrance_1"/>
+                                <field name="entrance_2"/>
+                                <field name="entrance_3"/>
+                                <field name="entrance_4"/>
 
+                            </group>
+                        </group>
                     </group>
                     <notebook>
-                        <page string="库位数据">
+                        <page string="库位数据同步">
+                            <group>
+                                <group>
+                                    <newline/>
+                                    <group>
+                                        <field name="sync_location"/>
+                                    </group>
+                                    <group>
+                                        <button name="sync_locations_read" type="object" string="上载"
+                                                class="btn-secondary"/>
+                                        <button name="sync_locations_write" type="object" string="下载"
+                                                class="btn-secondary"/>
+                                    </group>
+<!--                                    <newline/>-->
+                                    <newline/>
+                                    <group>
+                                        <field name="sync_building"/>
+                                    </group>
+                                    <group>
+                                        <button name="sync_building_read" type="object" string="上载"
+                                                class="btn-secondary"/>
+                                        <button name="sync_building_write" type="object" string="下载"
+                                                class="btn-secondary"/>
+                                    </group>
+                                    <newline/>
+                                    <group>
+                                        <field name="sync_column"/>
+                                    </group>
+                                    <group>
+                                        <button name="sync_column_read" type="object" string="上载"
+                                                class="btn-secondary"/>
+                                        <button name="sync_column_write" type="object" string="下载"
+                                                class="btn-secondary"/>
+                                    </group>
+                                    <newline/>
+                                    <group>
+                                        <field name="sync_layer"/>
+                                    </group>
+                                    <group>
+                                        <button name="sync_layer_read" type="object" string="上载"
+                                                class="btn-secondary"/>
+                                        <button name="sync_layer_write" type="object" string="下载"
+                                                class="btn-secondary"/>
+                                    </group>
+
+                                </group>
+                                <group>
+                                    <group>
+                                        <group>
+                                            <field name="sync_total_locations"/>
+                                            <field name="synchronized_already"/>
+                                            <field name="sync_column"/>
+                                            <field name="sync_layer"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <group>
+                                            <field name="sync_location"/>
+                                            <field name="sync_building"/>
+                                            <field name="sync_column"/>
+                                            <field name="sync_layer"/>
+                                        </group>
+                                    </group>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="框码数据同步">
                             <group>
                             <field name="warehouse_name"/>
                             </group>
                         </page>
-                        <page string="框码数据">
-                            <group>
-                            <field name="warehouse_name"/>
-                            </group>
+
+                        <page string="库位同步日志">
+
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="display: flex; flex-direction: row; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label for="first_30_location_logs" string="前30条日志记录"/>
+                                            <field name="first_30_location_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="First 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label for="last_30_location_logs" string="后30条日志记录"/>
+                                            <field name="last_30_location_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="Last 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                    </div>
+                                </div>
                         </page>
+                        <page string="框码同步日志">
 
-
-
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="display: flex; flex-direction: row; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label for="first_30_pack_code_logs" string="前30条日志记录"/>
+                                            <field name="first_30_pack_code_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="First 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label for="last_30_pack_code_logs" string="后30条日志记录"/>
+                                            <field name="last_30_pack_code_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="Last 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                        </page>
                     </notebook>
                 </sheet>
             </form>

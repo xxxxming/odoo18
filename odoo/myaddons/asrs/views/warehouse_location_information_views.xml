@@ -38,6 +38,7 @@
 
                                 <div style="position: absolute; top: 8px; right: 10px;">
                                     序号：<field name="base_number"/>
+
                                 </div>
 
                                 <!-- 主体内容 -->
@@ -46,7 +47,14 @@
                                     <p>框号：<field name="pack_number"/></p>
                                     <p>框码：<field name="pack_barcode"/></p>
 
-<!--                                 <button type="object" name="action_view_details" string="查看详情" class="btn btn-primary btn-sm"/>-->
+<!--                                    <button type="object" name="action_view_details" string="查看详情" class="btn btn-primary btn-sm"/>-->
+<!--                                    <span t-if="!record.goods_status.raw_value" class="badge text-bg-success" title="正常">正常</span>-->
+<!--                                    <span t-else="" class="badge text-bg-danger" title="已取消">已取消</span>-->
+<!--                                    <xpath expr="//field[@name='goods_status']" position="replace">-->
+<!--                                        <span t-attf-class="badge {{ 'bg-success' if record.goods_status else 'bg-secondary' }}"-->
+<!--                                              t-att-title="'有货' if record.goods_status else '无货'"-->
+<!--                                              t-out="'有货' if record.goods_status else '无货'"/>-->
+<!--                                    </xpath>-->
                                 </div>
 
                         </div>
@@ -63,3 +71,82 @@
     </record>
 
 </odoo>
+
+<!--如果你想要不同样式的按钮，可以使用以下类组合：-->
+<!--btn btn-secondary btn-sm - 小的次要按钮-->
+<!--btn btn-success btn-sm - 小的成功按钮（绿色）-->
+<!--btn btn-info btn-sm - 小的信息按钮（蓝色）-->
+<!--btn btn-warning btn-sm - 小的警告按钮（橙色）-->
+<!--btn btn-danger btn-sm - 小的危险按钮（红色）-->
+<!--按钮也可以有不同的类型：-->
+<!--type="object" - 调用模型中的方法-->
+<!--type="action" - 执行一个窗口动作-->
+<!--type="edit" - 编辑当前记录-->
+<!--type="open" - 打开当前记录的表单视图-->
+<!--这就是在Odoo kanban视图中添加按钮的方法-->
+
+<!--常用图标说明-->
+<!--以下是一些常用的Font Awesome图标，你可以在kanban视图中使用：-->
+<!--fa fa-circle - 圆点指示器（常用于状态指示）-->
+<!--fa fa-check - 对勾（表示完成或正常）-->
+<!--fa fa-times - 叉号（表示错误或取消）-->
+<!--fa fa-exclamation-triangle - 警告三角形（表示警告）-->
+<!--fa fa-info-circle - 信息图标-->
+<!--fa fa-map-marker - 位置标记-->
+<!--fa fa-archive - 档案/框号-->
+<!--fa fa-barcode - 条码-->
+<!--fa fa-tag - 标签-->
+<!--fa fa-clock-o - 时钟（表示时间）-->
+
+<!--颜色类-->
+<!--你可以使用以下Bootstrap颜色类来改变图标的颜色：-->
+<!--text-success - 绿色（表示成功或正常）-->
+<!--text-danger - 红色（表示错误或危险）-->
+<!--text-warning - 黄色（表示警告）-->
+<!--text-info - 蓝色（表示信息）-->
+<!--text-muted - 灰色（表示不重要或禁用）-->
+<!--这些方法可以帮助你在kanban视图中添加各种图标指示器，用于显示状态、类别或其他重要信息-->
+
+<!--Bootstrap按钮颜色类-->
+<!--Odoo使用Bootstrap的按钮颜色类，主要包括：-->
+<!--btn-primary - 主要操作按钮（蓝色）-->
+<!--btn-secondary - 次要操作按钮（灰色）-->
+<!--btn-success - 成功操作按钮（绿色）-->
+<!--btn-danger - 危险操作按钮（红色）-->
+<!--btn-warning - 警告操作按钮（黄色）-->
+<!--btn-info - 信息操作按钮（浅蓝色）-->
+<!--btn-light - 浅色按钮（浅灰色）-->
+<!--btn-dark - 深色按钮（深灰色）-->
+<!--你的代码中的按钮颜色-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

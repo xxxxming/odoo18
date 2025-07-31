@@ -170,7 +170,6 @@ class WarehouseSystemOperate(models.Model):
         # record = self.browse(1)
         record = self.browse(1)
         if record.exists():
-            print('2',record)
             record.write({'pack_number': self.pack_number})
             self.compare_pack_number()
             self.command_data_write()
@@ -341,6 +340,7 @@ class WarehouseSystemOperate(models.Model):
     def command_data_write(self):
         record = self.browse(1)
         entrance = 0
+        allow_move_stock = record.allow_move_stock
         allow_store = record.allow_store
         allow_outbound = record.allow_outbound
         allow_return = record.allow_return
@@ -358,9 +358,10 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
-                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
-                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 6, 'value_type': 'bool'},
+                {'value': allow_move_stock, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
+                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
+                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 6, 'value_type': 'bool'},
+                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 7, 'value_type': 'bool'},
                 {'value': entrance,"db_number": 260,'offset': 4,'value_type': 'int'},
                 {'value': pack_number,"db_number": 260,'offset': 6,'value_type': 'int'},
                 {'value': base_number, "db_number": 260, 'offset': 8, 'value_type': 'int'},
@@ -637,7 +638,7 @@ class WarehouseSystemOperate(models.Model):
             {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
 
     def move_stock_button(self):
-        self.location_data_check()
+        self.target_data_check()
         record = self.browse(1)
         if record.allow_move_stock:
             record.move_stock = not record.move_stock
@@ -651,7 +652,7 @@ class WarehouseSystemOperate(models.Model):
             raise UserError("不允许执行移库命令！")
 
     def store_button(self):
-        self.location_data_check()
+        self.target_data_check()
         record = self.browse(1)
         if record.allow_store:
             record.move_stock = False
@@ -666,7 +667,7 @@ class WarehouseSystemOperate(models.Model):
             raise UserError(f"不允许执行入库命令！")
 
     def outbound_button(self):
-        self.location_data_check()
+        self.target_data_check()
         record = self.browse(1)
         if record.allow_outbound:
             record.move_stock = False
@@ -680,7 +681,7 @@ class WarehouseSystemOperate(models.Model):
         else:
             raise UserError(f"不允许执行出库命令！")
     def return_store_button(self):
-        self.location_data_check()
+        self.target_data_check()
         record = self.browse(1)
         if record.allow_return:
             record.move_stock = False
@@ -711,7 +712,7 @@ class WarehouseSystemOperate(models.Model):
                 _logger.error(f"仓库命令信息写入失败！: {str(e)}")
                 raise
 
-    def location_data_check(self):
+    def target_data_check(self):
         record = self.browse(1)
         source_target = record.source_target
         new_target = record.new_target
@@ -725,7 +726,6 @@ class WarehouseSystemOperate(models.Model):
         new_column = new_remaining // 100  # 取中间两位
         new_layer = new_remaining % 100  # 取最后两位
 
-        print('check', source_target, new_target)
         settings = self.env['warehouse.settings'].search([], limit=1)
         if not settings:
            _logger.error("未找到参数，请先设置基本参数!")

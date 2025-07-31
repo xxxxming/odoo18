@@ -151,15 +151,15 @@ class WarehouseLocationInformation(models.Model):
                print(building, column, layer)
           return
      def action_view_details(self):
-          self.ensure_one()
-          return {
-               'type': 'ir.actions.act_window',
-               'res_model': 'warehouse.location.information',
-               'res_id': self.id,
-               'view_mode': 'form',
-               'target': 'current',  # 或 'new' 表示在弹窗打开
-          }
-
+          # self.ensure_one()
+          # return {
+          #      'type': 'ir.actions.act_window',
+          #      'res_model': 'warehouse.location.information',
+          #      'res_id': self.id,
+          #      'view_mode': 'form',
+          #      'target': 'current',  # 或 'new' 表示在弹窗打开
+          # }
+          pass
 
 
 
