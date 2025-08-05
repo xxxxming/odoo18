@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
@@ -44,7 +45,7 @@ class PlcScheduler():
         if not self.started:
             _logger.info("🚀 启动 PLC 调度器")
             # 添加间隔任务：每1秒调用一次 one_second_task 方法
-            self.scheduler.add_job(self.scheduled_tasks, 'interval', seconds=1, max_instances=6)
+            self.scheduler.add_job(self.scheduled_tasks, 'interval', seconds=2, max_instances=4)
             # #添加间隔任务：每1秒调用一次 one_second_task 方法
             # self.scheduler.add_job(self.one_second_task, 'interval', seconds=2, max_instances=4)
             # # 添加间隔任务：每10秒调用一次 one_second_task 方法
@@ -54,6 +55,7 @@ class PlcScheduler():
             self.started = True
 
     def scheduled_tasks(self):
+        start_time = time.time()
         db_name = 'odoo18e'  # ← 修改为你自己的数据库名
         with odoo.sql_db.db_connect(db_name).cursor() as cr:
             env = api.Environment(cr, 1, {})  # 1 表示超级管理员 user_id
@@ -67,6 +69,9 @@ class PlcScheduler():
             self.one_minute = (self.one_minute + 1) % 60
             if self.one_minute == 1:
                 _logger.info("scheduled task running !")
+
+            end_time = time.time()
+            # _logger.info(f"scheduled task took: {end_time - start_time}s")
 
         except Exception as e:
             # 记录异常信息

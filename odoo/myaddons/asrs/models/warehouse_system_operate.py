@@ -409,8 +409,8 @@ class WarehouseSystemOperate(models.Model):
                 {'value': storage_goods_status,"db_number": 262,'offset': 0,'bit_index': 0,'value_type': 'bool'},
                 {'value': storage_base_number,"db_number": 262,'offset': 2,'value_type': 'int'},
                 {'value': storage_pack_number,"db_number": 262,'offset': 4,'value_type': 'int'},
-                {'value': storage_location_number,"db_number": 262,'offset': 10,'value_type': 'dint'},
-                {'value': storage_pack_barcode,"db_number": 262,'offset': 14,"string_max_len": 18,'value_type': 'string'}
+                {'value': storage_location_number,"db_number": 262,'offset': 6,'value_type': 'dint'},
+                {'value': storage_pack_barcode,"db_number": 262,'offset': 10,"string_max_len": 18,'value_type': 'string'}
             ]
             for data in data_list:
                 PlcClient().db_number_write(data)
@@ -429,11 +429,11 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': stacker_goods_status, "db_number": 262, 'bit_index': 36, 'value_type': 'bool', },
-                {'value': stacker_base_number, "db_number": 262, 'offset': 38, 'value_type': 'int'},
-                {'value': stacker_pack_number, "db_number": 262, 'offset': 40, 'value_type': 'int'},
-                {'value': stacker_location_number, "db_number": 262, 'offset': 46, 'value_type': 'dint'},
-                {'value': stacker_pack_barcode, "db_number": 262, 'offset': 50, "string_max_len": 18,
+                {'value': stacker_goods_status, "db_number": 262, 'bit_index': 32, 'value_type': 'bool', },
+                {'value': stacker_base_number, "db_number": 262, 'offset': 34, 'value_type': 'int'},
+                {'value': stacker_pack_number, "db_number": 262, 'offset': 36, 'value_type': 'int'},
+                {'value': stacker_location_number, "db_number": 262, 'offset': 38, 'value_type': 'dint'},
+                {'value': stacker_pack_barcode, "db_number": 262, 'offset': 42, "string_max_len": 18,
                  'value_type': 'string'}
             ]
             for data in data_list:
@@ -453,11 +453,11 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': entrance1_goods_status, "db_number": 262, 'bit_index': 72, 'value_type': 'bool', },
-                {'value': entrance1_base_number, "db_number": 262, 'offset': 74, 'value_type': 'int'},
-                {'value': entrance1_pack_number, "db_number": 262, 'offset': 76, 'value_type': 'int'},
-                {'value': entrance1_location_number, "db_number": 262, 'offset': 82, 'value_type': 'dint'},
-                {'value': entrance1_pack_barcode, "db_number": 262, 'offset': 86, "string_max_len": 18,
+                {'value': entrance1_goods_status, "db_number": 262, 'bit_index': 64, 'value_type': 'bool', },
+                {'value': entrance1_base_number, "db_number": 262, 'offset': 66, 'value_type': 'int'},
+                {'value': entrance1_pack_number, "db_number": 262, 'offset': 68, 'value_type': 'int'},
+                {'value': entrance1_location_number, "db_number": 262, 'offset': 70, 'value_type': 'dint'},
+                {'value': entrance1_pack_barcode, "db_number": 262, 'offset': 74, "string_max_len": 18,
                  'value_type': 'string'}
             ]
             for data in data_list:
@@ -477,11 +477,11 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': entrance2_goods_status, "db_number": 262, 'bit_index': 108, 'value_type': 'bool', },
-                {'value': entrance2_base_number, "db_number": 262, 'offset': 110, 'value_type': 'int'},
-                {'value': entrance2_pack_number, "db_number": 262, 'offset': 112, 'value_type': 'int'},
-                {'value': entrance2_location_number, "db_number": 262, 'offset': 118, 'value_type': 'dint'},
-                {'value': entrance2_pack_barcode, "db_number": 262, 'offset': 122, "string_max_len": 18,
+                {'value': entrance2_goods_status, "db_number": 262, 'bit_index': 96, 'value_type': 'bool', },
+                {'value': entrance2_base_number, "db_number": 262, 'offset': 98, 'value_type': 'int'},
+                {'value': entrance2_pack_number, "db_number": 262, 'offset': 100, 'value_type': 'int'},
+                {'value': entrance2_location_number, "db_number": 262, 'offset': 102, 'value_type': 'dint'},
+                {'value': entrance2_pack_barcode, "db_number": 262, 'offset': 106, "string_max_len": 18,
                  'value_type': 'string'}
             ]
             for data in data_list:
@@ -496,8 +496,8 @@ class WarehouseSystemOperate(models.Model):
             {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
             {'db_number': 262, 'offset': 2, 'value_type': 'int'},
             {'db_number': 262, 'offset': 4, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 10, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 14, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 262, 'offset': 6, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 10, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -522,11 +522,11 @@ class WarehouseSystemOperate(models.Model):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 36, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 38, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 40, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 46, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 50, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 262, 'offset': 32, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 34, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 36, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 38, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 42, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -550,11 +550,11 @@ class WarehouseSystemOperate(models.Model):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 72, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 74, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 76, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 82, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 86, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 262, 'offset': 64, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 66, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 68, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 70, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 74, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -578,11 +578,11 @@ class WarehouseSystemOperate(models.Model):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 108, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 110, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 112, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 118, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 122, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 262, 'offset': 96, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 262, 'offset': 98, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 100, 'value_type': 'int'},
+            {'db_number': 262, 'offset': 102, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': 106, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
