@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 import logging
-
 from odoo import models, fields, api
 
 class Plc_Websocket(models.Model):
 
     _inherit = 'plc.interface'
-
 
     @api.model
     def cron_fetch_plc_websocket(self):

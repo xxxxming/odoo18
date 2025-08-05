@@ -1,17 +1,9 @@
-import os
-import sys
 import time
-
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
-from odoo import models, fields
-from .warehouse_system_operate import WarehouseSystemOperate
-
 from .warehouse_communication import New_Public_PlcInterfaces
 import odoo
 from odoo import api
-from odoo.modules.registry import Registry
-
 _logger = logging.getLogger(__name__)
 
 class PlcScheduler():
@@ -26,15 +18,6 @@ class PlcScheduler():
         self.one_second = 0
         self.one_minute = 0
 
-    # def __init__(self, env=None):
-    #     self.env = env
-    #     self.scheduler = BackgroundScheduler()
-    #     self.started = False
-    #     self.one_second = 0
-    #     self.one_minute = 0
-    #
-    #     if env:
-    #         self.env = env
     def start(self):
         """
         启动调度器，初始化定时任务。
@@ -69,76 +52,7 @@ class PlcScheduler():
             self.one_minute = (self.one_minute + 1) % 60
             if self.one_minute == 1:
                 _logger.info("scheduled task running !")
-
             end_time = time.time()
-            # _logger.info(f"scheduled task took: {end_time - start_time}s")
-
         except Exception as e:
             # 记录异常信息
             _logger.error(f"scheduled task error: {str(e)}")
-
-
-    # def scheduled_tasks(self):
-    #
-    #     self.one_second_task()
-    #     if self.one_second == 9:
-    #         self.ten_second_task()
-    #     self.one_second = (self.one_second + 1) % 10
-    #     self.one_minute = (self.one_minute + 1) % 60
-    #     if self.one_minute == 1:
-    #         _logger.info("scheduled task running !")
-    #
-    #
-    # def one_second_task(self):
-    #
-    #     with (self.env.registry.cursor() as new_cr):
-    #         env = api.Environment(new_cr, self.env.uid, {})
-    #         # env['warehouse.system.operate'].control_system_read_write()
-    #
-    #
-    #     print("one_second_task running")
-    #
-    # def ten_second_task(self):
-    #     print("ten_second_task running")
-
-
-    # def one_second_task(self):
-    #     """00
-    #     每秒执行的任务，调用 New_Public_PlcInterfaces 的 one_second_0task 方法。0
-    #     用于处理与 PLC（可编程逻辑控制器）的通信任务。
-    #     """
-    #     db_name = 'odoo18e'  # ← 修改为你自己的数据库名
-    #     with odoo.sql_db.db_connect(db_name).cursor() as cr:
-    #         env = api.Environment(cr, 1, {})  # 1 表示超级管理员 user_id
-    #     try:
-    #         # 调用 New_Public_PlcInterfaces 类的 one_second_task 方法
-    #         result = New_Public_PlcInterfaces(env)
-    #         result.one_second_task()
-    #
-    #         self.one_second = (self.one_second + 1) % 60
-    #         if self.one_second == 1:
-    #          _logger.info("one second task running")
-    #
-    #     except Exception as e:
-    #         # 记录异常信息
-    #         _logger.error(f"PLC 每秒任务发生错误: {str(e)}")
-    #
-    # def ten_second_task(self):
-    #     """
-    #     每秒执行的任务，调用 New_Public_PlcInterfaces 的 one_second_task 方法。
-    #     用于处理与 PLC（可编程逻辑控制器）的通信任务。
-    #     """
-    #     db_name = 'odoo18e'  # ← 修改为你自己的数据库名
-    #     with odoo.sql_db.db_connect(db_name).cursor() as cr:
-    #         env = api.Environment(cr, 1, {})  # 1 表示超级管理员 user_id
-    #     try:
-    #         result = New_Public_PlcInterfaces(env)
-    #         result.ten_second_task()
-    #
-    #         self.ten_second = (self.ten_second + 1) % 60
-    #         if self.ten_second == 1:
-    #             _logger.info("ten second task running")
-    #
-    #     except Exception as e:
-    #         # 记录异常信息
-    #         _logger.error(f"PLC 每10秒任务发生错误: {str(e)}")

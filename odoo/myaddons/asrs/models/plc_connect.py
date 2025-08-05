@@ -60,7 +60,6 @@ class PlcClient:
         self.client.disconnect()
         _logger.info("已断开PLC连接")
 
-
     def db_number_write(self, row_data):
         """
         写入数据到PLC，自动判断类型。 方案1:用传递db_number
