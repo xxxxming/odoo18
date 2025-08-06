@@ -1,0 +1,255 @@
+
+<odoo>
+    <!-- 创建一些示例的 warehouse.control.system 记录 -->
+    <record id="wcs_01" model="warehouse.control.system">
+        <field name="factory">金凯达</field>
+        <field name="workshop">车间1</field>
+        <field name="line">智能仓库</field>
+        <field name="machine">ASRS01</field>
+    </record>
+
+    <!-- 为上面的 warehouse.control.system 记录创建输入信号 -->
+    <!-- I0.x 系列 -->
+    <record id="wcs_01_input_i00" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.0</field>
+        <field name="name">手动自动</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i01" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.1</field>
+        <field name="name">急停</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i02" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.2</field>
+        <field name="name">复位</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i03" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.3</field>
+        <field name="name">货叉左超</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i04" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.4</field>
+        <field name="name">货叉右超</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i05" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.5</field>
+        <field name="name">左货架有货</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i06" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.6</field>
+        <field name="name">右货架有货</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i07" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I0.7</field>
+        <field name="name">货笼有货</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <!-- I1.x 系列 -->
+    <record id="wcs_01_input_i10" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.0</field>
+        <field name="name">货物左超</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i11" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.1</field>
+        <field name="name">货物右超</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i12" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.2</field>
+        <field name="name">小车1有货</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i13" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.3</field>
+        <field name="name">小车2有货</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i14" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.4</field>
+        <field name="name">小车1故障</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i15" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.5</field>
+        <field name="name">小车2故障</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i16" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.6</field>
+        <field name="name">备用I16</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_input_i17" model="warehouse.control.system.input">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">I1.7</field>
+        <field name="name">备用I7</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <!-- 为上面的 warehouse.control.system 记录创建输出信号 -->
+    <!-- Q0.x 系列 -->
+    <record id="wcs_01_output_q00" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.0</field>
+        <field name="name">运行绿灯</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q01" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.1</field>
+        <field name="name">运行黄灯</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q02" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.2</field>
+        <field name="name">故障红灯</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q03" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.3</field>
+        <field name="name">备用Q03</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q04" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.4</field>
+        <field name="name">料笼前后抱闸</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q05" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.5</field>
+        <field name="name">料笼输送抱闸</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q06" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.6</field>
+        <field name="name">小车1抱闸</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q07" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q0.7</field>
+        <field name="name">小车2抱闸</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <!-- Q1.x 系列 -->
+    <record id="wcs_01_output_q10" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q1.0</field>
+        <field name="name">备用Q10</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q11" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q1.1</field>
+        <field name="name">备用Q11</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <!-- Q1.x 系列 -->
+    <record id="wcs_01_output_q20" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.0</field>
+        <field name="name">小车1正传</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q21" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.1</field>
+        <field name="name">小车2正传</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q22" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.2</field>
+        <field name="name">小车1低速</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q23" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.3</field>
+        <field name="name">小车1高速</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q24" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.4</field>
+        <field name="name">小车2正传</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q25" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.5</field>
+        <field name="name">小车2反传</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q26" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.6</field>
+        <field name="name">小车2低速</field>
+        <field name="value" eval="False"/>
+    </record>
+
+    <record id="wcs_01_output_q27" model="warehouse.control.system.output">
+        <field name="wcs_id" ref="wcs_01"/>
+        <field name="address">Q2.7</field>
+        <field name="name">小车2高速</field>
+        <field name="value" eval="False"/>
+    </record>
+</odoo>

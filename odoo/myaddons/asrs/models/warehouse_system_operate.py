@@ -28,35 +28,24 @@ plc_lock = threading.Lock()
 
 
 
-class AutomaticStorageLocation(models.Model):
-
-    _name = 'automatic.storage.location'
-    _description = 'automatic storage location'
 
 
-    goods_status = fields.Boolean(string='库位有货')
-    goods_cancel = fields.Boolean(string='取消库位')
-    fixed_pack_number = fields.Boolean(string='绑定框号')
-    fixed_pack_barcode = fields.Boolean(string='绑定条码')
-    pack_number = fields.Integer(string='框号')
-    base_number = fields.Integer(string='库位编号')
-    location_number = fields.Integer(string='库位号')
-    pack_barcode = fields.Char(string='框条码')
 
 
-# def read_information():
-#     """读取测试-批量"""
-#     # 读取库位信息例子
-#     results = [
-#         # 库位有货
-#         {'db_number': 202,'start_address': 0, 'value_type': 'bool', 'bit_index':0},
-#         # 框号
-#     ]
-#     for result in results:
-#         # value = self.batch_read_plc(result)
-#         value =  PlcClient().set_db_number_read(result)
-#         return value
-
+# class AutomaticStorageLocation(models.Model):
+#
+#     _name = 'automatic.storage.location'
+#     _description = 'automatic storage location'
+#
+#
+#     goods_status = fields.Boolean(string='库位有货')
+#     goods_cancel = fields.Boolean(string='取消库位')
+#     fixed_pack_number = fields.Boolean(string='绑定框号')
+#     fixed_pack_barcode = fields.Boolean(string='绑定条码')
+#     pack_number = fields.Integer(string='框号')
+#     base_number = fields.Integer(string='库位编号')
+#     location_number = fields.Integer(string='库位号')
+#     pack_barcode = fields.Char(string='框条码')
 
 class WarehouseSystemOperate(models.Model):
 
@@ -235,7 +224,7 @@ class WarehouseSystemOperate(models.Model):
                     'location_number': storage_record.location_number,
                 })
                 if storage_record.goods_status == True:
-
+                    print('status',storage_record.goods_status)
                     if self.entrance:
                         record.write({
                             'source_target': storage_record.location_number,
@@ -385,7 +374,8 @@ class WarehouseSystemOperate(models.Model):
         _logger.info("开始启动定时任务测试")
         pass
 
-    def control_system_read_write(self):
+    @api.model
+    def system_operate_read_write(self):
 
             # self.storage_information_write()
             self.storage_information_read()
@@ -393,6 +383,10 @@ class WarehouseSystemOperate(models.Model):
             self.entrance1_information_read()
             self.entrance2_information_read()
             self.refresh_fields_turn_off()
+
+            # self.env['warehouse.control.system'].control_system_read_write()
+
+            print('system operate R/W')
 
     def storage_information_write(self):
         """传递到PLC进行写入"""

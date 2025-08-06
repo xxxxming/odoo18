@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 
-class WarehouseControlSystem(models.Model):
+from .plc_connect import PlcClient
 
+
+
+
+
+
+class WarehouseControlSystem(models.Model):
 
      _name = 'warehouse.control.system'
      _description = 'warehouse control system'
@@ -15,39 +21,192 @@ class WarehouseControlSystem(models.Model):
      line = fields.Char(string="线体代号")
      machine = fields.Char(string="机台代号")
 
-     input_I00 = fields.Boolean(string="输入I0.0")
-     input_I01 = fields.Boolean(string="输入I0.1")
-     input_I02 = fields.Boolean(string="输入I0.2")
-     input_I03 = fields.Boolean(string="输入I0.3")
-     input_I04 = fields.Boolean(string="输入I0.4")
-     input_I05 = fields.Boolean(string="输入I0.5")
-     input_I06 = fields.Boolean(string="输入I0.6")
-     input_I07 = fields.Boolean(string="输入I0.7")
+     netcontrol = fields.Boolean(string='网络控制')
+     pccontrol = fields.Boolean(string='PC控制')
+     alarm = fields.Boolean(string='报警')
+     ready = fields.Boolean(string='就绪')
+     hardware_ready = fields.Boolean(string='硬件就绪')
+     auto_ready = fields.Boolean(string='自动就绪')
+     auto_take_finish = fields.Boolean(string='取料完成')
+     auto_feed_finish = fields.Boolean(string='送料完成')
+     auto_source_position = fields.Boolean(string='到达源目标')
+     auto_target_position = fields.Boolean(string='到达新目标')
+     auto_finish = fields.Boolean(string='自动完成')
+     auto_state = fields.Boolean(string='自动状态')
+     none1 = fields.Boolean(string='无1')
+     none2 = fields.Boolean(string='无2')
+     estate = fields.Integer(string='状态')
 
-     input_I10 = fields.Boolean(string="输入I1.0")
-     input_I11 = fields.Boolean(string="输入I1.1")
-     input_I12 = fields.Boolean(string="输入I1.2")
-     input_I13 = fields.Boolean(string="输入I1.3")
-     input_I14 = fields.Boolean(string="输入I1.4")
-     input_I15 = fields.Boolean(string="输入I1.5")
-     input_I16 = fields.Boolean(string="输入I1.6")
-     input_I17 = fields.Boolean(string="输入I1.7")
+     # 添加关联到输入输出信号的字段
+     input_ids = fields.One2many('warehouse.control.system.input', 'wcs_id', string='输入信号')
+     output_ids = fields.One2many('warehouse.control.system.output', 'wcs_id', string='输出信号')
 
-     output_Q00 = fields.Boolean(string="输出Q0.0")
-     output_Q01 = fields.Boolean(string="输出Q0.1")
-     output_Q02 = fields.Boolean(string="输出Q0.2")
-     output_Q03 = fields.Boolean(string="输出Q0.3")
-     output_Q04 = fields.Boolean(string="输出Q0.4")
-     output_Q05 = fields.Boolean(string="输出Q0.5")
-     output_Q06 = fields.Boolean(string="输出Q0.6")
-     output_Q07 = fields.Boolean(string="输出Q0.7")
 
-     output_Q10 = fields.Boolean(string="输出Q1.0")
-     output_Q11 = fields.Boolean(string="输入Q1.1")
-     output_Q12 = fields.Boolean(string="输入Q1.2")
-     output_Q13 = fields.Boolean(string="输入Q1.3")
-     output_Q14 = fields.Boolean(string="输入Q1.4")
-     output_Q15 = fields.Boolean(string="输入Q1.5")
-     output_Q16 = fields.Boolean(string="输入Q1.6")
-     output_Q17 = fields.Boolean(string="输入Q1.7")
+
+
+     def control_system_read_write(self):
+         self.automation_state_read()
+         print('control system')
+
+     def automation_state_read(self):
+
+        results = [
+            {'db_number': 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 6, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 40, 'bit_index': 7, 'value_type': 'bool'},
+
+            {'db_number': 260, 'offset': 41, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 41, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 44, 'value_type': 'int'},
+        ]
+        num = 0
+        values_to_write = {}
+        for result in results:
+            num += 1
+            # value = PlcClient().db_number_read(result)
+            value = PlcClient().db_number_read(result)
+            if num == 1:
+                values_to_write['netcontrol'] = value
+            elif num == 2:
+                values_to_write['pccontrol'] = value
+            elif num == 3:
+                values_to_write['alarm'] = value
+            elif num == 4:
+                values_to_write['ready'] = value
+            elif num == 5:
+                values_to_write['hardware_ready'] = value
+            elif num == 6:
+                values_to_write['auto_ready'] = value
+            elif num == 7:
+                values_to_write['auto_take_finish'] = value
+            elif num == 8:
+                values_to_write['auto_feed_finish'] = value
+            elif num == 9:
+                values_to_write['auto_source_position'] = value
+            elif num == 10:
+                values_to_write['auto_target_position'] = value
+            elif num == 11:
+                values_to_write['auto_finish'] = value
+            elif num == 12:
+                values_to_write['auto_state'] = value
+            elif num == 13:
+                values_to_write['none1'] = value
+            elif num == 14:
+                values_to_write['none2'] = value
+            elif num == 15:
+                values_to_write['estate'] = value
+                # print(value)
+        if values_to_write:
+            record = self.browse(6)
+            record.write(values_to_write)
+            print(values_to_write)
+
+
+     def setup_auto_refresh(self):
+         self.env['warehouse.plc.task'].start_scheduler()
+         print('run plc task !')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class WarehouseControlSystemInput(models.Model):
+    _name = 'warehouse.control.system.input'
+    _description = 'Warehouse Control System Input Signals'
+
+    name = fields.Char(string="信号名称", required=True)
+    address = fields.Char(string="地址", required=True)  # 如 I0.0, I0.1等
+    value = fields.Boolean(string="值")
+    wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
+
+
+class WarehouseControlSystemOutput(models.Model):
+    _name = 'warehouse.control.system.output'
+    _description = 'Warehouse Control System Output Signals'
+
+    name = fields.Char(string="信号名称", required=True)
+    address = fields.Char(string="地址", required=True)  # 如 Q0.0, Q0.1等
+    value = fields.Boolean(string="状态")
+    wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -21,12 +21,48 @@
         <field name="arch" type="xml">
 
             <form string="自控系统">
+                <header>
+                    <button name="control_system_read_write" type="object" string="读取状态"/>
+                    <button name="setup_auto_refresh" string="Start Auto Refresh" type="object"/>
+
+<!--                    <field name="status" widget="statusbar"/>-->
+                </header>
                 <sheet>
+<!--                    <group>-->
+<!--                        <group>-->
+<!--                            <field name="factory"/>-->
+<!--                        </group>-->
+
+<!--                    </group>-->
                     <group>
                         <group>
-                            <field name="factory"/>
+                            <group>
+                                <field name="factory" readonly="True"/>
+                                <field name="workshop" readonly="True"/>
+                                <field name="line" readonly="True"/>
+                                <field name="machine" readonly="True"/>
+                            </group>
+                            <group>
+                                <field name="netcontrol"  readonly="True"/>
+                                <field name="pccontrol" readonly="True"/>
+                                <field name="alarm" readonly="True"/>
+                                <field name="ready" readonly="True"/>
+                            </group>
                         </group>
-
+                        <group>
+                           <group>
+                                <field name="hardware_ready" readonly="True"/>
+                                <field name="auto_ready" readonly="True"/>
+                                <field name="auto_finish" readonly="True"/>
+                                <field name="auto_state" readonly="True"/>
+                            </group>
+                            <group>
+                                <field name="auto_source_position"  readonly="True"/>
+                                <field name="auto_target_position" readonly="True"/>
+                                <field name="auto_take_finish" readonly="True"/>
+                                <field name="auto_feed_finish" readonly="True"/>
+                            </group>
+                        </group>
                     </group>
                     <notebook>
                         <page string="当前状态">
@@ -40,100 +76,24 @@
                             </group>
                         </page>
                         <page string="输入状态">
-                            <group>
-                                <group>
-                                    <group>
-                                        <field name="input_I00" string="输入 I0.0" readonly="True"/>
-                                        <field name="input_I01" string="输入 I0.1"/>
-                                        <field name="input_I02" string="输入 I0.2"/>
-                                        <field name="input_I03" string="输入 I0.3"/>
-                                        <field name="input_I04" string="输入 I0.4"/>
-                                        <field name="input_I05" string="输入 I0.5"/>
-                                        <field name="input_I06" string="输入 I0.6"/>
-                                        <field name="input_I07" string="输入 I0.7"/>
-                                    </group>
-                                    <group>
-                                        <field name="input_I10" string="输入 I1.0"/>
-                                        <field name="input_I11" string="输入 I1.1"/>
-                                        <field name="input_I12" string="输入 I1.2"/>
-                                        <field name="input_I13" string="输入 I1.3"/>
-                                        <field name="input_I14" string="输入 I1.4"/>
-                                        <field name="input_I15" string="输入 I1.5"/>
-                                        <field name="input_I16" string="输入 I1.6"/>
-                                        <field name="input_I17" string="输入 I1.7"/>
-                                    </group>
-                                </group>
-                                <group>
-                                    <group>
-                                        <field name="input_I00" string="输入 I2.0"/>
-                                        <field name="input_I01" string="输入 I2.1"/>
-                                        <field name="input_I02" string="输入 I2.2"/>
-                                        <field name="input_I03" string="输入 I2.3"/>
-                                        <field name="input_I04" string="输入 I2.4"/>
-                                        <field name="input_I05" string="输入 I2.5"/>
-                                        <field name="input_I06" string="输入 I2.6"/>
-                                        <field name="input_I07" string="输入 I2.7"/>
-                                    </group>
-                                    <group>
-                                        <field name="input_I00" string="输入 I3.0"/>
-                                        <field name="input_I01" string="输入 I3.1"/>
-                                        <field name="input_I02" string="输入 I3.2"/>
-                                        <field name="input_I03" string="输入 I3.3"/>
-                                        <field name="input_I04" string="输入 I3.4"/>
-                                        <field name="input_I05" string="输入 I3.5"/>
-                                        <field name="input_I06" string="输入 I3.6"/>
-                                        <field name="input_I07" string="输入 I3.7"/>
-                                    </group>
-                                </group>
-                            </group>
+
+                            <field name="input_ids" nolabel="1">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="address"/>
+                                    <field name="name"/>
+                                    <field name="value"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="输出状态">
-                            <group>
-                                <group>
-                                    <group>
-                                        <field name="output_Q00" string="输出 Q0.0"/>
-                                        <field name="output_Q00" string="输出 Q0.1"/>
-                                        <field name="output_Q00" string="输出 Q0.2"/>
-                                        <field name="output_Q00" string="输出 Q0.3"/>
-                                        <field name="output_Q00" string="输出 Q0.4"/>
-                                        <field name="output_Q00" string="输出 Q0.5"/>
-                                        <field name="output_Q00" string="输出 Q0.6"/>
-                                        <field name="output_Q00" string="输出 Q0.7"/>
-                                    </group>
-                                    <group>
-                                        <field name="output_Q00" string="输出 Q.0"/>
-                                        <field name="output_Q00" string="输出 Q1.1"/>
-                                        <field name="output_Q00" string="输出 Q1.2"/>
-                                        <field name="output_Q00" string="输出 Q1.3"/>
-                                        <field name="output_Q00" string="输出 Q1.4"/>
-                                        <field name="output_Q00" string="输出 Q1.5"/>
-                                        <field name="output_Q00" string="输出 Q1.6"/>
-                                        <field name="output_Q00" string="输出 Q1.7"/>
-                                    </group>
-                                </group>
-                                <group>
-                                    <group>
-                                        <field name="output_Q00" string="输出 Q2.0"/>
-                                        <field name="output_Q00" string="输出 Q2.1"/>
-                                        <field name="output_Q00" string="输出 Q2.2"/>
-                                        <field name="output_Q00" string="输出 Q2.3"/>
-                                        <field name="output_Q00" string="输出 Q2.4"/>
-                                        <field name="output_Q00" string="输出 Q2.5"/>
-                                        <field name="output_Q00" string="输出 Q2.6"/>
-                                        <field name="output_Q00" string="输出 Q2.7"/>
-                                    </group>
-                                    <group>
-                                        <field name="output_Q00" string="输出 Q3.0"/>
-                                        <field name="output_Q00" string="输出 Q3.1"/>
-                                        <field name="output_Q00" string="输出 Q3.2"/>
-                                        <field name="output_Q00" string="输出 Q3.3"/>
-                                        <field name="output_Q00" string="输出 Q3.4"/>
-                                        <field name="output_Q00" string="输出 Q3.5"/>
-                                        <field name="output_Q00" string="输出 Q3.6"/>
-                                        <field name="output_Q00" string="输出 Q3.7"/>
-                                    </group>
-                                </group>
-                            </group>
+
+                            <field name="output_ids" nolabel="1">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="address"/>
+                                    <field name="name"/>
+                                    <field name="value"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

@@ -6,8 +6,9 @@ asrs.access_warehouse_automation,access_warehouse_automation,asrs.model_warehous
 asrs.warehouse_system_operate,warehouse_system_operate,asrs.model_warehouse_system_operate,base.group_user,1,1,1,1
 asrs.access_frame_barcode,access_frame_barcode,asrs.model_warehouse_frame_barcode,base.group_user,1,1,1,1
 asrs.access_warehouse_settings,access_warehouse_settings,asrs.model_warehouse_settings,base.group_user,1,1,1,1
-
-asrs.access_system_control,access_system_control,asrs.model_system_control,base.group_user,1,1,1,1
+asrs.access_warehouse_control_system_input,access_warehouse_control_system_input,asrs.model_warehouse_control_system_input,base.group_user,1,1,1,1
+asrs.access_warehouse_control_system_output,access_warehouse_control_system_output,asrs.model_warehouse_control_system_output,base.group_user,1,1,1,1
 asrs.access_warehouse_control_system,access_warehouse_control_system,asrs.model_warehouse_control_system,base.group_user,1,1,1,1
-asrs.access_automatic_storage_location,access_automatic_storage_location,asrs.model_automatic_storage_location,base.group_user,1,1,1,1
+asrs.access_warehouse_plc_task,access_warehouse_plc_task,asrs.model_warehouse_plc_task,base.group_user,1,1,1,1
+
 

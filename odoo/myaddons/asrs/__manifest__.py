@@ -17,6 +17,7 @@
         'views/warehouse_menus.xml',
         # 'data/scheduled_actions.xml',
         #'views/assets.xml'
+        'data/warehouse_control_system_data1.xml',
     ],
     'assets': {
         'web.assets_backend': [
@@ -24,6 +25,7 @@
             "asrs/static/src/js/refresh_full_record.js",
             'asrs/static/src/js/custom_selector.js',
             'asrs/static/src/xml/custom_selector.xml',
+            # 'asrs/static/src/js/warehouse_control_system_output.js',
         ]
     },
     'installable': True,
