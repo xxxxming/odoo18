@@ -46,7 +46,7 @@ class WarehouseControlSystem(models.Model):
 
      def control_system_read_write(self):
          self.automation_state_read()
-         print('control system')
+
 
      def automation_state_read(self):
 
@@ -108,13 +108,12 @@ class WarehouseControlSystem(models.Model):
         if values_to_write:
             record = self.browse(6)
             record.write(values_to_write)
-            print(values_to_write)
 
-
-     def setup_auto_refresh(self):
+     def start_auto_refresh(self):
          self.env['warehouse.plc.task'].start_scheduler()
-         print('run plc task !')
 
+     def stop_auto_refresh(self):
+         self.env['warehouse.plc.task'].stop_scheduler()
 
 
 

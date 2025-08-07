@@ -380,13 +380,12 @@ class WarehouseSystemOperate(models.Model):
             # self.storage_information_write()
             self.storage_information_read()
             self.stacker_information_read()
-            self.entrance1_information_read()
+            # self.entrance1_information_read()
             self.entrance2_information_read()
             self.refresh_fields_turn_off()
 
             # self.env['warehouse.control.system'].control_system_read_write()
 
-            print('system operate R/W')
 
     def storage_information_write(self):
         """传递到PLC进行写入"""

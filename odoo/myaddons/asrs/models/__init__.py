@@ -31,3 +31,27 @@ import logging
 # # 保证只启动一次（避免重复导入引发多个线程）
 # if not plc_scheduler.started:
 #     _start_scheduler_once()
+
+# 在文件末尾添加自动启动代码
+def start_scheduler_on_boot():
+    """在Odoo启动时自动启动调度器"""
+    import time
+    time.sleep(10)  # 等待Odoo完全启动
+
+    try:
+        # 连接到数据库
+        db_name = odoo.tools.config['db_name']
+        if not db_name:
+            db_name = 'odoo18e'  # 默认数据库名
+
+        with odoo.sql_db.db_connect(db_name).cursor() as cr:
+            env = api.Environment(cr, odoo.SUPERUSER_ID, {})
+            plc_task_model = env['warehouse.plc.task']
+            plc_task_model.start_scheduler()
+            logging.getLogger(__name__).info("scheduled task start follow system !")
+    except Exception as e:
+        logging.getLogger(__name__).exception("scheduled task start fault : %s", str(e))
+
+
+# 启动后台线程
+threading.Thread(target=start_scheduler_on_boot, daemon=True).start()

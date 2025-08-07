@@ -23,8 +23,8 @@
             <form string="自控系统">
                 <header>
                     <button name="control_system_read_write" type="object" string="读取状态"/>
-                    <button name="setup_auto_refresh" string="Start Auto Refresh" type="object"/>
-
+                    <button name="start_auto_refresh" string="Start Auto Refresh" type="object"/>
+                    <button name="stop_auto_refresh" string="Stop Auto Refresh" type="object"/>
 <!--                    <field name="status" widget="statusbar"/>-->
                 </header>
                 <sheet>
