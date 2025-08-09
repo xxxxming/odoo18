@@ -19,99 +19,73 @@ class WarehousePlcTask(models.Model):
     heartbeat = fields.Boolean(string="PC心跳")
     ten_second = fields.Integer(string="每10秒")
     one_minute = fields.Integer(string="每分钟")
+    instance_id = fields.Integer(string="实例编号")  # 新增字段，用于区分不同实例
 
-    # 使用类变量存储调度器实例
+    # 类变量存调度器实例
     _scheduler_instance = None
-    # ten_second = 1
-    # one_minute = 1
+
     @api.model
     def start_scheduler(self):
         """启动调度器"""
-        # 将调度器实例作为类属性存储
         if not hasattr(self.__class__, '_scheduler_instance') or not self.__class__._scheduler_instance:
             self.__class__._scheduler_instance = BackgroundScheduler()
 
-        # 查找或创建调度器记录
-        scheduler_record = self.search([], limit=1)
+        # 确保每个实例对应一条记录
+        for instance_id in range(1, 5):  # 4 个实例
+            record = self.search([('instance_id', '=', instance_id)], limit=1)
+            if not record:
+                self.create({
+                    'name': f'PLC调度器-实例{instance_id}',
+                    'instance_id': instance_id
+                })
 
-        if not scheduler_record:
-            scheduler_record = self.create({'name': 'PLC调度器'})
-
-        # if not scheduler_record.started:
         if not self.__class__._scheduler_instance.running:
-
-            # 添加每秒执行的任务
-            self.__class__._scheduler_instance.add_job(self._execute_scheduled_tasks, 'interval', seconds=1,
-                                                       max_instances=4)
+            _logger.info("🚀 scheduled task start !")
+            for instance_id in range(1, 5):
+                self.__class__._scheduler_instance.add_job(
+                    self._execute_scheduled_tasks,
+                    'interval',
+                    seconds=1,
+                    max_instances=1,  # 每个实例内部单线程
+                    kwargs={'instance_id': instance_id}
+                )
             self.__class__._scheduler_instance.start()
-            scheduler_record.write({'started': True})
-
-            _logger.info("🚀 scheduler add job and start !")
+            self.search([]).write({'started': True})
             return True
         return False
 
     @api.model
     def stop_scheduler(self):
         """停止调度器"""
-        # 检查是否存在调度器实例并且正在运行
         if hasattr(self.__class__, '_scheduler_instance') and self.__class__._scheduler_instance:
             if self.__class__._scheduler_instance.running:
                 _logger.info("🛑 scheduled task stop !")
-                # 停止调度器
                 self.__class__._scheduler_instance.shutdown()
-                # 更新记录状态
-                scheduler_record = self.search([], limit=1)
-                if scheduler_record:
-                    scheduler_record.write({'started': False})
+                self.search([]).write({'started': False})
                 return True
         return False
 
-    def _execute_scheduled_tasks(self):
-        """执行定时任务"""
-
+    def _execute_scheduled_tasks(self, instance_id):
+        """执行定时任务（区分实例）"""
         try:
-            # 重新获取数据库连接和环境
             db_name = self.env.cr.dbname
             with odoo.sql_db.db_connect(db_name).cursor() as cr:
-                env = api.Environment(cr, 1, {})  # 使用管理员用户
+                env = api.Environment(cr, 1, {})  # 管理员环境
 
-        # try:
-        #     # 使用 Odoo 的 registry 和 cursor 来安全地访问数据库
-        #     with odoo.registry(self.env.cr.dbname).cursor() as cr:
-        #         env = api.Environment(cr, 1, {})
+                # 更新当前实例的 last_run
+                scheduler = env['warehouse.plc.task'].search(
+                    [('instance_id', '=', instance_id)], limit=1
+                )
+                scheduler.write({'last_run': fields.Datetime.now()})
 
-                # # 更新执行时间
-                scheduler = env['warehouse.plc.task'].search([], limit=1)
-                # scheduler.write({'last_run': fields.Datetime.now()})
-                heartbeat_value = not scheduler.heartbeat
-                ten_second_value = (scheduler.ten_second + 1) % 9
-                one_minute_value = (scheduler.one_minute + 1) % 59
-                # print(heartbeat_value,ten_second_value,one_minute_value)
-                scheduler.write({
-                    'last_run': fields.Datetime.now(),
-                    'heartbeat' : heartbeat_value,
-                    'ten_second': ten_second_value,
-                    'one_minute': one_minute_value
-                })
-
+                # 业务逻辑
+                env['warehouse.system.operate'].system_operate_read_write()
                 env['warehouse.control.system'].control_system_read_write()
-                if ten_second_value == 0:
-                    env['warehouse.system.operate'].system_operate_read_write()
 
-                if one_minute_value == 0:
-                    _logger.info("scheduler task running !")
-
-                # self.__class__.ten_second = (self.__class__.ten_second + 1) % 10
-                # self.__class__.one_minute = (self.__class__.one_minute + 1) % 60
-                # print(self.__class__.ten_second, self.__class__.one_minute)
+                _logger.info(f"✅ scheduled task running ! (实例 {instance_id})")
 
         except Exception as e:
-            _logger.error(f"❌ scheduled task error: {str(e)}")
-
-
-
-
-
+            _logger.error(f"❌ scheduled task error (实例 {instance_id}): {str(e)}")
 
 
 
