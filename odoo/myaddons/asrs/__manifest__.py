@@ -31,6 +31,6 @@
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
-    'post_init_hook': 'start_plc_scheduler',
+    #'post_init_hook': 'start_plc_scheduler',
     # 'uninstall_hook': None,
 }

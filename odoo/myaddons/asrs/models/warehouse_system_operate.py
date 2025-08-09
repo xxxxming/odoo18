@@ -85,6 +85,7 @@ class WarehouseSystemOperate(models.Model):
         ('reach_new_target', '到新目标'),
         ('feed_finish', '送料完成'),
         ('finish', '任务完成'),
+        ('idle', '空闲')
     ], string="状态", default='idle')
     # 展示框号
     # show_storage_pack_number = fields.Integer(string='框号')
