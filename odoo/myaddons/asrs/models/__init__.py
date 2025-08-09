@@ -48,9 +48,9 @@ def start_scheduler_on_boot():
             env = api.Environment(cr, odoo.SUPERUSER_ID, {})
             plc_task_model = env['warehouse.plc.task']
             plc_task_model.start_scheduler()
-            logging.getLogger(__name__).info("scheduled task start follow system !")
+            logging.getLogger(__name__).info("scheduler task start follow system !")
     except Exception as e:
-        logging.getLogger(__name__).exception("scheduled task start fault : %s", str(e))
+        logging.getLogger(__name__).exception("scheduler task start fault : %s", str(e))
 
 
 # 启动后台线程

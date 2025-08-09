@@ -23,8 +23,8 @@
             <form string="自控系统">
                 <header>
                     <button name="control_system_read_write" type="object" string="读取状态"/>
-                    <button name="start_auto_refresh" string="Start Auto Refresh" type="object"/>
-                    <button name="stop_auto_refresh" string="Stop Auto Refresh" type="object"/>
+                    <button name="start_scheduler" string="Start scheduler" type="object"/>
+                    <button name="stop_scheduler" string="Stop scheduler" type="object"/>
 <!--                    <field name="status" widget="statusbar"/>-->
                 </header>
                 <sheet>
@@ -44,17 +44,19 @@
                             </group>
                             <group>
                                 <field name="netcontrol"  readonly="True"/>
-                                <field name="pccontrol" readonly="True"/>
-                                <field name="alarm" readonly="True"/>
-                                <field name="ready" readonly="True"/>
+                                <field name="netdata" readonly="True"/>
+                                <field name="system_alarm" readonly="True"/>
+                                <field name="hardware_ready" readonly="True"/>
+
                             </group>
                         </group>
                         <group>
                            <group>
-                                <field name="hardware_ready" readonly="True"/>
+                                <field name="system_ready" readonly="True"/>
                                 <field name="auto_ready" readonly="True"/>
+                               <field name="task_running" readonly="True"/>
                                 <field name="auto_finish" readonly="True"/>
-                                <field name="auto_state" readonly="True"/>
+
                             </group>
                             <group>
                                 <field name="auto_source_position"  readonly="True"/>
@@ -94,6 +96,39 @@
                                     <field name="value"/>
                                 </list>
                             </field>
+                        </page>
+                                                <page string="操作日志">
+<!--                                <button name="clear_logs" type="object" string="Clear Logs" class="btn-secondary mt8"/>-->
+<!--                                <field name="log_messages" widget="ace" options="{'mode': 'text'}" placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                <div style="display: flex; flex-direction: row; gap: 10px;">-->
+<!--                                    <div style="flex: 1;">-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                    </div>-->
+<!--                                    <div style="flex: 1;">-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="display: flex; flex-direction: row; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label for="first_30_logs" string="前30条日志记录"/>
+                                            <field name="first_30_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="First 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label for="last_30_logs" string="后30条日志记录"/>
+                                            <field name="last_30_logs" widget="ace" options="{'mode': 'text'}"
+                                                   placeholder="Last 30 operation logs will appear here..." style="min-height: 300px;"/>
+                                        </div>
+                                    </div>
+<!--                                    <div>-->
+<!--                                        <label for="log_messages" string="完整日志记录"/>-->
+<!--                                        <field name="log_messages" widget="ace" options="{'mode': 'text'}"-->
+<!--                                               placeholder="All operation logs will appear here..." style="min-height: 200px;"/>-->
+<!--                                    </div>-->
+                                </div>
                         </page>
                     </notebook>
                 </sheet>

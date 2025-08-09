@@ -27,11 +27,6 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 plc_lock = threading.Lock()
 
 
-
-
-
-
-
 # class AutomaticStorageLocation(models.Model):
 #
 #     _name = 'automatic.storage.location'
@@ -147,27 +142,39 @@ class WarehouseSystemOperate(models.Model):
 
     @api.onchange('entrance')
     def _onchange_entrance(self):
-        print('entrance change!')
-        record = self.browse(1)
-        if record.exists():
-            self.compare_pack_number()
-            self.command_data_write()
+        control_system = self.env['warehouse.control.system'].search([], limit=1)
+        task_running = control_system.task_running
+        if task_running:
+            raise UserError("任务执行中，不允许更改！")
+        else:
+            record = self.browse(1)
+            if record.exists():
+                self.compare_pack_number()
+                self.command_data_write()
 
     @api.onchange('pack_number')
     def _onchange_pack_number(self):
-        print('pack change!')
-        # record = self.browse(1)
-        record = self.browse(1)
-        if record.exists():
-            record.write({'pack_number': self.pack_number})
-            self.compare_pack_number()
-            self.command_data_write()
-            self.refresh_fields_turn_on()
+        control_system = self.env['warehouse.control.system'].search([], limit=1)
+        task_running = control_system.task_running
+        if task_running:
+            raise UserError("任务执行中，不允许更改！")
+        else:
+            record = self.browse(1)
+            if record.exists():
+                record.write({'pack_number': self.pack_number})
+                self.compare_pack_number()
+                self.command_data_write()
+                self.refresh_fields_turn_on()
 
     @api.onchange('pack_barcode')
     def _onchange_barcode(self):
-        print('barcode change!')
-        self.compare_pack_barcode()
+        control_system = self.env['warehouse.control.system'].search([], limit=1)
+        task_running = control_system.task_running
+        if task_running:
+            raise UserError("任务执行中，不允许更改！")
+        else:
+            self.compare_pack_barcode()
+            
     def compare_pack_barcode(self):
         barcode_record = self.env['warehouse.frame.barcode'].search(
             [('frame_barcode', '=', self.pack_barcode)], limit=1)
@@ -380,7 +387,7 @@ class WarehouseSystemOperate(models.Model):
             # self.storage_information_write()
             self.storage_information_read()
             self.stacker_information_read()
-            # self.entrance1_information_read()
+            self.entrance1_information_read()
             self.entrance2_information_read()
             self.refresh_fields_turn_off()
 
