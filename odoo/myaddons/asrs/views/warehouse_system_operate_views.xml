@@ -87,7 +87,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="出入库" widget="RefreshFullModel">
+                        <page string="出入库" >
 
                             <form>
                                 <group>
