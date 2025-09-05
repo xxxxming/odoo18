@@ -129,6 +129,7 @@ class WarehouseSystemOperate(models.Model):
 
     x_dummy_widget_field = fields.Char(string='Dummy Widget Field')
     refresh_status = fields.Boolean(string='是否自动刷新')
+    status_code = fields.Boolean(string='状态码')
 
     # 添加日志相关字段
     log_messages = fields.Text(string='Operation Logs', readonly=True)
@@ -385,15 +386,37 @@ class WarehouseSystemOperate(models.Model):
     @api.model
     def system_operate_read_write(self):
 
+        control_system = self.env['warehouse.control.system'].search([], limit=1)
+        record = self.browse(1)
+
+        if not control_system.task_running:
             # self.storage_information_write()
             self.storage_information_read()
             self.stacker_information_read()
             self.entrance1_information_read()
             self.entrance2_information_read()
-            self.refresh_fields_turn_off()
+            # self.refresh_fields_turn_off()
 
-            # self.env['warehouse.control.system'].control_system_read_write()
+           # system states change
 
+            estate = control_system.estate
+            if estate==1:
+                record.status ='start'
+            elif estate==2:
+                record.status ='reach_source_target'
+            elif estate==3:
+                record.status ='take_finish'
+            elif estate==4:
+                record.status ='reach_new_target'
+            elif estate==5:
+                record.status ='feed_finish'
+            elif estate==6:
+                record.status ='finish'
+            elif estate==7:
+                record.status ='idle'
+
+        else:
+            record.status = 'idle'
 
     def storage_information_write(self):
         """传递到PLC进行写入"""
@@ -515,10 +538,35 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['storage_location_number'] = value
             elif num == 5:
                 values_to_write['storage_pack_barcode'] = value
+        # if values_to_write:
+        #     record = self.browse(1)
+        #     # record = self.env['warehouse.system.operate'].browse(1)
+        #     record.write(values_to_write)
+
         if values_to_write:
             record = self.browse(1)
-            # record = self.env['warehouse.system.operate'].browse(1)
-            record.write(values_to_write)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(changed_fields)
+                print(changed_fields)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
+
     def stacker_information_read(self):
         """读取测试-批量"""
         results = [
@@ -546,7 +594,27 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['stacker_pack_barcode'] = value
         if values_to_write:
             record = self.browse(1)
-            record.write(values_to_write)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(changed_fields)
+                print(changed_fields)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
     def entrance1_information_read(self):
         """读取测试-批量"""
         results = [
@@ -574,7 +642,27 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['entrance1_pack_barcode'] = value
         if values_to_write:
             record = self.browse(1)
-            record.write(values_to_write)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(changed_fields)
+                print(changed_fields)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
     def entrance2_information_read(self):
         """读取测试-批量"""
         results = [
@@ -602,7 +690,27 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['entrance2_pack_barcode'] = value
         if values_to_write:
             record = self.browse(1)
-            record.write(values_to_write)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(changed_fields)
+                print(changed_fields)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
     def emergency_button(self):
         record = self.browse(1)
         record.emergency_stop = not record.emergency_stop
@@ -768,9 +876,11 @@ class WarehouseSystemOperate(models.Model):
     def refresh_fields_turn_on(self):
         record = self.browse(1)
         record.refresh_status = True
+
     def refresh_fields_turn_off(self):
         record = self.browse(1)
         record.refresh_status = False
+
 
     # def log_operation(self, message):
     #     """记录操作日志"""

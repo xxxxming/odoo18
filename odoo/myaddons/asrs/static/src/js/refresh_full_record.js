@@ -17,9 +17,9 @@ class RefreshFullModel extends Field {
         this.timer = setInterval(async () => {
             try {
                 const data = await rpc("/asrs/full_model_refresh", { record_id: recordId });
-                if (data && data['statut_code'] === true) {
+                if (data && data['status_code'] === true) {
                     for (const [field, value] of Object.entries(data)) {
-                        if (field !== 'statut_code') {
+                        if (field !== 'status_code') {
                             this.props.record.data[field] = value;
                         }
                     }

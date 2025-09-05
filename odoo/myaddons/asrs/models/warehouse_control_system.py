@@ -3,6 +3,8 @@ from odoo import models, fields, api
 
 from .plc_connect import PlcClient
 
+from odoo.addons.bus.models.bus import channel_with_db
+
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -52,6 +54,7 @@ class WarehouseControlSystem(models.Model):
 
      def control_system_read_write(self):
          self.automation_state_read()
+
 
 
      def automation_state_read(self):
@@ -111,10 +114,34 @@ class WarehouseControlSystem(models.Model):
             elif num == 15:
                 values_to_write['estate'] = value
                 # print(value)
+        # if values_to_write:
+        #     record = self.browse(6)
+        #     record.write(values_to_write)
+        #     # print(values_to_write)
+
         if values_to_write:
             record = self.browse(6)
-            record.write(values_to_write)
-            # print(values_to_write)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(values_to_write)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
+                    'warehouse.control_update',
+                    {
+                        'model': 'warehouse.control.system',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
 
      def auto_start_scheduler(self):
          log_message = "scheduler task start follow system !"

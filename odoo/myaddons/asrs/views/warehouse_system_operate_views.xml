@@ -19,7 +19,8 @@
         <field name="name">warehouse_system_operate_view_form</field>
         <field name="model">warehouse.system.operate</field>
         <field name="arch" type="xml">
-            <form string="立库操作">
+            <form js_class="warehouse_form">
+<!--            <form string="立库操作">-->
                 <header>
                     <button name="emergency_button" type="object" string="急停按钮"/>
 <!--                    <button name="manual_auto_button" type="object" string="手动模式"/>-->
@@ -87,29 +88,44 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="出入库" >
+                        <page string="出入库">
 
                             <form>
-                                <group>
+                                <group col="3">
 <!--                                    <header>-->
 <!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
 <!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
 <!--                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>-->
 
 <!--                                    </header>-->
-                                    <newline/>
+<!--                                    <newline/>-->
                                     <group string="库位信息">
                                         <group>
                                             <field name="storage_goods_status"/>
                                             <field name="storage_goods_cancel"/>
                                         </group>
                                         <group>
-                                            <group>
-                                                <field name="storage_pack_number" />
+                                            <group >
+                                                <field name="storage_pack_number" style="width:100px;"/>
 <!--                                                <field name="storage_base_number" />-->
-                                                <field name="storage_location_number"/>
-                                                <field name="storage_pack_barcode" />
+                                                <field name="storage_location_number" style="width:100px;"/>
+                                                <field name="storage_pack_barcode" style="width:100px;"/>
                                             </group>
+                                        </group>
+                                    </group>
+                                    <group string="堆高机">
+                                        <group>
+                                            <field name="stacker_goods_status"/>
+                                            <field name="stacker_goods_cancel"/>
+                                        </group>
+                                        <group>
+                                            <group>
+                                                <field name="stacker_pack_number" style="width:100px;"/>
+<!--                                                <field name="stacker_base_number"/>-->
+                                                <field name="stacker_location_number" style="width:100px;"/>
+                                                <field name="stacker_pack_barcode" style="width:100px;"/>
+                                            </group>
+                                            >
                                         </group>
                                     </group>
                                     <group string="堆高机">
@@ -120,10 +136,10 @@
 
                                         <group>
                                             <group>
-                                                <field name="stacker_pack_number"/>
+                                                <field name="stacker_pack_number" style="width:100px;"/>
 <!--                                                <field name="stacker_base_number"/>-->
-                                                <field name="stacker_location_number"/>
-                                                <field name="stacker_pack_barcode"/>
+                                                <field name="stacker_location_number" style="width:100px;"/>
+                                                <field name="stacker_pack_barcode" style="width:100px;"/>
                                             </group>
                                             >
                                         </group>
@@ -136,10 +152,10 @@
                                         </group>
                                         <group>
                                             <group>
-                                                <field name="entrance1_pack_number"/>
+                                                <field name="entrance1_pack_number" style="width:100px;"/>
 <!--                                                <field name="entrance1_base_number"/>-->
-                                                <field name="entrance1_location_number"/>
-                                                <field name="entrance1_pack_barcode"/>
+                                                <field name="entrance1_location_number" style="width:100px;"/>
+                                                <field name="entrance1_pack_barcode" style="width:100px;"/>
                                             </group>
                                             >
                                         </group>
@@ -151,10 +167,10 @@
                                         </group>
                                         <group>
                                             <group>
-                                                <field name="entrance2_pack_number"/>
+                                                <field name="entrance2_pack_number" style="width:100px;"/>
 <!--                                                <field name="entrance2_base_number"/>-->
-                                                <field name="entrance2_location_number"/>
-                                                <field name="entrance2_pack_barcode"/>
+                                                <field name="entrance2_location_number" style="width:100px;"/>
+                                                <field name="entrance2_pack_barcode" style="width:100px;"/>
                                             </group>
                                             >
                                         </group>

@@ -8,7 +8,7 @@ class FullModelRefreshController(http.Controller):
         if not record.exists():
             return {}
 
-        statut_code = getattr(record, 'statut_code', False)
+        status_code = getattr(record, 'status_code', False)
         data = record.read()[0]
-        data['statut_code'] = statut_code
+        data['status_code'] = status_code
         return data

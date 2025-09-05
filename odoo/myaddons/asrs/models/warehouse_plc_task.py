@@ -18,11 +18,12 @@ class WarehousePlcTask(models.Model):
     last_run = fields.Datetime(string="上次运行时间")
     heartbeat = fields.Boolean(string="PC心跳")
     ten_second = fields.Integer(string="每10秒")
-    one_minute = fields.Integer(string="每分钟")
+    few_minutes = fields.Integer(string="几分钟")
     instance_id = fields.Integer(string="实例编号")  # 新增字段，用于区分不同实例
 
     # 类变量存调度器实例
     _scheduler_instance = None
+
 
     @api.model
     def start_scheduler(self):
@@ -79,13 +80,33 @@ class WarehousePlcTask(models.Model):
                 scheduler.write({'last_run': fields.Datetime.now()})
 
                 # 业务逻辑
-                env['warehouse.system.operate'].system_operate_read_write()
-                env['warehouse.control.system'].control_system_read_write()
+                # env['warehouse.system.operate'].system_operate_read_write()
+                # env['warehouse.control.system'].control_system_read_write()
 
-                _logger.info(f"✅ scheduled task running ! (实例 {instance_id})")
+                new_ten_second = scheduler.ten_second + 1
+                new_few_minutes = scheduler.few_minutes + 1
+                # print(new_ten_second)
+                if new_ten_second > 9:
+                    new_ten_second = 1
+                if new_few_minutes > 59:
+                    new_few_minutes = 1
+
+                # 将更新写入数据库
+                scheduler.write({'ten_second': new_ten_second,
+                                 'few_minutes': new_few_minutes
+                                 })
+
+                if scheduler.instance_id == 1:
+                    env['warehouse.control.system'].control_system_read_write()
+
+                if scheduler.instance_id == 2:
+                    env['warehouse.system.operate'].system_operate_read_write()
+
+                if new_few_minutes == 1:
+                    _logger.info(f"✅ scheduled task running，scheduler {instance_id} ！")
 
         except Exception as e:
-            _logger.error(f"❌ scheduled task error (实例 {instance_id}): {str(e)}")
+            _logger.error(f"❌ scheduled task error，scheduler {instance_id}: {str(e)}")
 
 
 

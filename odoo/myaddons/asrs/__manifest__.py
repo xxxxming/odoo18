@@ -21,11 +21,11 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'asrs/static/src/js/refresh_status.js',
-            "asrs/static/src/js/refresh_full_record.js",
-            'asrs/static/src/js/custom_selector.js',
-            'asrs/static/src/xml/custom_selector.xml',
-            # 'asrs/static/src/js/warehouse_control_system_output.js',
+            # 'asrs/static/src/js/refresh_status.js',
+            # 'asrs/static/src/js/refresh_full_record.js',
+            # 'asrs/static/src/js/custom_selector.js',
+            'asrs/static/src/js/warehouse_bus_sync.js',
+
         ]
     },
     'installable': True,

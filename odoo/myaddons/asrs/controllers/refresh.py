@@ -9,7 +9,6 @@ class RefreshStatusController(http.Controller):
         if record.exists():
             # 增加刷新字段
             return {
-
                 'refresh_status': record.refresh_status,
                 'allow_move_stock': record.allow_move_stock,
                 'allow_store': record.allow_store,

@@ -7,7 +7,7 @@ from . import warehouse_automation
 from . import warehouse_communication
 from . import warehouse_control_system
 from . import warehouse_frame_barcode
-from . import  warehouse_property
+from . import warehouse_property
 from . import warehouse_settings
 from . import warehouse_system_operate
 from . import warehouse_location_information
