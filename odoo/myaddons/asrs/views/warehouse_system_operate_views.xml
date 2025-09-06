@@ -20,17 +20,18 @@
         <field name="model">warehouse.system.operate</field>
         <field name="arch" type="xml">
             <form js_class="warehouse_form">
-<!--            <form string="立库操作">-->
+
                 <header>
                     <button name="emergency_button" type="object" string="急停按钮"/>
 <!--                    <button name="manual_auto_button" type="object" string="手动模式"/>-->
 <!--                    <button name="start_button" type="object" string="启动按钮"/>-->
-                    <button name="stop_button" type="object" string="停止按钮"/>
-                    <button name="pause_button" type="object" string="暂停按钮"/>
-                    <button name="reset_button" type="object" string="复位按钮"/>
+<!--                    <button name="stop_button" type="object" string="停止按钮"/>-->
+<!--                    <button name="pause_button" type="object" string="暂停按钮"/>-->
+<!--                    <button name="reset_button" type="object" string="复位按钮"/>-->
 
                     <field name="status" widget="statusbar"/>
                 </header>
+
                 <sheet>
                     <group>
                         <group>
@@ -38,6 +39,7 @@
                                 <field name="workshop" readonly="True"/>
                                 <field name="line" readonly="True"/>
                                 <field name="machine" readonly="True"/>
+                                <field name="current_user_name" readonly="True"/>
                             </group>
                             <group>
                                 <field name="pack_number"  style="background-color: #d4edda;"/>
@@ -49,7 +51,7 @@
                             <group>
                                 <field name="entrance"/>
                                 <field name="source_target"  widget="RefreshStorageFields"/>
-                                <field name="new_target"  widget="custom_selector"/>
+                                <field name="new_target"  widget="RefreshStorageFields"/>
                             </group>
                             <group>
                                 <newline/>
@@ -88,101 +90,46 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="出入库">
-
-                            <form>
-                                <group col="3">
-<!--                                    <header>-->
-<!--                                        <button name="storage_information_write" type="object" string="库位写入"/>-->
-<!--                                        <button name="storage_information_read" type="object" string="库位读取"/>-->
-<!--                                        <button name="compare_pack_barcode" type="object" string="查询框号"/>-->
-
-<!--                                    </header>-->
-<!--                                    <newline/>-->
-                                    <group string="库位信息">
-                                        <group>
-                                            <field name="storage_goods_status"/>
-                                            <field name="storage_goods_cancel"/>
-                                        </group>
-                                        <group>
-                                            <group >
-                                                <field name="storage_pack_number" style="width:100px;"/>
-<!--                                                <field name="storage_base_number" />-->
-                                                <field name="storage_location_number" style="width:100px;"/>
-                                                <field name="storage_pack_barcode" style="width:100px;"/>
-                                            </group>
-                                        </group>
-                                    </group>
-                                    <group string="堆高机">
-                                        <group>
-                                            <field name="stacker_goods_status"/>
-                                            <field name="stacker_goods_cancel"/>
-                                        </group>
-                                        <group>
-                                            <group>
-                                                <field name="stacker_pack_number" style="width:100px;"/>
-<!--                                                <field name="stacker_base_number"/>-->
-                                                <field name="stacker_location_number" style="width:100px;"/>
-                                                <field name="stacker_pack_barcode" style="width:100px;"/>
-                                            </group>
-                                            >
-                                        </group>
-                                    </group>
-                                    <group string="堆高机">
-                                        <group>
-                                            <field name="stacker_goods_status"/>
-                                            <field name="stacker_goods_cancel"/>
-                                        </group>
-
-                                        <group>
-                                            <group>
-                                                <field name="stacker_pack_number" style="width:100px;"/>
-<!--                                                <field name="stacker_base_number"/>-->
-                                                <field name="stacker_location_number" style="width:100px;"/>
-                                                <field name="stacker_pack_barcode" style="width:100px;"/>
-                                            </group>
-                                            >
-                                        </group>
-                                    </group>
-                                    <newline/>
-                                    <group string="出入口1">
-                                        <group>
-                                            <field name="entrance1_goods_status"/>
-                                            <field name="entrance1_goods_cancel"/>
-                                        </group>
-                                        <group>
-                                            <group>
-                                                <field name="entrance1_pack_number" style="width:100px;"/>
-<!--                                                <field name="entrance1_base_number"/>-->
-                                                <field name="entrance1_location_number" style="width:100px;"/>
-                                                <field name="entrance1_pack_barcode" style="width:100px;"/>
-                                            </group>
-                                            >
-                                        </group>
-                                    </group>
-                                    <group string="出入口2">
-                                        <group>
-                                            <field name="entrance2_goods_status"/>
-                                            <field name="entrance2_goods_cancel"/>
-                                        </group>
-                                        <group>
-                                            <group>
-                                                <field name="entrance2_pack_number" style="width:100px;"/>
-<!--                                                <field name="entrance2_base_number"/>-->
-                                                <field name="entrance2_location_number" style="width:100px;"/>
-                                                <field name="entrance2_pack_barcode" style="width:100px;"/>
-                                            </group>
-                                            >
-                                        </group>
-                                    </group>
+                        <page string="货物信息流">
+                            <group col="5">
+                                <group string="存储区">
+                                    <field name="storage_goods_status"/>
+                                    <field name="storage_goods_cancel"/>
+                                    <field name="storage_pack_number" style="width:100px;"/>
+                                    <field name="storage_location_number" style="width:100px;"/>
+                                    <field name="storage_pack_barcode" style="width:100px;"/>
                                 </group>
-                            </form>
+                                <group string="堆垛机">
+                                    <field name="stacker_goods_status"/>
+                                    <field name="stacker_goods_cancel"/>
+                                    <field name="stacker_pack_number" style="width:100px;"/>
+                                    <field name="stacker_location_number" style="width:100px;"/>
+                                    <field name="stacker_pack_barcode" style="width:100px;"/>
+                                </group>
+                                <group string="出入口1(20101)">
+                                    <field name="entrance1_goods_status"/>
+                                    <field name="entrance1_goods_cancel"/>
+                                    <field name="entrance1_pack_number" style="width:100px;"/>
+                                    <field name="entrance1_location_number" style="width:100px;"/>
+                                    <field name="entrance1_pack_barcode" style="width:100px;"/>
+                                </group>
+                                <group string="出入口2(20102)">
+                                    <field name="entrance2_goods_status"/>
+                                    <field name="entrance2_goods_cancel"/>
+                                    <field name="entrance2_pack_number" style="width:100px;"/>
+                                    <field name="entrance2_location_number" style="width:100px;"/>
+                                    <field name="entrance2_pack_barcode" style="width:100px;"/>
+                                </group>
+                                <group string="移库">
+                                    <field name="move_store_goods_status"/>
+                                    <field name="move_store_goods_cancel"/>
+                                    <field name="move_store_pack_number" style="width:100px;"/>
+                                    <field name="move_store_location_number" style="width:100px;"/>
+                                    <field name="move_store_pack_barcode" style="width:100px;"/>
+                                </group>
+                            </group>
                         </page>
-<!--                        <page string="记录">-->
-<!--                            <form>-->
 
-<!--                            </form>-->
-<!--                        </page>-->
                         <page string="操作日志">
 <!--                                <button name="clear_logs" type="object" string="Clear Logs" class="btn-secondary mt8"/>-->
 <!--                                <field name="log_messages" widget="ace" options="{'mode': 'text'}" placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->

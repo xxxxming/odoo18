@@ -131,17 +131,17 @@ class WarehouseControlSystem(models.Model):
 
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
-                record.write(values_to_write)
+                record.write(changed_fields)
                 # 发送通知到前端，只包含变化的字段
-                self.env['bus.bus']._sendone(
-                    channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
-                    'warehouse.control_update',
-                    {
-                        'model': 'warehouse.control.system',
-                        'id': record.id,
-                        'changed_fields': changed_fields
-                    }
-                )
+                # self.env['bus.bus']._sendone(
+                #     channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
+                #     'warehouse.control_update',
+                #     {
+                #         'model': 'warehouse.control.system',
+                #         'id': record.id,
+                #         'changed_fields': changed_fields
+                #     }
+                # )
 
      def auto_start_scheduler(self):
          log_message = "scheduler task start follow system !"

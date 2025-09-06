@@ -47,7 +47,7 @@ class WarehousePlcTask(models.Model):
                     self._execute_scheduled_tasks,
                     'interval',
                     seconds=1,
-                    max_instances=1,  # 每个实例内部单线程
+                    max_instances=2,  # 每个实例内部单线程
                     kwargs={'instance_id': instance_id}
                 )
             self.__class__._scheduler_instance.start()
@@ -77,11 +77,6 @@ class WarehousePlcTask(models.Model):
                 scheduler = env['warehouse.plc.task'].search(
                     [('instance_id', '=', instance_id)], limit=1
                 )
-                scheduler.write({'last_run': fields.Datetime.now()})
-
-                # 业务逻辑
-                # env['warehouse.system.operate'].system_operate_read_write()
-                # env['warehouse.control.system'].control_system_read_write()
 
                 new_ten_second = scheduler.ten_second + 1
                 new_few_minutes = scheduler.few_minutes + 1
@@ -93,7 +88,8 @@ class WarehousePlcTask(models.Model):
 
                 # 将更新写入数据库
                 scheduler.write({'ten_second': new_ten_second,
-                                 'few_minutes': new_few_minutes
+                                 'few_minutes': new_few_minutes,
+                                 'last_run': fields.Datetime.now()
                                  })
 
                 if scheduler.instance_id == 1:

@@ -10,6 +10,26 @@ class RefreshStorageFields extends Field {
         this.value = this.props.value;
         this.startRefreshing();
     }
+
+        // 添加重置方法
+    async resetRefreshStatus() {
+        const recordId = this.props.record.resId;
+        console.log(recordId);
+        if (recordId) {
+            try {
+                await rpc("/web/dataset/call_kw", {
+                    model: "warehouse.system.operate",
+                    method: "refresh_fields_turn_off",
+                    args: [[recordId]],
+                    kwargs: {}
+                });
+                console.log("refresh_status 已重置");
+            } catch (error) {
+                console.error("重置 refresh_status 失败:", error);
+            }
+        }
+    }
+
     startRefreshing() {
         const recordId = this.props.record.resId;
         if (!recordId) return;
@@ -26,7 +46,9 @@ class RefreshStorageFields extends Field {
                 }
             }
                 this.update();
+
             } else {
+//                this.resetRefreshStatus();
                 console.log('status_code 为 false，跳过刷新');
             }
         } catch (e) {

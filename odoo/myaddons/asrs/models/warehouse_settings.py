@@ -151,14 +151,14 @@ class WarehouseSettings(models.Model):
                print(values_to_write)
 
      def sync_locations_read(self):
-          self.sync_information_read(self.sync_location, 128)
+          self.sync_information_read(self.sync_location, 160)
 
           log_message = f"读取库位：{self.sync_location} 同步完成 ！"
           _logger.info(log_message)
           self.log_sync_location(log_message)
 
      def sync_locations_write(self):
-         self.sync_information_write(self.sync_location,160)
+         self.sync_information_write(self.sync_location,192)
 
          log_message = f"写入库位：{self.sync_location} 同步完成 ！"
          _logger.info(log_message)
@@ -182,7 +182,7 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = self.sync_column
           layer = 0
-          start_address = 192-32
+          start_address = 224-32
           # 同步列数据，读取同一列的每一层数据进行同步
           for i in range(0, setting_column):
                layer += 1
@@ -207,7 +207,7 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = self.sync_column
           layer = 0
-          start_address = 832-32
+          start_address = 864-32
 
           # 同步列数据，写入同一列的每一层数据进行同步
           for i in range(0,setting_layer):
@@ -233,7 +233,7 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = 0
           layer = self.sync_layer
-          start_address = 1472-32
+          start_address = 1504-32
           # 同步层数据，读取不同列的同一层数据进行同步
           for i in range(1, setting_column + 1):
                column += 1
@@ -259,7 +259,7 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = 0
           layer = self.sync_layer
-          start_address = 2112-32
+          start_address = 2144-32
           # 同步层数据，写入不同列的同一层数据进行同步
           for i in range(0, setting_column):
                column += 1

@@ -44,7 +44,7 @@
                                 <!-- 主体内容 -->
                                 <div>
                                     <p style="background-color: #d4edda;">库位：<field name="location_number"/></p>
-                                    <p>框号：<field name="pack_number"/></p>
+                                    <p>框号：<field name="pack_number" style="margin-right: 40px;"/> 有货：<field name="goods_status"/></p>
                                     <p>框码：<field name="pack_barcode"/></p>
 
 <!--                                    <button type="object" name="action_view_details" string="查看详情" class="btn btn-primary btn-sm"/>-->
