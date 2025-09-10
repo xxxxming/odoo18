@@ -8,7 +8,7 @@ from odoo.addons.bus.models.bus import channel_with_db
 import logging
 _logger = logging.getLogger(__name__)
 
-
+old_channel_control = 0
 
 
 class WarehouseControlSystem(models.Model):
@@ -17,8 +17,7 @@ class WarehouseControlSystem(models.Model):
      _description = 'warehouse control system'
 
 
-     # life = fields.Boolean(string="心跳符号")
-     # ready = fields.Boolean(string="准备就绪")
+     life_signal = fields.Boolean(string='生命信号')
      factory = fields.Char(string="工厂代号")
      workshop = fields.Char(string="车间代号")
      line = fields.Char(string="线体代号")
@@ -38,11 +37,16 @@ class WarehouseControlSystem(models.Model):
      task_running = fields.Boolean(string='执行任务')
      none1 = fields.Boolean(string='无1')
      none2 = fields.Boolean(string='无2')
+     channel_control = fields.Integer(string='控制信号')
+     channel_control_old = fields.Integer(string='控制信号旧值')
+     channel_update = fields.Integer(string='数据更新')
+     online_download = fields.Boolean(string='在线下载')
+     online_upload = fields.Boolean(string='在线上传')
      estate = fields.Integer(string='状态')
 
      # 添加关联到输入输出信号的字段
-     input_ids = fields.One2many('warehouse.control.system.input', 'wcs_id', string='输入信号')
-     output_ids = fields.One2many('warehouse.control.system.output', 'wcs_id', string='输出信号')
+     # input_ids = fields.One2many('warehouse.control.system.input', 'wcs_id', string='输入信号')
+     # output_ids = fields.One2many('warehouse.control.system.output', 'wcs_id', string='输出信号')
 
      # 添加日志相关字段
      log_messages = fields.Text(string='Operation Logs', readonly=True)
@@ -52,30 +56,96 @@ class WarehouseControlSystem(models.Model):
      last_30_logs = fields.Text(string='Last 30 Logs', readonly=True)
 
 
-     def control_system_read_write(self):
-         self.automation_state_read()
 
+     def control_system_read_write(self):
+         self.channel_control_read_write()
+         self.online_read_write()
+         record = self.browse(6)
+         channel_update = record.channel_update
+         online_upload = record.online_upload
+
+         # 检查channel_update bit
+         channel_update_bit = {}
+         for i in range(8):  # 检查前8位
+             channel_update_bit[f'bit_{i}'] = bool((channel_update >> i) & 1)
+         if channel_update_bit['bit_0']:
+             self.automation_state_read()
+             self.channel_control_bit(0, True)
+         else:
+             self.channel_control_bit(0, False)
+
+
+
+        # online_upload bit
+
+         online_upload_bit = {}
+         for i in range(8):  # 检查前8位
+             online_upload_bit[f'bit_{i}'] = bool((online_upload >> i) & 1)
+         if online_upload_bit['bit_0']:
+             self.online_download_bit(0, True)
+         else:
+             self.online_download_bit(0, False)
+
+
+
+
+     @api.model
+     def channel_control_bit(self, bit_position, bit_value):
+         """更新channel_control的指定位"""
+         record = self.browse(6)
+         current_value = record.channel_control
+
+         if bit_value:
+             # 设置位为1
+             new_value = current_value | (1 << bit_position)
+         else:
+             # 设置位为0
+             new_value = current_value & ~(1 << bit_position)
+
+         # 只有在值发生变化时才写入数据库
+         if current_value != new_value:
+             record.write({'channel_control': new_value})
+             _logger.info(f"channel_control bit{bit_position} updated to {bit_value}，value {current_value} changed to {new_value}")
+
+     @api.model
+     def online_download_bit(self, bit_position, bit_value):
+         """更新channel_control的指定位"""
+         record = self.browse(6)
+         current_value = record.online_download
+
+         if bit_value:
+             # 设置位为1
+             new_value = current_value | (1 << bit_position)
+         else:
+             # 设置位为0
+             new_value = current_value & ~(1 << bit_position)
+
+         # 只有在值发生变化时才写入数据库
+         if current_value != new_value:
+             record.write({'online_download': new_value})
 
 
      def automation_state_read(self):
 
         results = [
-            {'db_number': 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 2, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 3, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 4, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 5, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 6, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 40, 'bit_index': 7, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 6, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 72, 'bit_index': 7, 'value_type': 'bool'},
 
-            {'db_number': 260, 'offset': 41, 'bit_index': 0, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 41, 'bit_index': 1, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 41, 'bit_index': 2, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 41, 'bit_index': 3, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 41, 'bit_index': 4, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 41, 'bit_index': 5, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 44, 'value_type': 'int'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': 73, 'bit_index': 5, 'value_type': 'bool'},
+
+            {'db_number': 260, 'offset': 76, 'value_type': 'int'},
+
         ]
         num = 0
         values_to_write = {}
@@ -124,7 +194,7 @@ class WarehouseControlSystem(models.Model):
             # 检查哪些字段发生了变化
             changed_fields = {}
             for field, new_value in values_to_write.items():
-                old_value = getattr(record, field)
+                old_value = getattr(record,field)
                 if old_value != new_value:
                     changed_fields[field] = new_value
                     _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
@@ -132,16 +202,78 @@ class WarehouseControlSystem(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
+                print('control system', changed_fields)
                 # 发送通知到前端，只包含变化的字段
-                # self.env['bus.bus']._sendone(
-                #     channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
-                #     'warehouse.control_update',
-                #     {
-                #         'model': 'warehouse.control.system',
-                #         'id': record.id,
-                #         'changed_fields': changed_fields
-                #     }
-                # )
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
+                    'warehouse.control_update',
+                    {
+                        'model': 'warehouse.control.system',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
+
+     def channel_control_read_write(self):
+         record = self.browse(6)
+
+         results = [
+             {'db_number': 260, 'offset': 96, 'value_type': 'dint'},
+         ]
+         num = 0
+         values_to_write = {}
+         for result in results:
+             num += 1
+             value = PlcClient().db_number_read(result)
+             if num == 1:
+                 values_to_write['channel_update'] = value
+
+             # 只有当值发生变化时才写入数据库
+         if values_to_write:
+             # record = self.browse(6)
+             # 检查哪些字段发生了变化
+             changed_fields = {}
+             for field, new_value in values_to_write.items():
+                 old_value = getattr(record, field)
+                 if old_value != new_value:
+                     changed_fields[field] = new_value
+                     _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+             # 只有当有字段发生变化时才写入数据库
+             if changed_fields:
+                 record.write(changed_fields)
+
+         channel_control = record.channel_control
+         channel_control_old = record.channel_control_old
+
+         if channel_control != channel_control_old:
+             record.write({'channel_control_old': channel_control})
+             data_list = [
+                 {'value': channel_control, "db_number": 260, 'offset': 92, 'value_type': 'dint'},
+             ]
+             for data in data_list:
+                 PlcClient().db_number_write(data)
+
+     def online_read_write(self):
+         record = self.browse(6)
+
+         results = [
+             {'db_number': 260, 'offset': 104, 'value_type': 'dint'},
+         ]
+         num = 0
+         values_to_write = {}
+         for result in results:
+             num += 1
+             value = PlcClient().db_number_read(result)
+             if num == 1:
+                 values_to_write['online_upload'] = value
+         record.write(values_to_write)
+
+         online_download = record.online_download
+         data_list = [
+             {'value': online_download, "db_number": 260, 'offset': 100, 'value_type': 'dint'},
+         ]
+         for data in data_list:
+             PlcClient().db_number_write(data)
 
      def auto_start_scheduler(self):
          log_message = "scheduler task start follow system !"

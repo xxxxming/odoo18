@@ -55,7 +55,7 @@ class WarehouseSettings(models.Model):
 
           record = self.env['warehouse.location.information']
           self.sync_building,self.sync_column,self.sync_layer=record.location_disintegrate(self.sync_location)
-          self.sync_location_write(50)
+          self.sync_location_write(82)
 
      def sync_location_write(self, db_address):
           """传递到PLC进行写入"""

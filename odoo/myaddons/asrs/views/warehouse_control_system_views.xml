@@ -20,7 +20,7 @@
         <field name="model">warehouse.control.system</field>
         <field name="arch" type="xml">
 
-            <form string="自控系统">
+            <form js_class="warehouse_form">
                 <header>
                     <button name="control_system_read_write" type="object" string="读取状态"/>
                     <button name="start_scheduler" string="Start scheduler" type="object"/>
@@ -77,27 +77,27 @@
                             <field name="factory"/>
                             </group>
                         </page>
-                        <page string="输入状态">
+<!--                        <page string="输入状态">-->
 
-                            <field name="input_ids" nolabel="1">
-                                <list editable="bottom" create="false" delete="false">
-                                    <field name="address"/>
-                                    <field name="name"/>
-                                    <field name="value"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="输出状态">
+<!--                            <field name="input_ids" nolabel="1">-->
+<!--                                <list editable="bottom" create="false" delete="false">-->
+<!--                                    <field name="address"/>-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="value"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+<!--                        <page string="输出状态">-->
 
-                            <field name="output_ids" nolabel="1">
-                                <list editable="bottom" create="false" delete="false">
-                                    <field name="address"/>
-                                    <field name="name"/>
-                                    <field name="value"/>
-                                </list>
-                            </field>
-                        </page>
-                                                <page string="操作日志">
+<!--                            <field name="output_ids" nolabel="1">-->
+<!--                                <list editable="bottom" create="false" delete="false">-->
+<!--                                    <field name="address"/>-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="value"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
+                        <page string="操作日志">
 <!--                                <button name="clear_logs" type="object" string="Clear Logs" class="btn-secondary mt8"/>-->
 <!--                                <field name="log_messages" widget="ace" options="{'mode': 'text'}" placeholder="Operation logs will appear here..." style="min-height: 300px;"/>-->
 <!--                                <div style="display: flex; flex-direction: row; gap: 10px;">-->

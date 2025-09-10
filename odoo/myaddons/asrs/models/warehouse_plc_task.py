@@ -4,6 +4,7 @@ from odoo import models, fields, api
 from apscheduler.schedulers.background import BackgroundScheduler
 import threading
 import logging
+import time
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +48,8 @@ class WarehousePlcTask(models.Model):
                     self._execute_scheduled_tasks,
                     'interval',
                     seconds=1,
-                    max_instances=2,  # 每个实例内部单线程
+                    max_instances=1,  # 每个实例内部单线程
+                    coalesce=True,
                     kwargs={'instance_id': instance_id}
                 )
             self.__class__._scheduler_instance.start()
@@ -73,24 +75,25 @@ class WarehousePlcTask(models.Model):
             with odoo.sql_db.db_connect(db_name).cursor() as cr:
                 env = api.Environment(cr, 1, {})  # 管理员环境
 
-                # 更新当前实例的 last_run
                 scheduler = env['warehouse.plc.task'].search(
-                    [('instance_id', '=', instance_id)], limit=1
-                )
+                    [('instance_id', '=', instance_id)], limit=1)
 
-                new_ten_second = scheduler.ten_second + 1
-                new_few_minutes = scheduler.few_minutes + 1
-                # print(new_ten_second)
-                if new_ten_second > 9:
-                    new_ten_second = 1
-                if new_few_minutes > 59:
-                    new_few_minutes = 1
+                now = fields.Datetime.now()
+                current_second = now.second
 
-                # 将更新写入数据库
-                scheduler.write({'ten_second': new_ten_second,
-                                 'few_minutes': new_few_minutes,
-                                 'last_run': fields.Datetime.now()
-                                 })
+                # new_ten_second = scheduler.ten_second + 1
+                # new_few_minutes = scheduler.few_minutes + 1
+                # # print(new_ten_second)
+                # if new_ten_second > 9:
+                #     new_ten_second = 1
+                # if new_few_minutes > 59:
+                #     new_few_minutes = 1
+                #
+                # # 将更新写入数据库
+                # scheduler.write({'ten_second': new_ten_second,
+                #                  'few_minutes': new_few_minutes,
+                #                  'last_run': fields.Datetime.now()
+                #                  })
 
                 if scheduler.instance_id == 1:
                     env['warehouse.control.system'].control_system_read_write()
@@ -98,7 +101,8 @@ class WarehousePlcTask(models.Model):
                 if scheduler.instance_id == 2:
                     env['warehouse.system.operate'].system_operate_read_write()
 
-                if new_few_minutes == 1:
+
+                if current_second == 1:
                     _logger.info(f"✅ scheduled task running，scheduler {instance_id} ！")
 
         except Exception as e:

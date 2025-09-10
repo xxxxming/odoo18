@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
+import threading
+import time
 from email.policy import default
 
 from reportlab.lib.pagesizes import elevenSeventeen
 
 import odoo
 from odoo import models, fields, api, SUPERUSER_ID
-import threading
 from odoo import http
 from odoo.addons.test_convert.tests.test_env import record
 from odoo.exceptions import UserError
@@ -25,6 +26,10 @@ _logger = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
 # 初始化线程锁（全局共享）
 plc_lock = threading.Lock()
+# 添加互斥锁相关变量
+method_lock = threading.Lock()
+last_method_execution_time = 0
+lock_timeout = 3  # 锁超时时间（秒）
 
 
 # class AutomaticStorageLocation(models.Model):
@@ -76,7 +81,7 @@ class WarehouseSystemOperate(models.Model):
     pack_barcode = fields.Char(string='框条码')
     source_target = fields.Integer(string="源目标")
     new_target = fields.Integer(string="新目标")
-    entrance = fields.Selection(string='出入口',
+    entrance = fields.Selection(string='选择出入口',
     selection=[('entrance1', '出入口1'), ('entrance2', '出入口2')])
     status = fields.Selection([
         ('start', '开始'),
@@ -87,11 +92,13 @@ class WarehouseSystemOperate(models.Model):
         ('finish', '任务完成'),
         ('idle', '空闲')
     ], string="状态", default='idle')
-    # 展示框号
-    # show_storage_pack_number = fields.Integer(string='框号')
+    netcontrol = fields.Boolean(string='网络控制')
+    netdata = fields.Boolean(string='网络数据')
+    auto_ready = fields.Boolean(string='自动就绪')
 
     current_user_id = fields.Many2one('res.users', '当前用户', compute='_compute_current_user')
     current_user_name = fields.Char('操作员', compute='_compute_current_user')
+    Operation_permissions = fields.Boolean(string='操作权限')
 
     # 存储区字段 (Storage fields)
     storage_goods_status = fields.Boolean(string='库位有货')
@@ -154,6 +161,9 @@ class WarehouseSystemOperate(models.Model):
     first_30_logs = fields.Text(string='First 30 Logs', readonly=True)
     last_30_logs = fields.Text(string='Last 30 Logs', readonly=True)
 
+
+
+
     @api.depends('storage_goods_status')
     def _compute_one_second(self):
         pass
@@ -163,42 +173,89 @@ class WarehouseSystemOperate(models.Model):
         for record in self:
             record.current_user_id = self.env.user.id
             record.current_user_name = self.env.user.name
+            if  record.current_user_name == 'admin':
+                record.write({'Operation_permissions': True})
+            elif  record.current_user_name == 'hugo':
+                record.write({'Operation_permissions': True})
+            else:
+                record.write({'Operation_permissions': False})
+
 
     @api.onchange('entrance')
     def _onchange_entrance(self):
-        control_system = self.env['warehouse.control.system'].search([], limit=1)
-        task_running = control_system.task_running
-        if task_running:
-            raise UserError("任务执行中，不允许更改！")
-        else:
-            record = self.browse(1)
-            if record.exists():
-                self.compare_pack_number()
-                self.command_data_write()
+        # 尝试获取锁，如果获取不到直接返回
+        global last_method_execution_time
+        if not method_lock.acquire(timeout=0):
+            return
+        try:
+            current_time = time.time()
+            # 检查是否在锁定时间内
+            if current_time - last_method_execution_time < lock_timeout:
+                return
+            control_system = self.env['warehouse.control.system'].search([], limit=1)
+            task_running = control_system.task_running
+            if task_running:
+                raise UserError("任务执行中，不允许更改！")
+            else:
+                record = self.browse(1)
+                if record.exists():
+                    self.compare_pack_number()
+                    self.command_data_write()
+            # 更新最后执行时间
+            last_method_execution_time = time.time()
+        finally:
+            # 释放锁
+            method_lock.release()
 
     @api.onchange('pack_number')
     def _onchange_pack_number(self):
-        control_system = self.env['warehouse.control.system'].search([], limit=1)
-        task_running = control_system.task_running
-        if task_running:
-            raise UserError("任务执行中，不允许更改！")
-        else:
-            record = self.browse(1)
-            if record.exists():
-                record.write({'pack_number': self.pack_number})
-                self.compare_pack_number()
-                self.command_data_write()
-                self.refresh_fields_turn_on()
-
+        global last_method_execution_time
+        # 尝试获取锁，如果获取不到直接返回
+        if not method_lock.acquire(timeout=0):
+            return
+        try:
+            current_time = time.time()
+            # 检查是否在锁定时间内
+            if current_time - last_method_execution_time < lock_timeout:
+                return
+            control_system = self.env['warehouse.control.system'].search([], limit=1)
+            task_running = control_system.task_running
+            if task_running:
+                raise UserError("任务执行中，不允许更改！")
+            else:
+                record = self.browse(1)
+                if record.exists():
+                    record.write({'pack_number': self.pack_number})
+                    self.compare_pack_number()
+                    self.command_data_write()
+                    self.refresh_fields_turn_on()
+            # 更新最后执行时间
+            last_method_execution_time = time.time()
+        finally:
+            # 释放锁
+            method_lock.release()
     @api.onchange('pack_barcode')
     def _onchange_barcode(self):
-        control_system = self.env['warehouse.control.system'].search([], limit=1)
-        task_running = control_system.task_running
-        if task_running:
-            raise UserError("任务执行中，不允许更改！")
-        else:
-            # self.compare_pack_barcode()
-            print('pack_changed1')
+        global last_method_execution_time
+        # 尝试获取锁，如果获取不到直接返回
+        if not method_lock.acquire(timeout=0):
+            return
+        try:
+            current_time = time.time()
+            # 检查是否在锁定时间内
+            if current_time - last_method_execution_time < lock_timeout:
+                return
+            control_system = self.env['warehouse.control.system'].search([], limit=1)
+            task_running = control_system.task_running
+            if task_running:
+                raise UserError("任务执行中，不允许更改！")
+            else:
+                self.compare_pack_barcode()
+            # 更新最后执行时间
+            last_method_execution_time = time.time()
+        finally:
+            # 释放锁
+            method_lock.release()
     def compare_pack_barcode(self):
         barcode_record = self.env['warehouse.frame.barcode'].search(
             [('frame_barcode', '=', self.pack_barcode)], limit=1)
@@ -331,128 +388,41 @@ class WarehouseSystemOperate(models.Model):
 
             # 如果有字段发生变化，则发送通知到频道
             if changed_fields:
-                print('change test',changed_fields)
-            # 发送通知到bus频道
-                self.env['bus.bus']._sendone(
-                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
-                    'warehouse.data_update',
-                    {
-                        'model': 'warehouse.system.operate',
-                        'id': record.id,
-                        'changed_fields': changed_fields
-                    }
-                )
+                # 确保数值字段类型正确
+                typed_changed_fields = {}
+                for field, value in changed_fields.items():
+                    if field in ['pack_number', 'location_number', 'source_target', 'new_target', 'base_number']:
+                        # 确保这些字段是整数类型
+                        try:
+                            typed_changed_fields[field] = int(value) if value is not None else 0
+                        except (ValueError, TypeError):
+                            typed_changed_fields[field] = 0
+                    elif field in ['allow_move_stock', 'allow_store', 'allow_outbound', 'allow_return']:
+                        # 确保这些字段是布尔类型
+                        typed_changed_fields[field] = bool(value) if value is not None else False
+                    elif field in ['pack_barcode']:
+                        # 确保这些字段是字符串类型
+                        typed_changed_fields[field] = str(value) if value is not None else ""
+                    else:
+                        # 其他字段保持原样
+                        typed_changed_fields[field] = value if value is not None else ""
+
+                # 发送通知到bus频道，添加错误处理
+                try:
+                    self.env['bus.bus']._sendone(
+                        channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                        'warehouse.data_update',
+                        {
+                            'model': 'warehouse.system.operate',
+                            'id': record.id,
+                            'changed_fields': typed_changed_fields
+                        }
+                    )
+                    _logger.info(f"Sent bus {typed_changed_fields} with ID {record.id}")
+                except Exception as e:
+                    _logger.warning(f"Failed to send bus notification: {str(e)}")
 
 
-
-        # if self.pack_number != 0 :
-        #     record_settings = self.env['warehouse.settings'].search([], limit=1)
-        #     entrance_1 = record_settings.entrance_1
-        #     entrance_2 = record_settings.entrance_2
-        #     # 在 automatic.storage.location 中搜索匹配的 pack_number
-        #     storage_record = self.env['warehouse.location.information'].search(
-        #         [('pack_number', '=', self.pack_number)], limit=1)
-        #     barcode_record = self.env['warehouse.frame.barcode'].search(
-        #         [('frame_number', '=', self.pack_number)], limit=1)
-        #
-        #     record = self.browse(1)
-        #
-        #     record.write({
-        #         'allow_move_stock': False,
-        #         'allow_store': False,
-        #         'allow_outbound': False,
-        #         'allow_return': False,
-        #     })
-        #     #如果库存中数据中没有对应的框条码，则获取框条码
-        #     if storage_record.pack_barcode :
-        #         record.write({
-        #         'pack_barcode': storage_record.pack_barcode,
-        #         })
-        #     else:
-        #         record.write({
-        #         'pack_barcode': barcode_record.frame_barcode,
-        #         })
-        #         storage_record.write({
-        #             'pack_barcode': barcode_record.frame_barcode,
-        #         })
-        #     # 如果能在库存里找到对应的框号，则获取库位信息
-        #     if storage_record:
-        #         record.write({
-        #             'pack_number': storage_record.pack_number,
-        #             'location_number': storage_record.location_number,
-        #         })
-        #         if storage_record.goods_status == True:
-        #             print('status',storage_record.goods_status)
-        #             if self.entrance:
-        #                 record.write({
-        #                     'source_target': storage_record.location_number,
-        #                 })
-        #                 record.write({
-        #                     'allow_move_stock': False,
-        #                     'allow_store': False,
-        #                     'allow_outbound': True,
-        #                     'allow_return': False,
-        #                 })
-        #                 if self.entrance == 'entrance1':
-        #                     record.write({
-        #                     'new_target': entrance_1,
-        #                     })
-        #                 if self.entrance == 'entrance2':
-        #                     record.write({
-        #                     'new_target': entrance_2,
-        #                     })
-        #             else:
-        #                 record.write({
-        #                     'allow_move_stock': True,
-        #                     'allow_store': False,
-        #                     'allow_outbound': False,
-        #                     'allow_return': False,
-        #                 })
-        #                 record.write({
-        #                     'source_target': storage_record.location_number,
-        #                 })
-        #                 self.find_empty_location()
-        #                 record.write({
-        #                     'new_target': record.location_number,
-        #                 })
-        #         else:
-        #             record.write({
-        #                 'allow_move_stock': False,
-        #                 'allow_store': False,
-        #                 'allow_outbound': False,
-        #                 'allow_return': True,
-        #             })
-        #             if self.entrance == False or self.entrance == 'entrance1':
-        #                 record.write({
-        #                 'source_target': entrance_1,
-        #                 })
-        #             if self.entrance == 'entrance2':
-        #                 record.write({
-        #                 'source_target': entrance_2,
-        #                 })
-        #             record.write({
-        #                 'new_target': storage_record.location_number,
-        #             })
-        #     else:
-        #         record.write({
-        #             'allow_move_stock': False,
-        #             'allow_store': True,
-        #             'allow_outbound': False,
-        #             'allow_return': False,
-        #         })
-        #         self.find_empty_location()
-        #         record.write({
-        #             'new_target': record.location_number,
-        #         })
-        #
-        #         if self.entrance == False or self.entrance == 'entrance1':
-        #             record.write({
-        #                 'source_target': entrance_1,
-        #             })
-        #         if self.entrance == 'entrance2':
-        #             record.write({
-        #                 'source_target': entrance_2,
-        #             })
 
     def find_empty_location(self):
         record = self.browse(1)
@@ -485,7 +455,10 @@ class WarehouseSystemOperate(models.Model):
             })
 
     def command_data_write(self):
+        information_record = self.env['warehouse.location.information'].search(
+            [('pack_number', '=', self.pack_number)], limit=1)
         record = self.browse(1)
+
         entrance = 0
         allow_move_stock = record.allow_move_stock
         allow_store = record.allow_store
@@ -497,11 +470,25 @@ class WarehouseSystemOperate(models.Model):
         new_target = record.new_target
         location_number = record.location_number
         pack_barcode = record.pack_barcode
-        if record.entrance == False or record.entrance == 'entrance1':
+
+        info_goods = information_record.goods_status
+        info_cancel = information_record.goods_cancel
+        info_fixed_pack_number = information_record.fixed_pack_number
+        info_fixed_pack_barcode = information_record.fixed_pack_barcode
+        info_base_number = information_record.base_number
+        info_pack_number = information_record.pack_number
+        info_location_number = information_record.location_number
+        info_pack_barcode = information_record.pack_barcode
+
+
+        if self.entrance == False:
+            entrance = 0
+        if self.entrance == 'entrance1':
             entrance = 1
-        if record.entrance == 'entrance2':
+        if self.entrance == 'entrance2':
             entrance = 2
         # plc_client = PlcClient()
+        print(record.entrance,self.entrance)
         try:
             # 批量写入
             data_list = [
@@ -515,7 +502,17 @@ class WarehouseSystemOperate(models.Model):
                 {'value': source_target, "db_number": 260, 'offset': 10, 'value_type': 'int'},
                 {'value': new_target, "db_number": 260, 'offset': 12, 'value_type': 'int'},
                 {'value': location_number,"db_number": 260,'offset': 14,'value_type': 'dint'},
-                {'value': pack_barcode,"db_number": 260,'offset': 18,"string_max_len": 18,'value_type': 'string'}
+                {'value': pack_barcode,"db_number": 260,'offset': 18,"string_max_len": 18,'value_type': 'string'},
+
+                {'value': info_goods, "db_number": 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
+                {'value': info_cancel, "db_number": 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
+                {'value': info_fixed_pack_number, "db_number": 260, 'offset': 40, 'bit_index': 2, 'value_type': 'bool'},
+                {'value': info_fixed_pack_barcode, "db_number": 260, 'offset': 40, 'bit_index': 3, 'value_type': 'bool'},
+                {'value': info_base_number, "db_number": 260, 'offset': 42, 'value_type': 'int'},
+                {'value': info_pack_number, "db_number": 260, 'offset': 44, 'value_type': 'int'},
+                {'value': info_location_number, "db_number": 260, 'offset': 46, 'value_type': 'dint'},
+                {'value': info_pack_barcode, "db_number": 260, 'offset': 50, "string_max_len": 18, 'value_type': 'string'}
+
             ]
             for data in data_list:
                 PlcClient().db_number_write(data)
@@ -536,24 +533,56 @@ class WarehouseSystemOperate(models.Model):
     def system_operate_read_write(self):
 
         control_system = self.env['warehouse.control.system'].search([], limit=1)
-        if control_system.task_running:
-            # self.storage_information_write()
-            # self.storage_information_read()
-            # self.stacker_information_read()
-            # self.entrance1_information_read()
-            # self.entrance2_information_read()
-            # self.refresh_fields_turn_off()
 
-           # system states change
+        channel_update = control_system.channel_update
+        channel_update_bit = {}
+        for i in range(32):  # 检查前32位
+            channel_update_bit[f'bit_{i}'] = bool((channel_update >> i) & 1)
 
-            self._information_read()
+        if control_system.netdata:
+            if channel_update_bit['bit_1']:
+                self.storage_information_read()
+                control_system.channel_control_bit(1, True)
+            else:
+                control_system.channel_control_bit(1, False)
+
+            if channel_update_bit['bit_2']:
+                self.stacker_information_read()
+                control_system.channel_control_bit(2, True)
+            else:
+                control_system.channel_control_bit(2, False)
+
+            if channel_update_bit['bit_3']:
+                self.entrance1_information_read()
+                control_system.channel_control_bit(3, True)
+            else:
+                control_system.channel_control_bit(3, False)
+
+            if channel_update_bit['bit_4']:
+                self.entrance2_information_read()
+                control_system.channel_control_bit(4, True)
+            else:
+                control_system.channel_control_bit(4, False)
+
+            if channel_update_bit['bit_5']:
+                self.move_store_information_read()
+                control_system.channel_control_bit(5, True)
+            else:
+                control_system.channel_control_bit(5, False)
+
+
+
 
 
         self.status_changed()
 
+
     def status_changed(self):
         record = self.browse(1)
         control_system = self.env['warehouse.control.system'].search([], limit=1)
+        self.netcontrol = control_system.netcontrol
+        self.netdata = control_system.netdata
+        self.auto_ready = control_system.auto_ready
 
         estate_status_map = {
             1: 'start',
@@ -568,9 +597,36 @@ class WarehouseSystemOperate(models.Model):
         new_status = estate_status_map.get(control_system.estate, 'idle')
         old_status = record.status
 
-        # 只有状态真正改变时才更新和发送通知
-        if old_status != new_status:
+        # 检查状态是否改变
+        status_changed = old_status != new_status
+        netcontrol_changed = record.netcontrol != control_system.netcontrol
+        netdata_changed = record.netdata != control_system.netdata
+        auto_ready_changed = record.auto_ready != control_system.auto_ready
+
+        changed_fields = {}
+
+        # 如果状态发生改变，则更新并记录
+        if status_changed:
             record.status = new_status
+            changed_fields['status'] = new_status
+
+        # 如果netcontrol发生改变，则更新并记录
+        if netcontrol_changed:
+            record.netcontrol = control_system.netcontrol
+            changed_fields['netcontrol'] = control_system.netcontrol
+
+        # 如果netdata发生改变，则更新并记录
+        if netdata_changed:
+            record.netdata = control_system.netdata
+            changed_fields['netdata'] = control_system.netdata
+
+        if auto_ready_changed:
+            record.auto_ready = control_system.auto_ready
+            changed_fields['auto_ready'] = control_system.auto_ready
+
+        # 只有当有字段真正改变时才发送通知
+        if changed_fields:
+            print(changed_fields)
             try:
                 # 当状态发生变化时发送消息到频道
                 self.env['bus.bus']._sendone(
@@ -579,7 +635,7 @@ class WarehouseSystemOperate(models.Model):
                     {
                         'model': 'warehouse.system.operate',
                         'id': record.id,
-                        'changed_fields': {'status': new_status}
+                        'changed_fields': changed_fields
                     }
                 )
             except Exception as e:
@@ -885,8 +941,6 @@ class WarehouseSystemOperate(models.Model):
                     }
                 )
 
-
-
     def stacker_information_read(self):
         """读取测试-批量"""
         results = [
@@ -1116,8 +1170,9 @@ class WarehouseSystemOperate(models.Model):
             {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
 
     def move_stock_button(self):
-        self.target_data_check()
         record = self.browse(1)
+        self.check_permissions()
+        self.target_data_check()
         if record.allow_move_stock:
             record.move_stock = not record.move_stock
             record.store = False
@@ -1130,8 +1185,9 @@ class WarehouseSystemOperate(models.Model):
             raise UserError("不允许执行移库命令！")
 
     def store_button(self):
-        self.target_data_check()
         record = self.browse(1)
+        self.check_permissions()
+        self.target_data_check()
         if record.allow_store:
             record.move_stock = False
             record.store = not record.store
@@ -1145,8 +1201,9 @@ class WarehouseSystemOperate(models.Model):
             raise UserError(f"不允许执行入库命令！")
 
     def outbound_button(self):
-        self.target_data_check()
         record = self.browse(1)
+        self.check_permissions()
+        self.target_data_check()
         if record.allow_outbound:
             record.move_stock = False
             record.store = False
@@ -1159,8 +1216,9 @@ class WarehouseSystemOperate(models.Model):
         else:
             raise UserError(f"不允许执行出库命令！")
     def return_store_button(self):
-        self.target_data_check()
         record = self.browse(1)
+        self.check_permissions()
+        self.target_data_check()
         if record.allow_return:
             record.move_stock = False
             record.store =  False
@@ -1189,6 +1247,15 @@ class WarehouseSystemOperate(models.Model):
             except Exception as e:
                 _logger.error(f"仓库命令信息写入失败！: {str(e)}")
                 raise
+    def check_permissions(self):
+        control_system = self.env['warehouse.control.system'].search([], limit=1)
+        task_running = control_system.task_running
+        record = self.browse(1)
+        if not record.Operation_permissions:
+            raise UserError("没有权限执行此操作！")
+        if task_running:
+            raise UserError("任务正在运行中！")
+
 
     def target_data_check(self):
         record = self.browse(1)
