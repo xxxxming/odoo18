@@ -78,6 +78,8 @@ class WarehouseSystemOperate(models.Model):
     pack_number = fields.Integer(string='输入框号')
     base_number = fields.Integer(string='输入序号')
     location_number = fields.Integer(string='库位号')
+    empty_location = fields.Integer(string="空库位")
+    pack_number_find_code = fields.Char(string="框号查代码")
     pack_barcode = fields.Char(string='框条码')
     source_target = fields.Integer(string="源目标")
     new_target = fields.Integer(string="新目标")
@@ -200,7 +202,8 @@ class WarehouseSystemOperate(models.Model):
                 record = self.browse(1)
                 if record.exists():
                     self.compare_pack_number()
-                    self.command_data_write()
+                    self.command_data_write(2)
+                    print('onchange entrance')
             # 更新最后执行时间
             last_method_execution_time = time.time()
         finally:
@@ -227,8 +230,9 @@ class WarehouseSystemOperate(models.Model):
                 if record.exists():
                     record.write({'pack_number': self.pack_number})
                     self.compare_pack_number()
-                    self.command_data_write()
+                    self.command_data_write(2)
                     self.refresh_fields_turn_on()
+                    print('onchange pack number')
             # 更新最后执行时间
             last_method_execution_time = time.time()
         finally:
@@ -279,14 +283,25 @@ class WarehouseSystemOperate(models.Model):
             entrance_1 = record_settings.entrance_1
             entrance_2 = record_settings.entrance_2
 
+            record = self.browse(1)
             # 同时查询库存记录和条码记录
             storage_record = self.env['warehouse.location.information'].search(
                 [('pack_number', '=', self.pack_number)], limit=1)
             barcode_record = self.env['warehouse.frame.barcode'].search(
                 [('frame_number', '=', self.pack_number)],
-                limit=1) if not storage_record or not storage_record.pack_barcode else None
+                limit=1)
+                # if not storage_record or not storage_record.pack_barcode else None
 
-            record = self.browse(1)
+            print('barcode', barcode_record)
+            # 检查barcode_record是否存在，避免访问None对象属性
+            if barcode_record:
+                record.pack_number_find_code = barcode_record.frame_barcode
+                print('find barcode', record.pack_number_find_code)
+            else:
+                record.pack_number_find_code = 'No found!'
+                print('no find barcode', record.pack_number_find_code)
+            #查找空库位
+            self.find_empty_location()
 
             # 保存变更前的值用于比较
             old_values = {
@@ -318,9 +333,15 @@ class WarehouseSystemOperate(models.Model):
                     storage_record.write({
                         'pack_barcode': barcode_record.frame_barcode,
                     })
+            else:
+                vals['pack_barcode'] = 'No found!'
+                # storage_record.write({
+                #     'pack_barcode': 'No found!'
+                # })
 
             # 如果能在库存里找到对应的框号，则获取库位信息
             if storage_record:
+                print('store record', storage_record)
                 vals.update({
                     'pack_number': storage_record.pack_number,
                     'location_number': storage_record.location_number,
@@ -348,8 +369,10 @@ class WarehouseSystemOperate(models.Model):
                             'allow_return': False,
                             'source_target': storage_record.location_number,
                         })
-                        self.find_empty_location()
-                        vals['new_target'] = record.location_number
+                        # self.find_empty_location()
+                        # vals['new_target'] = record.location_number
+                        # 执行移库，使用空库位
+                        vals['new_target'] = record.empty_location
                 else:
                     vals.update({
                         'allow_move_stock': False,
@@ -363,22 +386,56 @@ class WarehouseSystemOperate(models.Model):
                         vals['source_target'] = entrance_2
                     vals['new_target'] = storage_record.location_number
             else:
+
                 vals.update({
                     'allow_move_stock': False,
                     'allow_store': True,
                     'allow_outbound': False,
                     'allow_return': False,
                 })
-                self.find_empty_location()
-                vals['new_target'] = record.location_number
+                vals['new_target'] = record.empty_location
 
+                if  not barcode_record.frame_barcode and not storage_record.pack_barcode:
+                    vals.update({
+                        'allow_move_stock': False,
+                        'allow_store': False,
+                        'allow_outbound': False,
+                        'allow_return': False,
+                    })
+                    vals['pack_barcode'] = 'No found!'
+                    vals['location_number'] = 0
+                    vals['new_target'] = record.empty_location
+
+
+
+
+                # 入库选择默认出入口1或者按选择出入口
                 if not self.entrance or self.entrance == 'entrance1':
                     vals['source_target'] = entrance_1
                 elif self.entrance == 'entrance2':
                     vals['source_target'] = entrance_2
 
+
+
+
+
+
+
+
+
+                print('store record2', storage_record,storage_record,storage_record.pack_number,
+                      barcode_record.frame_barcode,storage_record.pack_barcode)
+
+
+
+
+
+
+
             # 一次性写入所有值
             record.write(vals)
+
+
 
             # 检查哪些字段发生了变化
             changed_fields = {}
@@ -434,27 +491,34 @@ class WarehouseSystemOperate(models.Model):
              ('location_number', '!=', entrance_2),
              ('location_number', '<', 20000),
              ('goods_cancel', '=', False),
-             ('goods_status', '=', False)], limit=1)
+             ('goods_status', '=', False)], limit=5)
         location_record_2 = self.env['warehouse.location.information'].search(
             [('location_number', '!=', entrance_1),
              ('location_number', '!=', entrance_2),
              ('location_number', '>', 20000),
              ('goods_cancel', '=', False),
-             ('goods_status', '=', False)], limit=1)
+             ('goods_status', '=', False)], limit=5)
+
+        # for record in location_record_1:
+        #     print('B1', record.location_number)
+        # for record in location_record_2:
+        #     print('B2', record.location_number)
+
         # 剩余部分为后四位
-        column_layer_1 = location_record_1.location_number % 10000
-        column_layer_2 = location_record_2.location_number % 10000
+        column_layer_1 = location_record_1[0].location_number % 10000
+        column_layer_2 = location_record_2[0].location_number % 10000
 
         if column_layer_1 < column_layer_2:
             record.write({
-                'location_number': location_record_1.location_number,
-            })
-        else:
-            record.write({
-                'location_number': location_record_2.location_number,
+                'empty_location': location_record_1[0].location_number,
             })
 
-    def command_data_write(self):
+        else:
+            record.write({
+                'empty_location': location_record_2[0].location_number,
+            })
+
+    def command_data_write(self,address):
         information_record = self.env['warehouse.location.information'].search(
             [('pack_number', '=', self.pack_number)], limit=1)
         record = self.browse(1)
@@ -469,17 +533,31 @@ class WarehouseSystemOperate(models.Model):
         source_target = record.source_target
         new_target = record.new_target
         location_number = record.location_number
+        empty_location = record.empty_location
+        pack_number_find_code = record.pack_number_find_code
         pack_barcode = record.pack_barcode
 
-        info_goods = information_record.goods_status
-        info_cancel = information_record.goods_cancel
-        info_fixed_pack_number = information_record.fixed_pack_number
-        info_fixed_pack_barcode = information_record.fixed_pack_barcode
-        info_base_number = information_record.base_number
-        info_pack_number = information_record.pack_number
-        info_location_number = information_record.location_number
-        info_pack_barcode = information_record.pack_barcode
+        if information_record.pack_barcode:
+            info_goods = information_record.goods_status
+            info_cancel = information_record.goods_cancel
+            info_fixed_pack_number = information_record.fixed_pack_number
+            info_fixed_pack_barcode = information_record.fixed_pack_barcode
+            info_base_number = information_record.base_number
+            info_pack_number = information_record.pack_number
+            info_location_number = information_record.location_number
+            info_pack_barcode = information_record.pack_barcode
+        else:
+            info_goods = False
+            info_cancel = False
+            info_fixed_pack_number = False
+            info_fixed_pack_barcode = False
+            info_base_number = 0
+            info_pack_number = 0
+            info_location_number = 0
+            info_pack_barcode = 'No found!'
 
+        #
+        # print('Info',info_base_number,info_pack_number,info_location_number,info_pack_barcode)
 
         if self.entrance == False:
             entrance = 0
@@ -488,30 +566,32 @@ class WarehouseSystemOperate(models.Model):
         if self.entrance == 'entrance2':
             entrance = 2
         # plc_client = PlcClient()
-        print(record.entrance,self.entrance)
+
         try:
             # 批量写入
             data_list = [
-                {'value': allow_move_stock, "db_number": 260, 'offset': 2, 'bit_index': 4, 'value_type': 'bool'},
-                {'value': allow_store, "db_number": 260, 'offset': 2, 'bit_index': 5, 'value_type': 'bool'},
-                {'value': allow_outbound, "db_number": 260, 'offset': 2, 'bit_index': 6, 'value_type': 'bool'},
-                {'value': allow_return, "db_number": 260, 'offset': 2, 'bit_index': 7, 'value_type': 'bool'},
-                {'value': entrance,"db_number": 260,'offset': 4,'value_type': 'int'},
-                {'value': pack_number,"db_number": 260,'offset': 6,'value_type': 'int'},
-                {'value': base_number, "db_number": 260, 'offset': 8, 'value_type': 'int'},
-                {'value': source_target, "db_number": 260, 'offset': 10, 'value_type': 'int'},
-                {'value': new_target, "db_number": 260, 'offset': 12, 'value_type': 'int'},
-                {'value': location_number,"db_number": 260,'offset': 14,'value_type': 'dint'},
-                {'value': pack_barcode,"db_number": 260,'offset': 18,"string_max_len": 18,'value_type': 'string'},
+                {'value': allow_move_stock, "db_number": 260, 'offset': address, 'bit_index': 4, 'value_type': 'bool'},
+                {'value': allow_store, "db_number": 260, 'offset': address, 'bit_index': 5, 'value_type': 'bool'},
+                {'value': allow_outbound, "db_number": 260, 'offset': address, 'bit_index': 6, 'value_type': 'bool'},
+                {'value': allow_return, "db_number": 260, 'offset': address, 'bit_index': 7, 'value_type': 'bool'},
+                {'value': entrance,"db_number": 260,'offset': address+2,'value_type': 'int'},
+                {'value': pack_number,"db_number": 260,'offset': address+4,'value_type': 'int'},
+                {'value': base_number, "db_number": 260, 'offset': address+6, 'value_type': 'int'},
+                {'value': source_target, "db_number": 260, 'offset': address+8, 'value_type': 'int'},
+                {'value': new_target, "db_number": 260, 'offset': address+10, 'value_type': 'int'},
+                {'value': location_number,"db_number": 260,'offset': address+12,'value_type': 'dint'},
+                {'value': empty_location, "db_number": 260, 'offset': address+16, 'value_type': 'dint'},
+                {'value': pack_number_find_code, "db_number": 260, 'offset': address+20,"string_max_len": 18,'value_type': 'string'},
+                {'value': pack_barcode,"db_number": 260,'offset': address+42,"string_max_len": 18,'value_type': 'string'},
 
-                {'value': info_goods, "db_number": 260, 'offset': 40, 'bit_index': 0, 'value_type': 'bool'},
-                {'value': info_cancel, "db_number": 260, 'offset': 40, 'bit_index': 1, 'value_type': 'bool'},
-                {'value': info_fixed_pack_number, "db_number": 260, 'offset': 40, 'bit_index': 2, 'value_type': 'bool'},
-                {'value': info_fixed_pack_barcode, "db_number": 260, 'offset': 40, 'bit_index': 3, 'value_type': 'bool'},
-                {'value': info_base_number, "db_number": 260, 'offset': 42, 'value_type': 'int'},
-                {'value': info_pack_number, "db_number": 260, 'offset': 44, 'value_type': 'int'},
-                {'value': info_location_number, "db_number": 260, 'offset': 46, 'value_type': 'dint'},
-                {'value': info_pack_barcode, "db_number": 260, 'offset': 50, "string_max_len": 18, 'value_type': 'string'}
+                {'value': info_goods, "db_number": 260, 'offset': address+64, 'bit_index': 0, 'value_type': 'bool'},
+                {'value': info_cancel, "db_number": 260, 'offset': address+64, 'bit_index': 1, 'value_type': 'bool'},
+                {'value': info_fixed_pack_number, "db_number": 260, 'offset': address+64, 'bit_index': 2, 'value_type': 'bool'},
+                {'value': info_fixed_pack_barcode, "db_number": 260, 'offset': address+64, 'bit_index': 3, 'value_type': 'bool'},
+                {'value': info_base_number, "db_number": 260, 'offset': address+66, 'value_type': 'int'},
+                {'value': info_pack_number, "db_number": 260, 'offset': address+68, 'value_type': 'int'},
+                {'value': info_location_number, "db_number": 260, 'offset': address+70, 'value_type': 'dint'},
+                {'value': info_pack_barcode, "db_number": 260, 'offset': address+74, "string_max_len": 18, 'value_type': 'string'}
 
             ]
             for data in data_list:
@@ -1178,7 +1258,7 @@ class WarehouseSystemOperate(models.Model):
             record.store = False
             record.outbound =  False
             record.return_store =  False
-            log_message = f"执行移库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            log_message = f"{record.current_user_name}执行移库:从{record.source_target}移到库位{record.new_target} ！"
             _logger.info(log_message)
             record.log_operation(log_message)
         else:
@@ -1194,7 +1274,7 @@ class WarehouseSystemOperate(models.Model):
             record.outbound =  False
             record.return_store =  False
             self.command_button_write()
-            log_message = f"执行入库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            log_message = f"{record.current_user_name}执行入库:从{record.source_target}移到库位{record.new_target} ！"
             _logger.info(log_message)
             record.log_operation(log_message)
         else:
@@ -1210,7 +1290,7 @@ class WarehouseSystemOperate(models.Model):
             record.outbound = not record.outbound
             record.return_store = False
             self.command_button_write()
-            log_message = f"执行出库命令:库位{record.source_target} 移到{record.entrance}：{record.new_target} ！"
+            log_message = f"{record.current_user_name}执行出库:从{record.source_target}移到{record.entrance}：{record.new_target} ！"
             _logger.info(log_message)
             record.log_operation(log_message)
         else:
@@ -1225,7 +1305,7 @@ class WarehouseSystemOperate(models.Model):
             record.outbound =  False
             record.return_store = not record.return_store
             self.command_button_write()
-            log_message = f"执行返库命令:库位{record.source_target} 移到库位{record.new_target} ！"
+            log_message = f"{record.current_user_name}执行返库:从{record.source_target}移到库位{record.new_target} ！"
             _logger.info(log_message)
             record.log_operation(log_message)
         else:
@@ -1250,9 +1330,12 @@ class WarehouseSystemOperate(models.Model):
     def check_permissions(self):
         control_system = self.env['warehouse.control.system'].search([], limit=1)
         task_running = control_system.task_running
+        net_control = control_system.netcontrol
         record = self.browse(1)
         if not record.Operation_permissions:
             raise UserError("没有权限执行此操作！")
+        if not net_control:
+            raise UserError("没远控权限，不允许执行控制命令！")
         if task_running:
             raise UserError("任务正在运行中！")
 

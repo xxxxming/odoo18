@@ -28,6 +28,7 @@
 <!--                    <button name="stop_button" type="object" string="停止按钮"/>-->
 <!--                    <button name="pause_button" type="object" string="暂停按钮"/>-->
 <!--                    <button name="reset_button" type="object" string="复位按钮"/>-->
+                        <button name="find_empty_location" type="object" string="测试按钮"/>
 
                     <field name="status" widget="statusbar"/>
                 </header>
@@ -42,17 +43,17 @@
                                 <field name="current_user_name" readonly="True"/>
                             </group>
                             <group>
-                                <field name="pack_number"  style="background-color: #d4edda;"/>
-                                <field name="pack_barcode" />
-                                <field name="location_number"/>
+                                <field name="pack_number"  style="background-color:#d4edda; width: 180px;"/>
+                                <field name="pack_barcode" style="width:180px;"/>
+                                <field name="location_number" style="width:180px;"/>
                                 <field name="netcontrol"  readonly="True"/>
                             </group>
                         </group>
                         <group>
                             <group>
-                                <field name="entrance" style="background-color: #e6e6fa;"/>
-                                <field name="source_target"/>
-                                <field name="new_target"/>
+                                <field name="entrance" style="background-color: #e6e6fa;width: 180px;"/>
+                                <field name="source_target" style="width:180px;"/>
+                                <field name="new_target" style="width:180px;"/>
                                 <field name="auto_ready"  readonly="True"/>
                             </group>
                             <group>

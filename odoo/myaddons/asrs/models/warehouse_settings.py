@@ -55,9 +55,9 @@ class WarehouseSettings(models.Model):
 
           record = self.env['warehouse.location.information']
           self.sync_building,self.sync_column,self.sync_layer=record.location_disintegrate(self.sync_location)
-          self.sync_location_write(82)
+          self.sync_location_write(108)
 
-     def sync_location_write(self, db_address):
+     def sync_location_write(self, address):
           """传递到PLC进行写入"""
 
           sync_building = self.sync_building
@@ -68,10 +68,10 @@ class WarehouseSettings(models.Model):
           try:
                # 批量写入
                data_list = [
-                    {'value': sync_building, "db_number": 260, 'offset': db_address + 0, 'value_type': 'int'},
-                    {'value': sync_column, "db_number": 260, 'offset': db_address + 2, 'value_type': 'int'},
-                    {'value': sync_layer, "db_number": 260, 'offset': db_address + 4, 'value_type': 'int'},
-                    {'value': sync_location, "db_number": 260, 'offset': db_address + 6, 'value_type': 'dint'},
+                    {'value': sync_building, "db_number": 260, 'offset': address + 0, 'value_type': 'int'},
+                    {'value': sync_column, "db_number": 260, 'offset': address + 2, 'value_type': 'int'},
+                    {'value': sync_layer, "db_number": 260, 'offset': address + 4, 'value_type': 'int'},
+                    {'value': sync_location, "db_number": 260, 'offset': address + 6, 'value_type': 'dint'},
 
                ]
                for data in data_list:
@@ -82,7 +82,7 @@ class WarehouseSettings(models.Model):
 
           pass
 
-     def sync_information_write(self,location,db_address):
+     def sync_information_write(self,location,address):
           """传递到PLC进行写入"""
 
           info_record = self.env['warehouse.location.information'].search(
@@ -98,11 +98,11 @@ class WarehouseSettings(models.Model):
           try:
                # 批量写入
                data_list = [
-                    {'value': goods_status, "db_number": 262, 'offset': db_address+0, 'bit_index': 0,'value_type': 'bool'},
-                    {'value': base_number, "db_number": 262, 'offset': db_address+2, 'value_type': 'int'},
-                    {'value': pack_number, "db_number": 262, 'offset': db_address+4, 'value_type': 'int'},
-                    {'value': location_number, "db_number": 262, 'offset': db_address+6, 'value_type': 'dint'},
-                    {'value': pack_barcode, "db_number": 262, 'offset': db_address+10, "string_max_len": 18,'value_type': 'string'}
+                    {'value': goods_status, "db_number": 262, 'offset': address+0, 'bit_index': 0,'value_type': 'bool'},
+                    {'value': base_number, "db_number": 262, 'offset': address+2, 'value_type': 'int'},
+                    {'value': pack_number, "db_number": 262, 'offset': address+4, 'value_type': 'int'},
+                    {'value': location_number, "db_number": 262, 'offset': address+6, 'value_type': 'dint'},
+                    {'value': pack_barcode, "db_number": 262, 'offset': address+10, "string_max_len": 18,'value_type': 'string'}
                ]
                for data in data_list:
                     PlcClient().db_number_write(data)
@@ -110,15 +110,15 @@ class WarehouseSettings(models.Model):
                _logger.error(f"库位信息写入失败！: {str(e)}")
                raise
 
-     def sync_information_read(self, location,db_address):
+     def sync_information_read(self, location,address):
           """读取测试-批量"""
           results = [
                # 库位有货，序号，框号，库位号，框条码
-               {'db_number': 262, 'offset': db_address+0, 'value_type': 'bool', 'bit_index': 0},
-               {'db_number': 262, 'offset': db_address+2, 'value_type': 'int'},
-               {'db_number': 262, 'offset': db_address+4, 'value_type': 'int'},
-               {'db_number': 262, 'offset': db_address+6, 'value_type': 'dint'},
-               {'db_number': 262, 'offset': db_address+10, 'value_type': 'string', "string_max_len": 18},
+               {'db_number': 262, 'offset': address+0, 'value_type': 'bool', 'bit_index': 0},
+               {'db_number': 262, 'offset': address+2, 'value_type': 'int'},
+               {'db_number': 262, 'offset': address+4, 'value_type': 'int'},
+               {'db_number': 262, 'offset': address+6, 'value_type': 'dint'},
+               {'db_number': 262, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
           ]
           num = 0
           values_to_write = {}

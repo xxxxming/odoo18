@@ -69,7 +69,7 @@ class WarehouseControlSystem(models.Model):
          for i in range(8):  # 检查前8位
              channel_update_bit[f'bit_{i}'] = bool((channel_update >> i) & 1)
          if channel_update_bit['bit_0']:
-             self.automation_state_read()
+             self.automation_state_read(98)
              self.channel_control_bit(0, True)
          else:
              self.channel_control_bit(0, False)
@@ -125,26 +125,26 @@ class WarehouseControlSystem(models.Model):
              record.write({'online_download': new_value})
 
 
-     def automation_state_read(self):
+     def automation_state_read(self,address):
 
         results = [
-            {'db_number': 260, 'offset': 72, 'bit_index': 0, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 1, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 2, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 3, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 4, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 5, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 6, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 72, 'bit_index': 7, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 6, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address, 'bit_index': 7, 'value_type': 'bool'},
 
-            {'db_number': 260, 'offset': 73, 'bit_index': 0, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 73, 'bit_index': 1, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 73, 'bit_index': 2, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 73, 'bit_index': 3, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 73, 'bit_index': 4, 'value_type': 'bool'},
-            {'db_number': 260, 'offset': 73, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 0, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 1, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 2, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 3, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 4, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 5, 'value_type': 'bool'},
 
-            {'db_number': 260, 'offset': 76, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
 
         ]
         num = 0
@@ -218,7 +218,7 @@ class WarehouseControlSystem(models.Model):
          record = self.browse(6)
 
          results = [
-             {'db_number': 260, 'offset': 96, 'value_type': 'dint'},
+             {'db_number': 260, 'offset': 122, 'value_type': 'dint'},
          ]
          num = 0
          values_to_write = {}
@@ -248,7 +248,7 @@ class WarehouseControlSystem(models.Model):
          if channel_control != channel_control_old:
              record.write({'channel_control_old': channel_control})
              data_list = [
-                 {'value': channel_control, "db_number": 260, 'offset': 92, 'value_type': 'dint'},
+                 {'value': channel_control, "db_number": 260, 'offset': 118, 'value_type': 'dint'},
              ]
              for data in data_list:
                  PlcClient().db_number_write(data)
@@ -257,7 +257,7 @@ class WarehouseControlSystem(models.Model):
          record = self.browse(6)
 
          results = [
-             {'db_number': 260, 'offset': 104, 'value_type': 'dint'},
+             {'db_number': 260, 'offset': 130, 'value_type': 'dint'},
          ]
          num = 0
          values_to_write = {}
@@ -270,7 +270,7 @@ class WarehouseControlSystem(models.Model):
 
          online_download = record.online_download
          data_list = [
-             {'value': online_download, "db_number": 260, 'offset': 100, 'value_type': 'dint'},
+             {'value': online_download, "db_number": 260, 'offset': 126, 'value_type': 'dint'},
          ]
          for data in data_list:
              PlcClient().db_number_write(data)
