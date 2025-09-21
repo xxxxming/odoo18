@@ -39,22 +39,26 @@ class FrameBarcode(models.Model):
 
 
     def create_new_record(self):
+        system_operate = self.env['warehouse.system.operate'].search([], limit=1)
         last_record = self.search([], order='serial_number desc', limit=1)
+        system_operate.check_permissions()
         if last_record:
             new_vals = {
                 'serial_number': last_record.serial_number + 1,
                 'frame_number': last_record.serial_number + 1,
-                'frame_barcode': f"PACK000{last_record.serial_number + 1:04d}",
+                'frame_barcode': f"PACK000{last_record.serial_number + 1:03d}",
             }
         else:
             new_vals = {
                 'serial_number': 1,
                 'frame_number': '0001',
-                'frame_barcode': 'PACK0000001',
+                'frame_barcode': 'PACK000001',
             }
         return self.create(new_vals)
 
     def batch_create_records(self):
+        system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+        system_operate.check_permissions()
         # 获取目标数量，并确保其为整数
         settings = self.env['warehouse.settings'].search([], limit=1)
         location_count = settings.total_locations if isinstance(settings.total_locations, int) else 0

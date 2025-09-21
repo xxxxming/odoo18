@@ -96,9 +96,13 @@ class WarehousePlcTask(models.Model):
                 #                  })
 
                 if scheduler.instance_id == 1:
+                    time.sleep(0.43)
+                    # print("Task sleep 0.2")
                     env['warehouse.control.system'].control_system_read_write()
 
                 if scheduler.instance_id == 2:
+                    # time.sleep(0.63)
+                    # print("Task sleep 0.4")
                     env['warehouse.system.operate'].system_operate_read_write()
 
 

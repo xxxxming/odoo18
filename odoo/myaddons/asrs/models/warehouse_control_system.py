@@ -5,6 +5,7 @@ from .plc_connect import PlcClient
 
 from odoo.addons.bus.models.bus import channel_with_db
 
+import time
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -35,13 +36,15 @@ class WarehouseControlSystem(models.Model):
      auto_target_position = fields.Boolean(string='到新目标')
      auto_finish = fields.Boolean(string='任务完成')
      task_running = fields.Boolean(string='执行任务')
-     none1 = fields.Boolean(string='无1')
-     none2 = fields.Boolean(string='无2')
-     channel_control = fields.Integer(string='控制信号')
-     channel_control_old = fields.Integer(string='控制信号旧值')
-     channel_update = fields.Integer(string='数据更新')
-     online_download = fields.Boolean(string='在线下载')
-     online_upload = fields.Boolean(string='在线上传')
+     entrance1_goods = fields.Boolean(string='入口1货物')
+     entrance2_goods = fields.Boolean(string='入口2货物')
+     none3 = fields.Boolean(string='无3')
+     none4 = fields.Boolean(string='无4')
+
+     online_control = fields.Integer(string='控制信号')
+     online_download = fields.Integer(string='在线下载')
+     online_update = fields.Integer(string='数据更新')
+     online_upload = fields.Integer(string='在线上传')
      estate = fields.Integer(string='状态')
 
      # 添加关联到输入输出信号的字段
@@ -58,71 +61,124 @@ class WarehouseControlSystem(models.Model):
 
 
      def control_system_read_write(self):
-         self.channel_control_read_write()
+         # self.channel_control_read_write()
          self.online_read_write()
          record = self.browse(6)
-         channel_update = record.channel_update
+         online_update = record.online_update
          online_upload = record.online_upload
+         online_download = record.online_download
 
-         # 检查channel_update bit
-         channel_update_bit = {}
-         for i in range(8):  # 检查前8位
-             channel_update_bit[f'bit_{i}'] = bool((channel_update >> i) & 1)
-         if channel_update_bit['bit_0']:
-             self.automation_state_read(98)
-             self.channel_control_bit(0, True)
-         else:
-             self.channel_control_bit(0, False)
+         # # PLC状态有该改变时更新
+         # online_update_bit = {}
+         # for i in range(8):  # 检查前8位
+         #     online_update_bit[f'bit_{i}'] = bool((online_update >> i) & 1)
+         # if online_update_bit['bit_0']:
+         #     self.automation_state_read(262)
+         #     self.channel_control_bit(0, True)
+         # else:
+         #     self.channel_control_bit(0, False)
 
-
-
-        # online_upload bit
-
+         # 计算机心跳信号
          online_upload_bit = {}
          for i in range(8):  # 检查前8位
              online_upload_bit[f'bit_{i}'] = bool((online_upload >> i) & 1)
+         # if online_upload_bit['bit_0']:
+         #     # self.online_download_bit(0, True)
+         #     new_value = online_download | (1 << 0)
+         # else:
+         #     # self.online_download_bit(0, False)
+         #     new_value = online_download & ~(1 << 0)
+         #
+         # if online_upload_bit['bit_1']:
+         #     self.automation_state_read(262)
+         #     print('reading states')
+         #     # self.online_download_bit(1, True)
+         #     new_value = online_download | (1 << 1)
+         # else:
+         #     # self.online_download_bit(1, False)
+         #     new_value = online_download & ~(1 << 1)
+
+         # 构建新的online_download值
+         new_online_download = online_download
+
+         # 处理bit_0
          if online_upload_bit['bit_0']:
-             self.online_download_bit(0, True)
+             new_online_download = new_online_download | (1 << 0)  # 设置bit_0为1
          else:
-             self.online_download_bit(0, False)
+             new_online_download = new_online_download & ~(1 << 0)  # 设置bit_0为0
 
-
-
-
-     @api.model
-     def channel_control_bit(self, bit_position, bit_value):
-         """更新channel_control的指定位"""
-         record = self.browse(6)
-         current_value = record.channel_control
-
-         if bit_value:
-             # 设置位为1
-             new_value = current_value | (1 << bit_position)
+         # 处理bit_1
+         if online_upload_bit['bit_1']:
+             self.automation_state_read(262)
+             new_online_download = new_online_download | (1 << 1)  # 设置bit_1为1
          else:
-             # 设置位为0
-             new_value = current_value & ~(1 << bit_position)
+             new_online_download = new_online_download & ~(1 << 1)  # 设置bit_1为0
 
          # 只有在值发生变化时才写入数据库
-         if current_value != new_value:
-             record.write({'channel_control': new_value})
-             _logger.info(f"channel_control bit{bit_position} updated to {bit_value}，value {current_value} changed to {new_value}")
+         if online_download != new_online_download:
+             # record.write({'online_download': new_online_download})
+             # _logger.info(f"online_download updated, value {online_download} changed to {new_online_download}")
 
-     @api.model
-     def online_download_bit(self, bit_position, bit_value):
-         """更新channel_control的指定位"""
-         record = self.browse(6)
-         current_value = record.online_download
+             max_retries = 10
+             retry_count = 0
+             while retry_count < max_retries:
+                 try:
+                     record.write({'online_download': new_online_download})
+                     if retry_count > 0:
+                         _logger.info(f"Successfully updated warehouse control system after {retry_count} retries")
+                     break
+                 except Exception as e:
+                     if "由于同步更新而无法串行访问" in str(e) or "could not serialize access" in str(e):
+                         retry_count += 1
+                         if retry_count >= max_retries:
+                             _logger.error(
+                                 f"Failed to update warehouse control system after {max_retries} retries: {str(e)}")
+                             raise
+                         else:
+                             # 增加等待时间以减少冲突概率
+                             wait_time = 0.1 * retry_count + 0.1 * (hash(str(record.id) + str(retry_count)) % 10) / 10
+                             _logger.warning(
+                                 f"Retrying update warehouse control system due to serialization conflict, attempt {retry_count}, waiting {wait_time:.2f}s")
+                             time.sleep(wait_time)
+                     else:
+                         raise
 
-         if bit_value:
-             # 设置位为1
-             new_value = current_value | (1 << bit_position)
-         else:
-             # 设置位为0
-             new_value = current_value & ~(1 << bit_position)
+     # @api.model
+     # def channel_control_bit(self, bit_position, bit_value):
+     #     """更新channel_control的指定位"""
+     #     record = self.browse(6)
+     #     current_value = record.online_control
+     #
+     #     if bit_value:
+     #         # 设置位为1
+     #         new_value = current_value | (1 << bit_position)
+     #     else:
+     #         # 设置位为0
+     #         new_value = current_value & ~(1 << bit_position)
+     #
+     #     # 只有在值发生变化时才写入数据库
+     #     if current_value != new_value:
+     #         print('control bit',new_value)
+     #         time.sleep(0.3)
+     #         record.write({'online_control': new_value})
+     #         _logger.info(f"online_control bit{bit_position} updated to {bit_value}，value {current_value} changed to {new_value}")
 
-         # 只有在值发生变化时才写入数据库
-         if current_value != new_value:
-             record.write({'online_download': new_value})
+     # @api.model
+     # def online_download_bit(self, bit_position, bit_value):
+     #     """更新channel_control的指定位"""
+     #     record = self.browse(6)
+     #     current_value = record.online_download
+     #
+     #     if bit_value:
+     #         # 设置位为1
+     #         new_value = current_value | (1 << bit_position)
+     #     else:
+     #         # 设置位为0
+     #         new_value = current_value & ~(1 << bit_position)
+     #
+     #     # 只有在值发生变化时才写入数据库
+     #     if current_value != new_value:
+     #         record.write({'online_download': new_value})
 
 
      def automation_state_read(self,address):
@@ -143,6 +199,8 @@ class WarehouseControlSystem(models.Model):
             {'db_number': 260, 'offset': address+1, 'bit_index': 3, 'value_type': 'bool'},
             {'db_number': 260, 'offset': address+1, 'bit_index': 4, 'value_type': 'bool'},
             {'db_number': 260, 'offset': address+1, 'bit_index': 5, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 6, 'value_type': 'bool'},
+            {'db_number': 260, 'offset': address+1, 'bit_index': 7, 'value_type': 'bool'},
 
             {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
 
@@ -178,10 +236,15 @@ class WarehouseControlSystem(models.Model):
             elif num == 12:
                 values_to_write['task_running'] = value
             elif num == 13:
-                values_to_write['none1'] = value
+                values_to_write['entrance1_goods'] = value
             elif num == 14:
-                values_to_write['none2'] = value
+                values_to_write['entrance2_goods'] = value
             elif num == 15:
+                values_to_write['none3'] = value
+            elif num == 16:
+                values_to_write['none4'] = value
+
+            elif num == 17:
                 values_to_write['estate'] = value
                 # print(value)
         # if values_to_write:
@@ -214,11 +277,23 @@ class WarehouseControlSystem(models.Model):
                     }
                 )
 
-     def channel_control_read_write(self):
+     def online_read_write(self):
+
          record = self.browse(6)
+         online_control = record.online_control
+         online_download = record.online_download
+
+         data_list = [
+             {'value': online_control, "db_number": 260, 'offset': 282, 'value_type': 'dint'},
+             {'value': online_download, "db_number": 260, 'offset': 286, 'value_type': 'dint'},
+         ]
+         for data in data_list:
+             PlcClient().db_number_write(data)
+
 
          results = [
-             {'db_number': 260, 'offset': 122, 'value_type': 'dint'},
+             {'db_number': 260, 'offset': 290, 'value_type': 'dint'},
+             {'db_number': 260, 'offset': 294, 'value_type': 'dint'},
          ]
          num = 0
          values_to_write = {}
@@ -226,54 +301,44 @@ class WarehouseControlSystem(models.Model):
              num += 1
              value = PlcClient().db_number_read(result)
              if num == 1:
-                 values_to_write['channel_update'] = value
+                 values_to_write['online_update'] = value
+             if num == 2:
+                 values_to_write['online_upload'] = value
 
-             # 只有当值发生变化时才写入数据库
+         # 只有当值发生变化时才写入数据库
          if values_to_write:
-             # record = self.browse(6)
              # 检查哪些字段发生了变化
              changed_fields = {}
              for field, new_value in values_to_write.items():
                  old_value = getattr(record, field)
                  if old_value != new_value:
                      changed_fields[field] = new_value
-                     _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+                     # _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
              # 只有当有字段发生变化时才写入数据库
+             # if changed_fields:
+             #     record.write(changed_fields)
+
              if changed_fields:
-                 record.write(changed_fields)
+                 # 添加重试机制处理并发冲突
+                 max_retries = 5
+                 retry_count = 0
+                 while retry_count < max_retries:
+                     try:
+                         record.write(changed_fields)
+                         break
+                     except Exception as e:
+                         if "由于同步更新而无法串行访问" in str(e) or "could not serialize access" in str(e):
+                             retry_count += 1
+                             if retry_count >= max_retries:
+                                 _logger.warning(f"Failed to update warehouse control system after {max_retries} retries: {str(e)}")
+                                 raise
+                             else:
+                                 # 等待随机时间后重试
+                                 time.sleep(0.1 * retry_count + 0.1 * (hash(str(record.id)) % 10) / 10)
+                                 _logger.warning(f"Retrying update warehouse control system due to serialization conflict, attempt {retry_count}")
+                         else:
+                             raise
 
-         channel_control = record.channel_control
-         channel_control_old = record.channel_control_old
-
-         if channel_control != channel_control_old:
-             record.write({'channel_control_old': channel_control})
-             data_list = [
-                 {'value': channel_control, "db_number": 260, 'offset': 118, 'value_type': 'dint'},
-             ]
-             for data in data_list:
-                 PlcClient().db_number_write(data)
-
-     def online_read_write(self):
-         record = self.browse(6)
-
-         results = [
-             {'db_number': 260, 'offset': 130, 'value_type': 'dint'},
-         ]
-         num = 0
-         values_to_write = {}
-         for result in results:
-             num += 1
-             value = PlcClient().db_number_read(result)
-             if num == 1:
-                 values_to_write['online_upload'] = value
-         record.write(values_to_write)
-
-         online_download = record.online_download
-         data_list = [
-             {'value': online_download, "db_number": 260, 'offset': 126, 'value_type': 'dint'},
-         ]
-         for data in data_list:
-             PlcClient().db_number_write(data)
 
      def auto_start_scheduler(self):
          log_message = "scheduler task start follow system !"

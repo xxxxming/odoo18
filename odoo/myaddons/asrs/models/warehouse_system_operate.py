@@ -202,6 +202,7 @@ class WarehouseSystemOperate(models.Model):
                 record = self.browse(1)
                 if record.exists():
                     self.compare_pack_number()
+                    # self.command_status_reset()
                     self.command_data_write(2)
                     print('onchange entrance')
             # 更新最后执行时间
@@ -231,8 +232,9 @@ class WarehouseSystemOperate(models.Model):
                     record.write({'pack_number': self.pack_number})
                     self.compare_pack_number()
                     self.command_data_write(2)
-                    self.refresh_fields_turn_on()
+                    # self.refresh_fields_turn_on()
                     print('onchange pack number')
+                    self.reset_pc_command()
             # 更新最后执行时间
             last_method_execution_time = time.time()
         finally:
@@ -271,7 +273,8 @@ class WarehouseSystemOperate(models.Model):
                 'pack_number': barcode_record.frame_number,
             })
             self.compare_pack_number()
-            self.refresh_fields_turn_on()
+
+            # self.refresh_fields_turn_on()
         else:
             raise UserError("未找到条码，请确认是否正确。如果是新条码，请从新登记。")
 
@@ -407,34 +410,18 @@ class WarehouseSystemOperate(models.Model):
                     vals['new_target'] = record.empty_location
 
 
-
-
                 # 入库选择默认出入口1或者按选择出入口
                 if not self.entrance or self.entrance == 'entrance1':
                     vals['source_target'] = entrance_1
                 elif self.entrance == 'entrance2':
                     vals['source_target'] = entrance_2
 
-
-
-
-
-
-
-
-
                 print('store record2', storage_record,storage_record,storage_record.pack_number,
                       barcode_record.frame_barcode,storage_record.pack_barcode)
 
 
-
-
-
-
-
             # 一次性写入所有值
             record.write(vals)
-
 
 
             # 检查哪些字段发生了变化
@@ -478,8 +465,6 @@ class WarehouseSystemOperate(models.Model):
                     _logger.info(f"Sent bus {typed_changed_fields} with ID {record.id}")
                 except Exception as e:
                     _logger.warning(f"Failed to send bus notification: {str(e)}")
-
-
 
     def find_empty_location(self):
         record = self.browse(1)
@@ -529,7 +514,8 @@ class WarehouseSystemOperate(models.Model):
         allow_outbound = record.allow_outbound
         allow_return = record.allow_return
         pack_number = record.pack_number
-        base_number = record.base_number
+        # base_number = record.base_number
+        base_number = information_record.base_number
         source_target = record.source_target
         new_target = record.new_target
         location_number = record.location_number
@@ -557,7 +543,7 @@ class WarehouseSystemOperate(models.Model):
             info_pack_barcode = 'No found!'
 
         #
-        # print('Info',info_base_number,info_pack_number,info_location_number,info_pack_barcode)
+        print('Info',info_base_number,info_pack_number,info_location_number,info_pack_barcode)
 
         if self.entrance == False:
             entrance = 0
@@ -577,21 +563,21 @@ class WarehouseSystemOperate(models.Model):
                 {'value': entrance,"db_number": 260,'offset': address+2,'value_type': 'int'},
                 {'value': pack_number,"db_number": 260,'offset': address+4,'value_type': 'int'},
                 {'value': base_number, "db_number": 260, 'offset': address+6, 'value_type': 'int'},
-                {'value': source_target, "db_number": 260, 'offset': address+8, 'value_type': 'int'},
-                {'value': new_target, "db_number": 260, 'offset': address+10, 'value_type': 'int'},
-                {'value': location_number,"db_number": 260,'offset': address+12,'value_type': 'dint'},
-                {'value': empty_location, "db_number": 260, 'offset': address+16, 'value_type': 'dint'},
-                {'value': pack_number_find_code, "db_number": 260, 'offset': address+20,"string_max_len": 18,'value_type': 'string'},
-                {'value': pack_barcode,"db_number": 260,'offset': address+42,"string_max_len": 18,'value_type': 'string'},
+                {'value': source_target, "db_number": 260, 'offset': address+8, 'value_type': 'dint'},
+                {'value': new_target, "db_number": 260, 'offset': address+12, 'value_type': 'dint'},
+                {'value': location_number,"db_number": 260,'offset': address+16,'value_type': 'dint'},
+                {'value': empty_location, "db_number": 260, 'offset': address+20, 'value_type': 'dint'},
+                {'value': pack_number_find_code, "db_number": 260, 'offset': address+24,"string_max_len": 18,'value_type': 'string'},
+                {'value': pack_barcode,"db_number": 260,'offset': address+46,"string_max_len": 18,'value_type': 'string'},
 
-                {'value': info_goods, "db_number": 260, 'offset': address+64, 'bit_index': 0, 'value_type': 'bool'},
-                {'value': info_cancel, "db_number": 260, 'offset': address+64, 'bit_index': 1, 'value_type': 'bool'},
-                {'value': info_fixed_pack_number, "db_number": 260, 'offset': address+64, 'bit_index': 2, 'value_type': 'bool'},
-                {'value': info_fixed_pack_barcode, "db_number": 260, 'offset': address+64, 'bit_index': 3, 'value_type': 'bool'},
-                {'value': info_base_number, "db_number": 260, 'offset': address+66, 'value_type': 'int'},
-                {'value': info_pack_number, "db_number": 260, 'offset': address+68, 'value_type': 'int'},
-                {'value': info_location_number, "db_number": 260, 'offset': address+70, 'value_type': 'dint'},
-                {'value': info_pack_barcode, "db_number": 260, 'offset': address+74, "string_max_len": 18, 'value_type': 'string'}
+                {'value': info_goods, "db_number": 260, 'offset': address+68, 'bit_index': 0, 'value_type': 'bool'},
+                {'value': info_cancel, "db_number": 260, 'offset': address+68, 'bit_index': 1, 'value_type': 'bool'},
+                {'value': info_fixed_pack_number, "db_number": 260, 'offset': address+68, 'bit_index': 2, 'value_type': 'bool'},
+                {'value': info_fixed_pack_barcode, "db_number": 260, 'offset': address+68, 'bit_index': 3, 'value_type': 'bool'},
+                {'value': info_base_number, "db_number": 260, 'offset': address+70, 'value_type': 'int'},
+                {'value': info_pack_number, "db_number": 260, 'offset': address+72, 'value_type': 'int'},
+                {'value': info_location_number, "db_number": 260, 'offset': address+74, 'value_type': 'dint'},
+                {'value': info_pack_barcode, "db_number": 260, 'offset': address+78, "string_max_len": 18, 'value_type': 'string'}
 
             ]
             for data in data_list:
@@ -612,52 +598,140 @@ class WarehouseSystemOperate(models.Model):
     @api.model
     def system_operate_read_write(self):
 
+        self.online_control_exchange()
+        self.task_status_changed()
+
+
+
+    def online_control_exchange(self):
         control_system = self.env['warehouse.control.system'].search([], limit=1)
 
-        channel_update = control_system.channel_update
-        channel_update_bit = {}
-        for i in range(32):  # 检查前32位
-            channel_update_bit[f'bit_{i}'] = bool((channel_update >> i) & 1)
+        online_update = control_system.online_update
+        online_control = control_system.online_control
+        online_update_bit = {}
+        online_control_bit = {}
+        for i in range(16):  # 检查前16位
+            online_update_bit[f'bit_{i}'] = bool((online_update >> i) & 1)
+        for i in range(16):  # 检查前16位
+            online_control_bit[f'bit_{i}'] = bool((online_control >> i) & 1)
+
+        # 构建新的online_download值
+        new_online_control = online_control
 
         if control_system.netdata:
-            if channel_update_bit['bit_1']:
-                self.storage_information_read()
-                control_system.channel_control_bit(1, True)
+
+            if online_update_bit['bit_1']:
+                self.storage_information_read(102)
+                new_online_control = new_online_control | (1 << 1)
             else:
-                control_system.channel_control_bit(1, False)
+                new_online_control = new_online_control & ~(1 << 1)
 
-            if channel_update_bit['bit_2']:
-                self.stacker_information_read()
-                control_system.channel_control_bit(2, True)
+            if online_update_bit['bit_2']:
+                self.stacker_information_read(134)
+                new_online_control = new_online_control | (1 << 2)
             else:
-                control_system.channel_control_bit(2, False)
+                new_online_control = new_online_control & ~(1 << 2)
 
-            if channel_update_bit['bit_3']:
-                self.entrance1_information_read()
-                control_system.channel_control_bit(3, True)
+            if online_update_bit['bit_3']:
+                self.move_store_information_read(166)
+                new_online_control = new_online_control | (1 << 3)
             else:
-                control_system.channel_control_bit(3, False)
+                new_online_control = new_online_control & ~(1 << 3)
 
-            if channel_update_bit['bit_4']:
-                self.entrance2_information_read()
-                control_system.channel_control_bit(4, True)
+            if online_update_bit['bit_4']:
+                self.entrance1_information_read(198)
+                new_online_control = new_online_control | (1 << 4)
             else:
-                control_system.channel_control_bit(4, False)
+                new_online_control = new_online_control & ~(1 << 4)
 
-            if channel_update_bit['bit_5']:
-                self.move_store_information_read()
-                control_system.channel_control_bit(5, True)
+            if online_update_bit['bit_5']:
+                self.entrance2_information_read(230)
+                new_online_control = new_online_control | (1 << 5)
             else:
-                control_system.channel_control_bit(5, False)
+                new_online_control = new_online_control & ~(1 << 5)
+
+            if online_update_bit['bit_6']:
+                self.update_information_read(0)
+                new_online_control = new_online_control | (1 << 6)
+            else:
+                new_online_control = new_online_control & ~(1 << 6)
+
+            if online_update_bit['bit_7']:
+                self.delete_information_read(32)
+                new_online_control = new_online_control | (1 << 7)
+            else:
+                new_online_control = new_online_control & ~(1 << 7)
+
+            if online_update_bit['bit_8']:
+                self.reset_pc_command()
+                new_online_control = new_online_control | (1 << 8)
+            else:
+                new_online_control = new_online_control & ~(1 << 8)
+
+            # 只有在值发生变化时才写入数据库
+
+            if online_control != new_online_control:
+                # control_system.write({'online_control': new_online_control})
+                # time.sleep(0.12)
+                # print('online control', new_online_control)
+                # control_system.write({'online_control': new_online_control})
+
+                max_retries = 5
+                retry_count = 0
+                while retry_count < max_retries:
+                    try:
+                        control_system.write({'online_control': new_online_control})
+                        break
+                    except Exception as e:
+                        if "由于同步更新而无法串行访问" in str(e) or "could not serialize access" in str(e):
+                            retry_count += 1
+                            if retry_count >= max_retries:
+                                _logger.warning(f"Failed to update online_control after {max_retries} retries: {str(e)}")
+                                raise
+                            else:
+                                # 等待随机时间后重试
+                                time.sleep(0.1 * retry_count + 0.1 * (hash(str(control_system.id)) % 10) / 10)
+                                _logger.warning(f"Retrying update online_control due to serialization conflict, attempt {retry_count}")
+                        else:
+                            raise
 
 
+    def reset_pc_command(self):
+        record = self.browse(1)
+        # 检查是否有字段从True变为False
+        changed_fields = {}
 
+        if record.move_stock:
+            record.write({'move_stock': False})
+            changed_fields['move_stock'] = False
+        if record.store:
+            record.write({'store': False})
+            changed_fields['store'] = False
+        if record.outbound:
+            record.write({'outbound': False})
+            changed_fields['outbound'] = False
+        if record.return_store:
+            record.write({'return_store': False})
+            changed_fields['return_store'] = False
 
+        # 如果有字段从True变为False，发送到频道
+        if changed_fields:
+            try:
 
-        self.status_changed()
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
 
+            except Exception as e:
+                _logger.error("Failed to send command status update notification: %s", str(e))
 
-    def status_changed(self):
+    def task_status_changed(self):
         record = self.browse(1)
         control_system = self.env['warehouse.control.system'].search([], limit=1)
         self.netcontrol = control_system.netcontrol
@@ -721,7 +795,7 @@ class WarehouseSystemOperate(models.Model):
             except Exception as e:
                 _logger.error("Failed to send status update notification: %s", str(e))
 
-    def storage_information_write(self):
+    def storage_information_write(self, address):
         """传递到PLC进行写入"""
         # 提取字段值
         storage_goods_status = self.storage_goods_status
@@ -733,18 +807,18 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': storage_goods_status,"db_number": 262,'offset': 0,'bit_index': 0,'value_type': 'bool'},
-                {'value': storage_base_number,"db_number": 262,'offset': 2,'value_type': 'int'},
-                {'value': storage_pack_number,"db_number": 262,'offset': 4,'value_type': 'int'},
-                {'value': storage_location_number,"db_number": 262,'offset': 6,'value_type': 'dint'},
-                {'value': storage_pack_barcode,"db_number": 262,'offset': 10,"string_max_len": 18,'value_type': 'string'}
+                {'value': storage_goods_status,"db_number": 260,'offset': address,'bit_index': 0,'value_type': 'bool'},
+                {'value': storage_base_number,"db_number": 260,'offset': address+2,'value_type': 'int'},
+                {'value': storage_pack_number,"db_number": 260,'offset': address+4,'value_type': 'int'},
+                {'value': storage_location_number,"db_number": 260,'offset': address+6,'value_type': 'dint'},
+                {'value': storage_pack_barcode,"db_number": 260,'offset': address+10,"string_max_len": 18,'value_type': 'string'}
             ]
             for data in data_list:
                 PlcClient().db_number_write(data)
         except Exception as e:
             _logger.error(f"库位信息写入失败！: {str(e)}")
             raise
-    def stacker_information_write(self):
+    def stacker_information_write(self, address):
         """传递到PLC进行写入"""
         # 提取字段值
         stacker_goods_status = self. stacker_goods_status
@@ -756,11 +830,11 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': stacker_goods_status, "db_number": 262, 'bit_index': 32, 'value_type': 'bool', },
-                {'value': stacker_base_number, "db_number": 262, 'offset': 34, 'value_type': 'int'},
-                {'value': stacker_pack_number, "db_number": 262, 'offset': 36, 'value_type': 'int'},
-                {'value': stacker_location_number, "db_number": 262, 'offset': 38, 'value_type': 'dint'},
-                {'value': stacker_pack_barcode, "db_number": 262, 'offset': 42, "string_max_len": 18,
+                {'value': stacker_goods_status, "db_number": 260, 'bit_index': address, 'value_type': 'bool', },
+                {'value': stacker_base_number, "db_number": 260, 'offset': address+2, 'value_type': 'int'},
+                {'value': stacker_pack_number, "db_number": 260, 'offset': address+4, 'value_type': 'int'},
+                {'value': stacker_location_number, "db_number": 260, 'offset': address+6, 'value_type': 'dint'},
+                {'value': stacker_pack_barcode, "db_number": 260, 'offset': address+10, "string_max_len": 18,
                  'value_type': 'string'}
             ]
             for data in data_list:
@@ -768,55 +842,7 @@ class WarehouseSystemOperate(models.Model):
         except Exception as e:
             _logger.error(f"库位信息写入失败！: {str(e)}")
             raise
-    def entrance1_information_write(self):
-        """传递到PLC进行写入"""
-        # 提取字段值
-        entrance1_goods_status = self.entrance1_goods_status
-        entrance1_base_number = self.entrance1_base_number
-        entrance1_pack_number = self.entrance1_pack_number
-        entrance1_location_number = self.entrance1_location_number
-        entrance1_pack_barcode = self.entrance1_pack_barcode
-        # plc_client = PlcClient()
-        try:
-            # 批量写入
-            data_list = [
-                {'value': entrance1_goods_status, "db_number": 262, 'bit_index': 64, 'value_type': 'bool', },
-                {'value': entrance1_base_number, "db_number": 262, 'offset': 66, 'value_type': 'int'},
-                {'value': entrance1_pack_number, "db_number": 262, 'offset': 68, 'value_type': 'int'},
-                {'value': entrance1_location_number, "db_number": 262, 'offset': 70, 'value_type': 'dint'},
-                {'value': entrance1_pack_barcode, "db_number": 262, 'offset': 74, "string_max_len": 18,
-                 'value_type': 'string'}
-            ]
-            for data in data_list:
-                PlcClient().db_number_write(data)
-        except Exception as e:
-            _logger.error(f"库位信息写入失败！: {str(e)}")
-            raise
-    def entrance2_information_write(self):
-        """传递到PLC进行写入"""
-        # 提取字段值
-        entrance2_goods_status = self.entrance2_goods_status
-        entrance2_base_number = self.entrance2_base_number
-        entrance2_pack_number = self.entrance2_pack_number
-        entrance2_location_number = self.entrance2_location_number
-        entrance2_pack_barcode = self.entrance2_pack_barcode
-        # plc_client = PlcClient()
-        try:
-            # 批量写入
-            data_list = [
-                {'value': entrance2_goods_status, "db_number": 262, 'bit_index': 96, 'value_type': 'bool', },
-                {'value': entrance2_base_number, "db_number": 262, 'offset': 98, 'value_type': 'int'},
-                {'value': entrance2_pack_number, "db_number": 262, 'offset': 100, 'value_type': 'int'},
-                {'value': entrance2_location_number, "db_number": 262, 'offset': 102, 'value_type': 'dint'},
-                {'value': entrance2_pack_barcode, "db_number": 262, 'offset': 106, "string_max_len": 18,
-                 'value_type': 'string'}
-            ]
-            for data in data_list:
-                PlcClient().db_number_write(data)
-        except Exception as e:
-            _logger.error(f"库位信息写入失败！: {str(e)}")
-            raise
-    def move_store_information_write(self):
+    def move_store_information_write(self, address):
         """传递到PLC进行写入"""
         # 提取字段值
         move_store_goods_status = self.move_store_goods_status
@@ -828,11 +854,11 @@ class WarehouseSystemOperate(models.Model):
         try:
             # 批量写入
             data_list = [
-                {'value': move_store_goods_status, "db_number": 262, 'bit_index': 96, 'value_type': 'bool', },
-                {'value': move_store_base_number, "db_number": 262, 'offset': 98, 'value_type': 'int'},
-                {'value': move_store_pack_number, "db_number": 262, 'offset': 100, 'value_type': 'int'},
-                {'value': move_store_location_number, "db_number": 262, 'offset': 102, 'value_type': 'dint'},
-                {'value': move_store_pack_barcode, "db_number": 262, 'offset': 106, "string_max_len": 18,
+                {'value': move_store_goods_status, "db_number": 260, 'bit_index': address, 'value_type': 'bool', },
+                {'value': move_store_base_number, "db_number": 260, 'offset': address+2, 'value_type': 'int'},
+                {'value': move_store_pack_number, "db_number": 260, 'offset': address+4, 'value_type': 'int'},
+                {'value': move_store_location_number, "db_number": 260, 'offset': address+6, 'value_type': 'dint'},
+                {'value': move_store_pack_barcode, "db_number": 260, 'offset': address+10, "string_max_len": 18,
                  'value_type': 'string'}
             ]
             for data in data_list:
@@ -841,43 +867,92 @@ class WarehouseSystemOperate(models.Model):
             _logger.error(f"库位信息写入失败！: {str(e)}")
             raise
 
-    def _information_read(self):
+    def entrance1_information_write(self, address):
+        """传递到PLC进行写入"""
+        # 提取字段值
+        entrance1_goods_status = self.entrance1_goods_status
+        entrance1_base_number = self.entrance1_base_number
+        entrance1_pack_number = self.entrance1_pack_number
+        entrance1_location_number = self.entrance1_location_number
+        entrance1_pack_barcode = self.entrance1_pack_barcode
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': entrance1_goods_status, "db_number": 260, 'bit_index': address, 'value_type': 'bool', },
+                {'value': entrance1_base_number, "db_number": 260, 'offset': address+2, 'value_type': 'int'},
+                {'value': entrance1_pack_number, "db_number": 260, 'offset': address+4, 'value_type': 'int'},
+                {'value': entrance1_location_number, "db_number": 260, 'offset': address+6, 'value_type': 'dint'},
+                {'value': entrance1_pack_barcode, "db_number": 260, 'offset': address+10, "string_max_len": 18,
+                 'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+    def entrance2_information_write(self, address):
+        """传递到PLC进行写入"""
+        # 提取字段值
+        entrance2_goods_status = self.entrance2_goods_status
+        entrance2_base_number = self.entrance2_base_number
+        entrance2_pack_number = self.entrance2_pack_number
+        entrance2_location_number = self.entrance2_location_number
+        entrance2_pack_barcode = self.entrance2_pack_barcode
+        # plc_client = PlcClient()
+        try:
+            # 批量写入
+            data_list = [
+                {'value': entrance2_goods_status, "db_number": 260, 'bit_index': address, 'value_type': 'bool', },
+                {'value': entrance2_base_number, "db_number": 260, 'offset': address+2, 'value_type': 'int'},
+                {'value': entrance2_pack_number, "db_number": 260, 'offset': address+4, 'value_type': 'int'},
+                {'value': entrance2_location_number, "db_number": 260, 'offset': address+6, 'value_type': 'dint'},
+                {'value': entrance2_pack_barcode, "db_number": 260, 'offset': address+10, "string_max_len": 18,
+                 'value_type': 'string'}
+            ]
+            for data in data_list:
+                PlcClient().db_number_write(data)
+        except Exception as e:
+            _logger.error(f"库位信息写入失败！: {str(e)}")
+            raise
+
+    def _information_read(self, address):
         """读取测试-批量"""
         results = [
             # 库位有货，序号，框号，库位号，1-5
-            {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
-            {'db_number': 262, 'offset': 2, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 4, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 6, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 10, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address + 2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address + 10, 'value_type': 'string', "string_max_len": 18},
 
             # 堆高机，框号，库位号，框条码， 6-10
-            {'db_number': 262, 'offset': 32, 'value_type': 'bool', 'bit_index': 0},
-            {'db_number': 262, 'offset': 34, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 36, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 38, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 42, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address + 32, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address + 34, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 36, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 38, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address + 42, 'value_type': 'string', "string_max_len": 18},
 
             # 出入口1，框号，库位号，框条码， 11-15
-            {'db_number': 262, 'offset': 64, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 66, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 68, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 70, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 74, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address + 64, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address + 66, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 68, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 70, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address + 74, 'value_type': 'string', "string_max_len": 18},
 
             # 出入口2，框号，库位号，框条码， 16-20
-            {'db_number': 262, 'offset': 96, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 98, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 100, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 102, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 106, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address + 96, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address + 98, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 100, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 102, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address + 106, 'value_type': 'string', "string_max_len": 18},
 
             # 移库，框号，库位号，框条码， 21-25
-            {'db_number': 262, 'offset': 128, 'value_type': 'bool', 'bit_index': 0},
-            {'db_number': 262, 'offset': 130, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 132, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 134, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 138, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address + 128, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address + 130, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 132, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address + 134, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address + 138, 'value_type': 'string', "string_max_len": 18},
 
         ]
         num = 0
@@ -967,15 +1042,97 @@ class WarehouseSystemOperate(models.Model):
                     }
                 )
 
-    def storage_information_read(self):
+    def test_button(self):
+        self.update_information_read(0)
+
+    def update_information_read(self, address):
+
+        results = [
+            # 库位有货，序号，框号，库位号，框条码
+            {'db_number': 262, 'offset': address, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 262, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 262, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 262, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        update_location_number = 0
+        values_to_write = {}
+        for result in results:
+            num += 1
+            value = PlcClient().db_number_read(result)
+            if num == 1:
+                values_to_write['goods_status'] = value
+            # elif num == 2:
+            #     values_to_write['base_number'] = value
+            elif num == 3:
+                values_to_write['pack_number'] = value
+            elif num == 4:
+                values_to_write['location_number'] = value
+                update_location_number = value
+            elif num == 5:
+                values_to_write['pack_barcode'] = value
+
+        if values_to_write:
+            print(values_to_write)
+            storage_record = self.env['warehouse.location.information'].search(
+                [('location_number', '=', update_location_number),
+                       ('location_number', '!=', 0)], limit=1)
+            if storage_record:
+                storage_record.write(values_to_write)
+
+            else:
+               _logger.info("The storage location does not exist, no updated data!")
+
+    def delete_information_read(self, address):
+
+        results = [
+            # 库位有货，序号，框号，库位号，框条码
+            {'db_number': 262, 'offset': address, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 262, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 262, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 262, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 262, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        update_location_number = 0
+        values_to_write = {}
+        for result in results:
+            num += 1
+            value = PlcClient().db_number_read(result)
+            if num == 1:
+                values_to_write['goods_status'] = value
+            # elif num == 2:
+            #     values_to_write['base_number'] = value
+            elif num == 3:
+                values_to_write['pack_number'] = value
+            elif num == 4:
+                values_to_write['location_number'] = value
+                update_location_number = value
+            elif num == 5:
+                values_to_write['pack_barcode'] = value
+
+        if values_to_write:
+            print(values_to_write)
+            storage_record = self.env['warehouse.location.information'].search(
+                [('location_number', '=', update_location_number),
+                       ('location_number', '!=', 0)], limit=1)
+            if storage_record:
+                storage_record.write(values_to_write)
+                print(values_to_write)
+            else:
+               _logger.info("The storage location does not exist, no updated data!")
+
+
+    def storage_information_read(self, address):
         """读取测试-批量"""
         results = [
             # 库位有货，序号，框号，库位号，框条码
-            {'db_number': 262, 'offset': 0, 'value_type': 'bool', 'bit_index': 0},
-            {'db_number': 262, 'offset': 2, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 4, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 6, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 10, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index': 0},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -1021,15 +1178,15 @@ class WarehouseSystemOperate(models.Model):
                     }
                 )
 
-    def stacker_information_read(self):
+    def stacker_information_read(self, address):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 32, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 34, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 36, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 38, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 42, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -1069,15 +1226,63 @@ class WarehouseSystemOperate(models.Model):
                         'changed_fields': changed_fields
                     }
                 )
-    def entrance1_information_read(self):
+    def move_store_information_read(self, address):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 64, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 66, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 68, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 70, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 74, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
+        ]
+        num = 0
+        values_to_write = {}
+        for result in results:
+            num += 1
+            value = PlcClient().db_number_read(result)
+            if num == 1:
+                values_to_write['move_store_goods_status'] = value
+            elif num == 2:
+                values_to_write['move_store_base_number'] = value
+            elif num == 3:
+                values_to_write['move_store_pack_number'] = value
+            elif num == 4:
+                values_to_write['move_store_location_number'] = value
+            elif num == 5:
+                values_to_write['move_store_pack_barcode'] = value
+        if values_to_write:
+            record = self.browse(1)
+            # 检查哪些字段发生了变化
+            changed_fields = {}
+            for field, new_value in values_to_write.items():
+                old_value = getattr(record, field)
+                if old_value != new_value:
+                    changed_fields[field] = new_value
+                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
+            # 只有当有字段发生变化时才更新并发送通知
+            if changed_fields:
+                record.write(changed_fields)
+                print(changed_fields)
+                # 发送通知到前端，只包含变化的字段
+                self.env['bus.bus']._sendone(
+                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
+                    'warehouse.data_update',
+                    {
+                        'model': 'warehouse.system.operate',
+                        'id': record.id,
+                        'changed_fields': changed_fields
+                    }
+                )
+    def entrance1_information_read(self, address):
+        """读取测试-批量"""
+        results = [
+            #库位有货，框号，库位号，框条码
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -1117,15 +1322,15 @@ class WarehouseSystemOperate(models.Model):
                         'changed_fields': changed_fields
                     }
                 )
-    def entrance2_information_read(self):
+    def entrance2_information_read(self, address):
         """读取测试-批量"""
         results = [
             #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 96, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 98, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 100, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 102, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 106, 'value_type': 'string', "string_max_len": 18},
+            {'db_number': 260, 'offset': address, 'value_type': 'bool', 'bit_index':0},
+            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+6, 'value_type': 'dint'},
+            {'db_number': 260, 'offset': address+10, 'value_type': 'string', "string_max_len": 18},
         ]
         num = 0
         values_to_write = {}
@@ -1166,54 +1371,7 @@ class WarehouseSystemOperate(models.Model):
                     }
                 )
 
-    def move_store_information_read(self):
-        """读取测试-批量"""
-        results = [
-            #库位有货，框号，库位号，框条码
-            {'db_number': 262, 'offset': 128, 'value_type': 'bool', 'bit_index':0},
-            {'db_number': 262, 'offset': 130, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 132, 'value_type': 'int'},
-            {'db_number': 262, 'offset': 134, 'value_type': 'dint'},
-            {'db_number': 262, 'offset': 138, 'value_type': 'string', "string_max_len": 18},
-        ]
-        num = 0
-        values_to_write = {}
-        for result in results:
-            num += 1
-            value = PlcClient().db_number_read(result)
-            if num == 1:
-                values_to_write['move_store_goods_status'] = value
-            elif num == 2:
-                values_to_write['move_store_base_number'] = value
-            elif num == 3:
-                values_to_write['move_store_pack_number'] = value
-            elif num == 4:
-                values_to_write['move_store_location_number'] = value
-            elif num == 5:
-                values_to_write['move_store_pack_barcode'] = value
-        if values_to_write:
-            record = self.browse(1)
-            # 检查哪些字段发生了变化
-            changed_fields = {}
-            for field, new_value in values_to_write.items():
-                old_value = getattr(record, field)
-                if old_value != new_value:
-                    changed_fields[field] = new_value
-                    _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
-            # 只有当有字段发生变化时才更新并发送通知
-            if changed_fields:
-                record.write(changed_fields)
-                print(changed_fields)
-                # 发送通知到前端，只包含变化的字段
-                self.env['bus.bus']._sendone(
-                    channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
-                    'warehouse.data_update',
-                    {
-                        'model': 'warehouse.system.operate',
-                        'id': record.id,
-                        'changed_fields': changed_fields
-                    }
-                )
+
     def emergency_button(self):
         record = self.browse(1)
         record.emergency_stop = not record.emergency_stop

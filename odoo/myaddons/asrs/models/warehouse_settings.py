@@ -55,7 +55,7 @@ class WarehouseSettings(models.Model):
 
           record = self.env['warehouse.location.information']
           self.sync_building,self.sync_column,self.sync_layer=record.location_disintegrate(self.sync_location)
-          self.sync_location_write(108)
+          self.sync_location_write(272)
 
      def sync_location_write(self, address):
           """传递到PLC进行写入"""
@@ -68,7 +68,7 @@ class WarehouseSettings(models.Model):
           try:
                # 批量写入
                data_list = [
-                    {'value': sync_building, "db_number": 260, 'offset': address + 0, 'value_type': 'int'},
+                    {'value': sync_building, "db_number": 260, 'offset': address, 'value_type': 'int'},
                     {'value': sync_column, "db_number": 260, 'offset': address + 2, 'value_type': 'int'},
                     {'value': sync_layer, "db_number": 260, 'offset': address + 4, 'value_type': 'int'},
                     {'value': sync_location, "db_number": 260, 'offset': address + 6, 'value_type': 'dint'},
@@ -98,7 +98,7 @@ class WarehouseSettings(models.Model):
           try:
                # 批量写入
                data_list = [
-                    {'value': goods_status, "db_number": 262, 'offset': address+0, 'bit_index': 0,'value_type': 'bool'},
+                    {'value': goods_status, "db_number": 262, 'offset': address, 'bit_index': 0,'value_type': 'bool'},
                     {'value': base_number, "db_number": 262, 'offset': address+2, 'value_type': 'int'},
                     {'value': pack_number, "db_number": 262, 'offset': address+4, 'value_type': 'int'},
                     {'value': location_number, "db_number": 262, 'offset': address+6, 'value_type': 'dint'},
@@ -114,7 +114,7 @@ class WarehouseSettings(models.Model):
           """读取测试-批量"""
           results = [
                # 库位有货，序号，框号，库位号，框条码
-               {'db_number': 262, 'offset': address+0, 'value_type': 'bool', 'bit_index': 0},
+               {'db_number': 262, 'offset': address, 'value_type': 'bool', 'bit_index': 0},
                {'db_number': 262, 'offset': address+2, 'value_type': 'int'},
                {'db_number': 262, 'offset': address+4, 'value_type': 'int'},
                {'db_number': 262, 'offset': address+6, 'value_type': 'dint'},
@@ -151,14 +151,14 @@ class WarehouseSettings(models.Model):
                print(values_to_write)
 
      def sync_locations_read(self):
-          self.sync_information_read(self.sync_location, 160)
+          self.sync_information_read(self.sync_location, 0)
 
           log_message = f"读取库位：{self.sync_location} 同步完成 ！"
           _logger.info(log_message)
           self.log_sync_location(log_message)
 
      def sync_locations_write(self):
-         self.sync_information_write(self.sync_location,192)
+         self.sync_information_write(self.sync_location,32)
 
          log_message = f"写入库位：{self.sync_location} 同步完成 ！"
          _logger.info(log_message)
@@ -182,18 +182,18 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = self.sync_column
           layer = 0
-          start_address = 224-32
+          start_address = 128
           # 同步列数据，读取同一列的每一层数据进行同步
           for i in range(0, setting_column):
                layer += 1
                location = building*10000 + column*100 + layer
-               start_address += 32
                try:
                     self.sync_information_read(location, start_address)
                except Exception as e:
                     _logger.error(f"同步库位 {location} 失败: {str(e)}")
                     # 记录错误但继续处理其他库位
                     continue
+               start_address += 32
                print(layer,location)
           pass
 
@@ -207,19 +207,20 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = self.sync_column
           layer = 0
-          start_address = 864-32
+          start_address = 768
 
           # 同步列数据，写入同一列的每一层数据进行同步
           for i in range(0,setting_layer):
                layer += 1
                location = building*10000 + column*100 + layer
-               start_address += 32
+
                try:
                     self.sync_information_write(location, start_address)
                except Exception as e:
                     _logger.error(f"同步库位 {location} 失败: {str(e)}")
                     # 记录错误但继续处理其他库位
                     continue
+               start_address += 32
                print(layer,location)
 
 
@@ -233,19 +234,19 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = 0
           layer = self.sync_layer
-          start_address = 1504-32
+          start_address = 1408
           # 同步层数据，读取不同列的同一层数据进行同步
           for i in range(1, setting_column + 1):
                column += 1
                location = building * 10000 + column * 100 + layer
-               start_address += 32
+
                try:
                     self.sync_information_read(location, start_address)
                except Exception as e:
                     _logger.error(f"同步库位 {location} 失败: {str(e)}")
                     # 记录错误但继续处理其他库位
                     continue
-
+               start_address += 32
                print(column, location)
           pass
 
@@ -259,21 +260,20 @@ class WarehouseSettings(models.Model):
           building = self.sync_building
           column = 0
           layer = self.sync_layer
-          start_address = 2144-32
+          start_address = 2048
           # 同步层数据，写入不同列的同一层数据进行同步
           for i in range(0, setting_column):
                column += 1
                location = building * 10000 + column * 100 + layer
-               start_address += 32
+
                try:
                     self.sync_information_write(location, start_address)
                except Exception as e:
                     _logger.error(f"同步库位 {location} 失败: {str(e)}")
                     # 记录错误但继续处理其他库位
                     continue
+               start_address += 32
                print(layer,location)
-
-
 
 
      # Logs

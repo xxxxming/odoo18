@@ -22,13 +22,23 @@
             <form js_class="warehouse_form">
 
                 <header>
-                    <button name="emergency_button" type="object" string="急停按钮"/>
+                    <button name="emergency_button" type="object" string="急停按钮" class="btn-danger"
+                            invisible="emergency_stop != True"/>
+                    <button name="emergency_button" type="object" string="急停按钮" class="btn-secondary"
+                            invisible="emergency_stop == True"/>
+
 <!--                    <button name="manual_auto_button" type="object" string="手动模式"/>-->
 <!--                    <button name="start_button" type="object" string="启动按钮"/>-->
 <!--                    <button name="stop_button" type="object" string="停止按钮"/>-->
 <!--                    <button name="pause_button" type="object" string="暂停按钮"/>-->
+
+                    <button name="pause_button" type="object" string="暂停按钮" class="btn-warning"
+                            invisible="pause != True"/>
+                    <button name="pause_button" type="object" string="暂停按钮" class="btn-secondary"
+                            invisible="pause == True"/>
+
 <!--                    <button name="reset_button" type="object" string="复位按钮"/>-->
-                        <button name="find_empty_location" type="object" string="测试按钮"/>
+                    <button name="test_button" type="object" string="测试按钮"/>
 
                     <field name="status" widget="statusbar"/>
                 </header>
@@ -62,32 +72,48 @@
                                     <field name="allow_move_stock" readonly="True"/>
                                 </group>
                                 <group>
-                                    <button name="move_stock_button" type="object" string="执行移库"
-                                            class="btn-info"/>
+<!--                                    <button name="move_stock_button" type="object" string="执行移库"-->
+<!--                                            class="btn-info"/>-->
+                                    <button name="move_stock_button" type="object" string="执行移库" class="btn-success"
+                                            invisible="move_stock != True"/>
+                                    <button name="move_stock_button" type="object" string="执行移库" class="btn-secondary"
+                                            invisible="move_stock == True"/>
                                 </group>
                                 <newline/>
                                     <group>
                                         <field name="allow_store" readonly="True"/>
                                     </group>
                                 <group>
-                                    <button name="store_button" type="object" string="执行入库"
-                                            class="btn-info"/>
+<!--                                    <button name="store_button" type="object" string="执行入库"-->
+<!--                                            class="btn-info"/>-->
+                                    <button name="store_button" type="object" string="执行入库" class="btn-success"
+                                            invisible="store != True"/>
+                                    <button name="store_button" type="object" string="执行入库" class="btn-secondary"
+                                            invisible="store == True"/>
                                 </group>
                                 <newline/>
                                 <group>
                                     <field name="allow_outbound" readonly="True"/>
                                 </group>
                                 <group>
-                                    <button name="outbound_button" type="object" string="执行出库"
-                                            class="btn-info"/>
+<!--                                    <button name="outbound_button" type="object" string="执行出库"-->
+<!--                                            class="btn-info"/>-->
+                                    <button name="outbound_button" type="object" string="执行出库" class="btn-success"
+                                            invisible="outbound != True"/>
+                                    <button name="outbound_button" type="object" string="执行出库" class="btn-secondary"
+                                            invisible="outbound == True"/>
                                 </group>
                                 <newline/>
                                 <group>
                                     <field name="allow_return" readonly="True"/>
                                 </group>
                                 <group>
-                                    <button name="return_store_button" type="object" string="执行返库"
-                                            class="btn-info"/>
+<!--                                    <button name="return_store_button" type="object" string="执行返库"-->
+<!--                                            class="btn-info"/>-->
+                                    <button name="return_store_button" type="object" string="执行返库" class="btn-success"
+                                            invisible="return_store != True"/>
+                                    <button name="return_store_button" type="object" string="执行返库" class="btn-secondary"
+                                            invisible="return_store == True"/>
                                 </group>
                             </group>
                         </group>

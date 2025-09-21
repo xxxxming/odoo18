@@ -96,14 +96,24 @@ class WarehouseLocationInformation(models.Model):
                remaining = location % 10000  # 剩余部分为后四位
                column = remaining // 100  # 取中间两位
                layer = remaining % 100  # 取最后两位
-               # 层递增
-               layer += 1
-               if layer > settings.layer:
-                    layer = 1
-                    column += 1
+               # # 层递增
+               # layer += 1
+               # if layer > settings.layer:
+               #      layer = 1
+               #      column += 1
+               #
+               # if column > settings.column:
+               #      column = 1
+               #      building += 1
 
+               # 列递增
+               column += 1
                if column > settings.column:
                     column = 1
+                    layer += 1
+
+               if layer > settings.layer:
+                    layer = 1
                     building += 1
 
                base_number += 1
