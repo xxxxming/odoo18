@@ -17,7 +17,7 @@
         'views/warehouse_menus.xml',
         # 'data/scheduled_actions.xml',
         #'views/assets.xml'
-        'data/warehouse_control_system_data1.xml',
+        # 'data/warehouse_control_system_data1.xml',
     ],
     'assets': {
         'web.assets_backend': [

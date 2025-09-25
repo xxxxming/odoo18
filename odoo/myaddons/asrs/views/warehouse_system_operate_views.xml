@@ -64,7 +64,7 @@
                                 <field name="entrance" style="background-color: #e6e6fa;width: 180px;"/>
                                 <field name="source_target" style="width:180px;"/>
                                 <field name="new_target" style="width:180px;"/>
-                                <field name="auto_ready"  readonly="True"/>
+                                <field name="auto_ready" readonly="True"/>
                             </group>
                             <group>
                                 <newline/>

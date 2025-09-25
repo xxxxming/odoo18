@@ -179,6 +179,10 @@ class WarehouseSystemOperate(models.Model):
                 record.write({'Operation_permissions': True})
             elif  record.current_user_name == 'hugo':
                 record.write({'Operation_permissions': True})
+            elif  record.current_user_name == '劳汝清':
+                record.write({'Operation_permissions': True})
+            elif  record.current_user_name == '邓志光':
+                record.write({'Operation_permissions': True})
             else:
                 record.write({'Operation_permissions': False})
 
@@ -204,7 +208,7 @@ class WarehouseSystemOperate(models.Model):
                     self.compare_pack_number()
                     # self.command_status_reset()
                     self.command_data_write(2)
-                    print('onchange entrance')
+
             # 更新最后执行时间
             last_method_execution_time = time.time()
         finally:
@@ -233,7 +237,7 @@ class WarehouseSystemOperate(models.Model):
                     self.compare_pack_number()
                     self.command_data_write(2)
                     # self.refresh_fields_turn_on()
-                    print('onchange pack number')
+
                     self.reset_pc_command()
             # 更新最后执行时间
             last_method_execution_time = time.time()
@@ -265,7 +269,7 @@ class WarehouseSystemOperate(models.Model):
     def compare_pack_barcode(self):
         barcode_record = self.env['warehouse.frame.barcode'].search(
             [('frame_barcode', '=', self.pack_barcode)], limit=1)
-        print('pack_changed2')
+
         if barcode_record:
             self.pack_number = barcode_record.frame_number
             record = self.browse(1)
@@ -295,16 +299,12 @@ class WarehouseSystemOperate(models.Model):
                 limit=1)
                 # if not storage_record or not storage_record.pack_barcode else None
 
-            print('barcode', barcode_record)
             # 检查barcode_record是否存在，避免访问None对象属性
             if barcode_record:
                 record.pack_number_find_code = barcode_record.frame_barcode
-                print('find barcode', record.pack_number_find_code)
+
             else:
                 record.pack_number_find_code = 'No found!'
-                print('no find barcode', record.pack_number_find_code)
-            #查找空库位
-            self.find_empty_location()
 
             # 保存变更前的值用于比较
             old_values = {
@@ -317,6 +317,7 @@ class WarehouseSystemOperate(models.Model):
                 'location_number': record.location_number,
                 'source_target': record.source_target,
                 'new_target': record.new_target,
+                # 'empty_location': record.empty_location,
             }
 
             # 初始化默认值
@@ -326,6 +327,8 @@ class WarehouseSystemOperate(models.Model):
                 'allow_outbound': False,
                 'allow_return': False,
             }
+            # 查找空库位
+            self.find_empty_location()
 
             # 如果库存中数据中没有对应的框条码，则获取框条码
             if storage_record and storage_record.pack_barcode:
@@ -344,14 +347,14 @@ class WarehouseSystemOperate(models.Model):
 
             # 如果能在库存里找到对应的框号，则获取库位信息
             if storage_record:
-                print('store record', storage_record)
+
                 vals.update({
                     'pack_number': storage_record.pack_number,
                     'location_number': storage_record.location_number,
                 })
 
                 if storage_record.goods_status:
-                    # print('status', storage_record.goods_status)
+
                     if self.entrance:
                         vals['source_target'] = storage_record.location_number
                         vals.update({
@@ -416,13 +419,11 @@ class WarehouseSystemOperate(models.Model):
                 elif self.entrance == 'entrance2':
                     vals['source_target'] = entrance_2
 
-                print('store record2', storage_record,storage_record,storage_record.pack_number,
-                      barcode_record.frame_barcode,storage_record.pack_barcode)
-
+            # if record.empty_location!=0:
+            # vals['empty_location'] = record.empty_location
 
             # 一次性写入所有值
             record.write(vals)
-
 
             # 检查哪些字段发生了变化
             changed_fields = {}
@@ -489,19 +490,33 @@ class WarehouseSystemOperate(models.Model):
         # for record in location_record_2:
         #     print('B2', record.location_number)
 
-        # 剩余部分为后四位
-        column_layer_1 = location_record_1[0].location_number % 10000
-        column_layer_2 = location_record_2[0].location_number % 10000
-
-        if column_layer_1 < column_layer_2:
+        if location_record_1 and not location_record_2:
             record.write({
                 'empty_location': location_record_1[0].location_number,
             })
 
-        else:
+        if not location_record_1 and location_record_2:
             record.write({
                 'empty_location': location_record_2[0].location_number,
             })
+
+        if location_record_1 and location_record_2:
+            column_layer_1 = location_record_1[0].location_number % 10000
+            column_layer_2 = location_record_2[0].location_number % 10000
+            if column_layer_1 < column_layer_2:
+                record.write({
+                    'empty_location': location_record_1[0].location_number,
+                })
+            else:
+                record.write({
+                    'empty_location': location_record_2[0].location_number,
+                })
+
+        if not location_record_1 and not location_record_2:
+            record.write({
+                'empty_location': 0,
+            })
+            _logger.warning("No empty location found.")
 
     def command_data_write(self,address):
         information_record = self.env['warehouse.location.information'].search(
@@ -541,9 +556,6 @@ class WarehouseSystemOperate(models.Model):
             info_pack_number = 0
             info_location_number = 0
             info_pack_barcode = 'No found!'
-
-        #
-        print('Info',info_base_number,info_pack_number,info_location_number,info_pack_barcode)
 
         if self.entrance == False:
             entrance = 0
@@ -780,7 +792,7 @@ class WarehouseSystemOperate(models.Model):
 
         # 只有当有字段真正改变时才发送通知
         if changed_fields:
-            print(changed_fields)
+
             try:
                 # 当状态发生变化时发送消息到频道
                 self.env['bus.bus']._sendone(
@@ -1030,7 +1042,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
@@ -1074,7 +1086,7 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['pack_barcode'] = value
 
         if values_to_write:
-            print(values_to_write)
+
             storage_record = self.env['warehouse.location.information'].search(
                 [('location_number', '=', update_location_number),
                        ('location_number', '!=', 0)], limit=1)
@@ -1113,13 +1125,13 @@ class WarehouseSystemOperate(models.Model):
                 values_to_write['pack_barcode'] = value
 
         if values_to_write:
-            print(values_to_write)
+
             storage_record = self.env['warehouse.location.information'].search(
                 [('location_number', '=', update_location_number),
                        ('location_number', '!=', 0)], limit=1)
             if storage_record:
                 storage_record.write(values_to_write)
-                print(values_to_write)
+
             else:
                _logger.info("The storage location does not exist, no updated data!")
 
@@ -1166,7 +1178,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
@@ -1215,7 +1227,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
@@ -1263,7 +1275,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
@@ -1311,7 +1323,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),
@@ -1359,7 +1371,7 @@ class WarehouseSystemOperate(models.Model):
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print(changed_fields)
+
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_data_update'),

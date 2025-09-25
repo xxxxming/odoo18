@@ -63,7 +63,7 @@ class WarehouseControlSystem(models.Model):
      def control_system_read_write(self):
          # self.channel_control_read_write()
          self.online_read_write()
-         record = self.browse(6)
+         record = self.browse(1)
          online_update = record.online_update
          online_upload = record.online_upload
          online_download = record.online_download
@@ -253,7 +253,7 @@ class WarehouseControlSystem(models.Model):
         #     # print(values_to_write)
 
         if values_to_write:
-            record = self.browse(6)
+            record = self.browse(1)
             # 检查哪些字段发生了变化
             changed_fields = {}
             for field, new_value in values_to_write.items():
@@ -279,7 +279,7 @@ class WarehouseControlSystem(models.Model):
 
      def online_read_write(self):
 
-         record = self.browse(6)
+         record = self.browse(1)
          online_control = record.online_control
          online_download = record.online_download
 
@@ -418,28 +418,24 @@ class WarehouseControlSystem(models.Model):
              else:
                  record.last_30_logs = ""
 
-
-
-
-
-class WarehouseControlSystemInput(models.Model):
-    _name = 'warehouse.control.system.input'
-    _description = 'Warehouse Control System Input Signals'
-
-    name = fields.Char(string="信号名称", required=True)
-    address = fields.Char(string="地址", required=True)  # 如 I0.0, I0.1等
-    value = fields.Boolean(string="状态")
-    wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
-
-class WarehouseControlSystemOutput(models.Model):
-    _name = 'warehouse.control.system.output'
-    _description = 'Warehouse Control System Output Signals'
-
-    name = fields.Char(string="信号名称", required=True)
-    address = fields.Char(string="地址", required=True)  # 如 Q0.0, Q0.1等
-    value = fields.Boolean(string="状态")
-    wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
-
+# class WarehouseControlSystemInput(models.Model):
+#     _name = 'warehouse.control.system.input'
+#     _description = 'Warehouse Control System Input Signals'
+#
+#     name = fields.Char(string="信号名称", required=True)
+#     address = fields.Char(string="地址", required=True)  # 如 I0.0, I0.1等
+#     value = fields.Boolean(string="状态")
+#     wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
+#
+# class WarehouseControlSystemOutput(models.Model):
+#     _name = 'warehouse.control.system.output'
+#     _description = 'Warehouse Control System Output Signals'
+#
+#     name = fields.Char(string="信号名称", required=True)
+#     address = fields.Char(string="地址", required=True)  # 如 Q0.0, Q0.1等
+#     value = fields.Boolean(string="状态")
+#     wcs_id = fields.Many2one('warehouse.control.system', string="控制系统", ondelete='cascade')
+#
 
 
 

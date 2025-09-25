@@ -2,6 +2,7 @@
 from odoo import models, fields, api
 from .warehouse_system_operate import WarehouseSystemOperate
 from .plc_connect import PlcClient
+import time
 import logging
 _logger = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
@@ -58,57 +59,58 @@ class WarehouseSettings(models.Model):
           self.sync_location_write(272)
 
      def sync_location_write(self, address):
-          """传递到PLC进行写入"""
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
 
-          sync_building = self.sync_building
-          sync_column = self.sync_column
-          sync_layer = self.sync_layer
-          sync_location = self.sync_location
+         sync_building = self.sync_building
+         sync_column = self.sync_column
+         sync_layer = self.sync_layer
+         sync_location = self.sync_location
 
-          try:
-               # 批量写入
-               data_list = [
-                    {'value': sync_building, "db_number": 260, 'offset': address, 'value_type': 'int'},
-                    {'value': sync_column, "db_number": 260, 'offset': address + 2, 'value_type': 'int'},
-                    {'value': sync_layer, "db_number": 260, 'offset': address + 4, 'value_type': 'int'},
-                    {'value': sync_location, "db_number": 260, 'offset': address + 6, 'value_type': 'dint'},
+         try:
+             # 批量写入
+             data_list = [
+                 {'value': sync_building, "db_number": 260, 'offset': address, 'value_type': 'int'},
+                 {'value': sync_column, "db_number": 260, 'offset': address + 2, 'value_type': 'int'},
+                 {'value': sync_layer, "db_number": 260, 'offset': address + 4, 'value_type': 'int'},
+                 {'value': sync_location, "db_number": 260, 'offset': address + 6, 'value_type': 'dint'},
 
-               ]
-               for data in data_list:
-                    PlcClient().db_number_write(data)
-          except Exception as e:
-               _logger.error(f"库位信息写入失败！: {str(e)}")
-               raise
+             ]
+             for data in data_list:
+                 PlcClient().db_number_write(data)
+         except Exception as e:
+             _logger.error(f"库位信息写入失败！: {str(e)}")
+             raise
 
-          pass
+         pass
 
      def sync_information_write(self,location,address):
-          """传递到PLC进行写入"""
 
-          info_record = self.env['warehouse.location.information'].search(
-               [('location_number', '=', location)], limit=1)
+         info_record = self.env['warehouse.location.information'].search(
+             [('location_number', '=', location)], limit=1)
 
-          if info_record:
-               goods_status = info_record.goods_status
-               base_number = info_record.base_number
-               pack_number = info_record.pack_number
-               location_number = info_record.location_number
-               pack_barcode = info_record.pack_barcode
+         if info_record:
+             goods_status = info_record.goods_status
+             base_number = info_record.base_number
+             pack_number = info_record.pack_number
+             location_number = info_record.location_number
+             pack_barcode = info_record.pack_barcode
 
-          try:
-               # 批量写入
-               data_list = [
-                    {'value': goods_status, "db_number": 262, 'offset': address, 'bit_index': 0,'value_type': 'bool'},
-                    {'value': base_number, "db_number": 262, 'offset': address+2, 'value_type': 'int'},
-                    {'value': pack_number, "db_number": 262, 'offset': address+4, 'value_type': 'int'},
-                    {'value': location_number, "db_number": 262, 'offset': address+6, 'value_type': 'dint'},
-                    {'value': pack_barcode, "db_number": 262, 'offset': address+10, "string_max_len": 18,'value_type': 'string'}
-               ]
-               for data in data_list:
-                    PlcClient().db_number_write(data)
-          except Exception as e:
-               _logger.error(f"库位信息写入失败！: {str(e)}")
-               raise
+         try:
+             # 批量写入
+             data_list = [
+                 {'value': goods_status, "db_number": 262, 'offset': address, 'bit_index': 0, 'value_type': 'bool'},
+                 {'value': base_number, "db_number": 262, 'offset': address + 2, 'value_type': 'int'},
+                 {'value': pack_number, "db_number": 262, 'offset': address + 4, 'value_type': 'int'},
+                 {'value': location_number, "db_number": 262, 'offset': address + 6, 'value_type': 'dint'},
+                 {'value': pack_barcode, "db_number": 262, 'offset': address + 10, "string_max_len": 18,
+                  'value_type': 'string'}
+             ]
+             for data in data_list:
+                 PlcClient().db_number_write(data)
+         except Exception as e:
+             _logger.error(f"库位信息写入失败！: {str(e)}")
+             raise
 
      def sync_information_read(self, location,address):
           """读取测试-批量"""
@@ -151,129 +153,191 @@ class WarehouseSettings(models.Model):
                print(values_to_write)
 
      def sync_locations_read(self):
-          self.sync_information_read(self.sync_location, 0)
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
 
-          log_message = f"读取库位：{self.sync_location} 同步完成 ！"
-          _logger.info(log_message)
-          self.log_sync_location(log_message)
+         self.sync_information_read(self.sync_location, 64)
+         log_message = f"读取库位：{self.sync_location} 同步完成 ！"
+         _logger.info(log_message)
+         self.log_sync_location(log_message)
 
      def sync_locations_write(self):
-         self.sync_information_write(self.sync_location,32)
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
 
+         self.sync_information_write(self.sync_location,96)
          log_message = f"写入库位：{self.sync_location} 同步完成 ！"
          _logger.info(log_message)
          self.log_sync_location(log_message)
 
      def sync_building_read(self):
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
+         warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
+         setting_building = warehouse_settings.building
+         setting_column = warehouse_settings.column
+         setting_layer = warehouse_settings.layer
 
-         pass
+         # 遍历每栋楼
+         for building in range(1, setting_building + 1):
+             self.sync_building = building
+
+             # # 遍历每列
+             # for column in range(1, setting_column + 1):
+             #     self.sync_column = column
+             #
+             #     # 调用同步列读取方法
+             #     try:
+             #         self.sync_column_read()
+             #         _logger.info(f"完成同步栋 {building} 列 {column}")
+             #     except Exception as e:
+             #         _logger.error(f"同步栋 {building} 列 {column} 失败: {str(e)}")
+             #         # 记录错误但继续处理其他列
+             #         continue
+             #
+             #     # 等待0.5秒
+             #     time.sleep(0.5)
+
+             # 遍历每栋楼
+             for building in range(1, setting_building + 1):
+                 self.sync_building = building
+
+                 # 遍历每列
+                 for column in range(1, setting_column + 1):
+                     self.sync_column = column
+
+                     # 调用同步列读取方法
+                     try:
+                         self.sync_column_read()
+                         _logger.info(f"完成同步栋 {building} 列 {column}")
+                     except Exception as e:
+                         _logger.error(f"同步栋 {building} 列 {column} 失败: {str(e)}")
+                         # 记录错误但继续处理其他列
+                         continue
+
+                     # 当是每一列第一个位置时，调用sync_information_write方法写入并等待0.2s
+                     # 每列第一个位置即层号为1的位置
+                     first_layer = 1
+                     first_location = building * 10000 + column * 100 + first_layer
+                     try:
+                         # 使用读取时的起始地址128
+                         self.sync_information_write(first_location, 128)
+                         time.sleep(1.0)  # 等待0.2秒
+                     except Exception as e:
+                         _logger.error(f"写入栋 {building} 列 {column} 第一层位置失败: {str(e)}")
+                         # 记录错误但继续处理其他列
+                         continue
 
      def sync_building_write(self):
 
          pass
 
      def sync_column_read(self):
-          # 获取设定数据
-          warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
-          setting_building = warehouse_settings.building
-          setting_column = warehouse_settings.column
-          setting_layer = warehouse_settings.layer
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
+         warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
+         setting_building = warehouse_settings.building
+         setting_column = warehouse_settings.column
+         setting_layer = warehouse_settings.layer
 
-          building = self.sync_building
-          column = self.sync_column
-          layer = 0
-          start_address = 128
-          # 同步列数据，读取同一列的每一层数据进行同步
-          for i in range(0, setting_column):
-               layer += 1
-               location = building*10000 + column*100 + layer
-               try:
-                    self.sync_information_read(location, start_address)
-               except Exception as e:
-                    _logger.error(f"同步库位 {location} 失败: {str(e)}")
-                    # 记录错误但继续处理其他库位
-                    continue
-               start_address += 32
-               print(layer,location)
-          pass
+         building = self.sync_building
+         column = self.sync_column
+         layer = 0
+         start_address = 128
+         # 同步列数据，读取同一列的每一层数据进行同步
+         for i in range(0, setting_column):
+             layer += 1
+             location = building * 10000 + column * 100 + layer
+             try:
+                 self.sync_information_read(location, start_address)
+             except Exception as e:
+                 _logger.error(f"同步库位 {location} 失败: {str(e)}")
+                 # 记录错误但继续处理其他库位
+                 continue
+             start_address += 32
+             print(layer, location)
+         pass
 
      def sync_column_write(self):
-          # 获取设定数据
-          warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
-          setting_building = warehouse_settings.building
-          setting_column = warehouse_settings.column
-          setting_layer = warehouse_settings.layer
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
+         warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
+         setting_building = warehouse_settings.building
+         setting_column = warehouse_settings.column
+         setting_layer = warehouse_settings.layer
 
-          building = self.sync_building
-          column = self.sync_column
-          layer = 0
-          start_address = 768
+         building = self.sync_building
+         column = self.sync_column
+         layer = 0
+         start_address = 768
 
-          # 同步列数据，写入同一列的每一层数据进行同步
-          for i in range(0,setting_layer):
-               layer += 1
-               location = building*10000 + column*100 + layer
+         # 同步列数据，写入同一列的每一层数据进行同步
+         for i in range(0, setting_layer):
+             layer += 1
+             location = building * 10000 + column * 100 + layer
 
-               try:
-                    self.sync_information_write(location, start_address)
-               except Exception as e:
-                    _logger.error(f"同步库位 {location} 失败: {str(e)}")
-                    # 记录错误但继续处理其他库位
-                    continue
-               start_address += 32
-               print(layer,location)
+             try:
+                 self.sync_information_write(location, start_address)
+             except Exception as e:
+                 _logger.error(f"同步库位 {location} 失败: {str(e)}")
+                 # 记录错误但继续处理其他库位
+                 continue
+             start_address += 32
+             print(layer, location)
 
 
      def sync_layer_read(self):
-          # 获取设定数据
-          warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
-          setting_building = warehouse_settings.building
-          setting_column = warehouse_settings.column
-          setting_layer = warehouse_settings.layer
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
+         warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
+         setting_building = warehouse_settings.building
+         setting_column = warehouse_settings.column
+         setting_layer = warehouse_settings.layer
 
-          building = self.sync_building
-          column = 0
-          layer = self.sync_layer
-          start_address = 1408
-          # 同步层数据，读取不同列的同一层数据进行同步
-          for i in range(1, setting_column + 1):
-               column += 1
-               location = building * 10000 + column * 100 + layer
+         building = self.sync_building
+         column = 0
+         layer = self.sync_layer
+         start_address = 1408
+         # 同步层数据，读取不同列的同一层数据进行同步
+         for i in range(1, setting_column + 1):
+             column += 1
+             location = building * 10000 + column * 100 + layer
 
-               try:
-                    self.sync_information_read(location, start_address)
-               except Exception as e:
-                    _logger.error(f"同步库位 {location} 失败: {str(e)}")
-                    # 记录错误但继续处理其他库位
-                    continue
-               start_address += 32
-               print(column, location)
-          pass
+             try:
+                 self.sync_information_read(location, start_address)
+             except Exception as e:
+                 _logger.error(f"同步库位 {location} 失败: {str(e)}")
+                 # 记录错误但继续处理其他库位
+                 continue
+             start_address += 32
+             print(column, location)
+         pass
 
      def sync_layer_write(self):
-          # 获取设定数据
-          warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
-          setting_building = warehouse_settings.building
-          setting_column = warehouse_settings.column
-          setting_layer = warehouse_settings.layer
+         system_operate = self.env['warehouse.system.operate'].search([], limit=1)
+         system_operate.check_permissions()
+         warehouse_settings = self.env['warehouse.settings'].search([], limit=1)
+         setting_building = warehouse_settings.building
+         setting_column = warehouse_settings.column
+         setting_layer = warehouse_settings.layer
 
-          building = self.sync_building
-          column = 0
-          layer = self.sync_layer
-          start_address = 2048
-          # 同步层数据，写入不同列的同一层数据进行同步
-          for i in range(0, setting_column):
-               column += 1
-               location = building * 10000 + column * 100 + layer
+         building = self.sync_building
+         column = 0
+         layer = self.sync_layer
+         start_address = 2048
+         # 同步层数据，写入不同列的同一层数据进行同步
+         for i in range(0, setting_column):
+             column += 1
+             location = building * 10000 + column * 100 + layer
 
-               try:
-                    self.sync_information_write(location, start_address)
-               except Exception as e:
-                    _logger.error(f"同步库位 {location} 失败: {str(e)}")
-                    # 记录错误但继续处理其他库位
-                    continue
-               start_address += 32
-               print(layer,location)
+             try:
+                 self.sync_information_write(location, start_address)
+             except Exception as e:
+                 _logger.error(f"同步库位 {location} 失败: {str(e)}")
+                 # 记录错误但继续处理其他库位
+                 continue
+             start_address += 32
+             print(layer, location)
 
 
      # Logs
