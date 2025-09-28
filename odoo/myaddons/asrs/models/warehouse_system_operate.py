@@ -75,8 +75,10 @@ class WarehouseSystemOperate(models.Model):
     allow_store = fields.Boolean(string="允许入库")
     allow_outbound = fields.Boolean(string="允许出库")
     allow_return = fields.Boolean(string="允许返库")
+    load_data = fields.Boolean(string="加载数据")
     pack_number = fields.Integer(string='输入框号')
     base_number = fields.Integer(string='输入序号')
+    pack_number_old = fields.Integer(string='上次框号')
     location_number = fields.Integer(string='库位号')
     empty_location = fields.Integer(string="空库位")
     pack_number_find_code = fields.Char(string="框号查代码")
@@ -232,8 +234,11 @@ class WarehouseSystemOperate(models.Model):
                 raise UserError("任务执行中，不允许更改！")
             else:
                 record = self.browse(1)
-                if record.exists():
-                    record.write({'pack_number': self.pack_number})
+                if self.pack_number == 0:
+                    self.write({'pack_number': record.pack_number_old})
+                else:
+                    record.write({'pack_number': self.pack_number,
+                                  'pack_number_old': self.pack_number})
                     self.compare_pack_number()
                     self.command_data_write(2)
                     # self.refresh_fields_turn_on()
@@ -528,6 +533,8 @@ class WarehouseSystemOperate(models.Model):
         allow_store = record.allow_store
         allow_outbound = record.allow_outbound
         allow_return = record.allow_return
+
+        load_data = True
         pack_number = record.pack_number
         # base_number = record.base_number
         base_number = information_record.base_number
@@ -572,6 +579,7 @@ class WarehouseSystemOperate(models.Model):
                 {'value': allow_store, "db_number": 260, 'offset': address, 'bit_index': 5, 'value_type': 'bool'},
                 {'value': allow_outbound, "db_number": 260, 'offset': address, 'bit_index': 6, 'value_type': 'bool'},
                 {'value': allow_return, "db_number": 260, 'offset': address, 'bit_index': 7, 'value_type': 'bool'},
+                {'value': load_data, "db_number": 260, 'offset': address + 1, 'bit_index': 0, 'value_type': 'bool'},
                 {'value': entrance,"db_number": 260,'offset': address+2,'value_type': 'int'},
                 {'value': pack_number,"db_number": 260,'offset': address+4,'value_type': 'int'},
                 {'value': base_number, "db_number": 260, 'offset': address+6, 'value_type': 'int'},
@@ -1418,6 +1426,12 @@ class WarehouseSystemOperate(models.Model):
         record.reset = not record.reset
         PlcClient().db_number_write(
             {'value': record.reset, "db_number": 260,'offset': 0,'bit_index': 3, 'value_type': 'bool', })
+
+    def reload_data_button(self):
+        self.check_permissions()
+        self.target_data_check()
+        self._onchange_pack_number()
+
 
     def move_stock_button(self):
         record = self.browse(1)

@@ -202,7 +202,7 @@ class WarehouseControlSystem(models.Model):
             {'db_number': 260, 'offset': address+1, 'bit_index': 6, 'value_type': 'bool'},
             {'db_number': 260, 'offset': address+1, 'bit_index': 7, 'value_type': 'bool'},
 
-            {'db_number': 260, 'offset': address+2, 'value_type': 'int'},
+            {'db_number': 260, 'offset': address+4, 'value_type': 'int'},
 
         ]
         num = 0
@@ -246,12 +246,7 @@ class WarehouseControlSystem(models.Model):
 
             elif num == 17:
                 values_to_write['estate'] = value
-                # print(value)
-        # if values_to_write:
-        #     record = self.browse(6)
-        #     record.write(values_to_write)
-        #     # print(values_to_write)
-
+                print('read estate',value)
         if values_to_write:
             record = self.browse(1)
             # 检查哪些字段发生了变化
@@ -261,11 +256,10 @@ class WarehouseControlSystem(models.Model):
                 if old_value != new_value:
                     changed_fields[field] = new_value
                     _logger.info(f"field {field} changed，old value：{old_value}，new value：{new_value}")
-
+            print('estate change',changed_fields)
             # 只有当有字段发生变化时才更新并发送通知
             if changed_fields:
                 record.write(changed_fields)
-                print('control system', changed_fields)
                 # 发送通知到前端，只包含变化的字段
                 self.env['bus.bus']._sendone(
                     channel_with_db(self.env.cr.dbname, 'warehouse_control_update'),
